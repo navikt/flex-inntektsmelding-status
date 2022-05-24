@@ -13,11 +13,6 @@ version = "1.0.0"
 description = "flex-inntektsmelding-status"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
-ext["okhttp3.version"] = "4.9.0" // For at token support testen kjører (tror jeg)
-
-val githubUser: String by project
-val githubPassword: String by project
-
 repositories {
     mavenCentral()
     maven {
