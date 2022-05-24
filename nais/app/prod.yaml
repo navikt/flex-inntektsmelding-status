@@ -1,0 +1,6 @@
+kafkaPool: nav-prod
+environment: prod
+replicas_min: 1
+replicas_max: 2
+env:
+  SPRING_PROFILES_ACTIVE: default

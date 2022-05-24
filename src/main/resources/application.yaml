@@ -1,0 +1,44 @@
+server:
+  port: 8080
+
+spring:
+  main.banner-mode: 'off'
+  profiles:
+    active: default
+  kafka:
+    bootstrap-servers: ${KAFKA_BROKERS}
+    properties:
+      security.protocol: SSL
+      ssl:
+        keystore:
+          type: PKCS12
+          location: ${KAFKA_KEYSTORE_PATH}
+          password: ${KAFKA_CREDSTORE_PASSWORD}
+        truststore:
+          location: ${KAFKA_TRUSTSTORE_PATH}
+          password: ${KAFKA_CREDSTORE_PASSWORD}
+        endpoint.identification.algorithm:
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: "flex-inntektsmelding-status"
+      max-poll-records: 1
+      auto-offset-reset: earliest #TODO sett til none når offsett er etablert i prod
+      enable-auto-commit: false
+
+management:
+  endpoint:
+    prometheus.enabled: true
+    health.probes.enabled: true
+    health.show-details: always
+  endpoints.web:
+    base-path: "/internal"
+    exposure.include: health, prometheus
+  health:
+    livenessstate.enabled: true
+    readinessState.enabled: true
+  metrics.export.prometheus.enabled: true
+
+logging.config: "classpath:logback.xml"
+
+

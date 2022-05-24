@@ -1,0 +1,42 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: flex-inntektsmelding-status
+  namespace: flex
+  labels:
+    team: flex
+spec:
+  image: {{image}}
+  replicas:
+    min: {{replicas_min}}
+    max: {{replicas_max}}
+    cpuThresholdPercentage: 90
+  port: 8080
+  liveness:
+    path: /internal/health
+    initialDelay: 10
+    timeout: 5
+    periodSeconds: 5
+    failureThreshold: 30
+  readiness:
+    path: /internal/health
+    initialDelay: 30
+    periodSeconds: 5
+    timeout: 5
+  prometheus:
+    enabled: true
+    path: /internal/prometheus
+  resources:
+    limits:
+      cpu: 200m
+      memory: 200Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+  kafka:
+    pool: {{kafkaPool}}
+  env:
+  {{#each env}}
+     - name: {{@key}}
+       value: {{this}}
+  {{/each}}
