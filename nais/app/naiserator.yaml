@@ -7,6 +7,8 @@ metadata:
     team: flex
 spec:
   image: {{image}}
+  strategy:
+    type: Recreate
   replicas:
     min: {{replicas_min}}
     max: {{replicas_max}}
