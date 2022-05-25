@@ -1,6 +1,8 @@
 package no.nav.helse.flex
 
+import no.nav.helse.flex.melding.InntektsmeldingRepository
 import org.junit.jupiter.api.TestInstance
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.actuate.metrics.AutoConfigureMetrics
 import org.springframework.boot.test.context.SpringBootTest
 import org.testcontainers.containers.KafkaContainer
@@ -14,6 +16,9 @@ private class PostgreSQLContainer14 : PostgreSQLContainer<PostgreSQLContainer14>
 @AutoConfigureMetrics
 @SpringBootTest(classes = [Application::class])
 abstract class FellesTestOppsett() {
+
+    @Autowired
+    lateinit var inntektsmeldingRepository: InntektsmeldingRepository
 
     companion object {
 
