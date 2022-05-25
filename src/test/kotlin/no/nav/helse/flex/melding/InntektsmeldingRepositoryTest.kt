@@ -33,6 +33,3 @@ internal class InntektsmeldingRepositoryTest : FellesTestOppsett() {
         hentet!!.id `should be equal to` id
     }
 }
-
-
-
