@@ -1,15 +1,17 @@
-package no.nav.helse.flex.melding
+package no.nav.helse.flex.inntektsmelding
 
 import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.CrudRepository
 import org.springframework.stereotype.Repository
 import java.time.Instant
 import java.time.LocalDate
 
 @Repository
-interface InntektsmeldingRepository : CrudRepository<Inntektsmelding, String>
+interface InntektsmeldingRepository : CrudRepository<InntektsmeldingDbRecord, String>
 
-data class Inntektsmelding(
+@Table("inntektsmelding")
+data class InntektsmeldingDbRecord(
     @Id
     val id: String? = null,
     val fnr: String,
@@ -21,14 +23,3 @@ data class Inntektsmelding(
     val eksternTimestamp: Instant,
     val eksternId: String,
 )
-
-enum class MeldingStatus {
-    MANGLER,
-    MOTTATT,
-    BRUKERNOTIFIKSJON_SENDT,
-    DITT_SYKEFRAVAER_MELDING_SENDT,
-    BRUKERNOTIFIKSJON_LUKKET,
-    DITT_SYKEFRAVAER_LUKKET,
-    BRUKERNOTIFIKSJON_DONE_SENDT,
-    DITT_SYKEFRAVAER_DONE_SENDT,
-}

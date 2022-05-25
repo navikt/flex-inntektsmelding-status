@@ -1,4 +1,4 @@
-package no.nav.helse.flex.melding
+package no.nav.helse.flex.inntektsmelding
 
 import no.nav.helse.flex.FellesTestOppsett
 import org.amshove.kluent.`should be equal to`
@@ -15,7 +15,7 @@ internal class InntektsmeldingRepositoryTest : FellesTestOppsett() {
         val now = Instant.now()
         val fomTom = LocalDate.now()
 
-        val inntektsmelding = Inntektsmelding(
+        val inntektsmeldingDbRecord = InntektsmeldingDbRecord(
             fnr = "fnr",
             orgNr = "orgNr",
             orgNavn = "orgNavn",
@@ -26,10 +26,10 @@ internal class InntektsmeldingRepositoryTest : FellesTestOppsett() {
             eksternTimestamp = now.minusMillis(10000)
         )
 
-        val (id) = inntektsmeldingRepository.save(inntektsmelding)
+        val (id) = inntektsmeldingRepository.save(inntektsmeldingDbRecord)
 
-        val hentet = inntektsmeldingRepository.findByIdOrNull(id!!)
+        val hentet = inntektsmeldingRepository.findByIdOrNull(id!!)!!
 
-        hentet!!.id `should be equal to` id
+        hentet.fnr `should be equal to` inntektsmeldingDbRecord.fnr
     }
 }
