@@ -10,6 +10,12 @@ SERVICEUSER_PASSWORD: "pwd"
 spring:
   profiles:
     active: test
+  flyway:
+    enabled: true
+  datasource:
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 3
   kafka:
     bootstrap-servers: ${KAFKA_BROKERS}
     properties:

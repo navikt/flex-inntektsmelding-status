@@ -5,6 +5,15 @@ spring:
   main.banner-mode: 'off'
   profiles:
     active: default
+  flyway:
+    enabled: true
+  datasource:
+    url: "jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_DATABASE}?reWriteBatchedInserts=true"
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 5
   kafka:
     bootstrap-servers: ${KAFKA_BROKERS}
     properties:
@@ -23,7 +32,7 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       group-id: "flex-inntektsmelding-status"
       max-poll-records: 1
-      auto-offset-reset: earliest #TODO sett til none når offsett er etablert i prod
+      auto-offset-reset: none
       enable-auto-commit: false
 
 management:
