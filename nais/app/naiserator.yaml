@@ -31,11 +31,11 @@ spec:
     path: /internal/prometheus
   resources:
     limits:
-      cpu: 1000m
-      memory: 300Mi
+      cpu: 500m
+      memory: 400Mi
     requests:
       cpu: 100m
-      memory: 100Mi
+      memory: 200Mi
   kafka:
     pool: {{kafkaPool}}
   gcp:
