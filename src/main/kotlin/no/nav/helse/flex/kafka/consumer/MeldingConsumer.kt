@@ -9,10 +9,10 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 
-const val MELDING_TOPIC = "flex.ditt-sykefravaer-melding"
+const val MELDING_TOPIC = "flex." + "ditt-sykefravaer-melding"
 
 @Component
-class MeldingConsumer() {
+class MeldingConsumer {
 
     val log = logger()
 
@@ -21,6 +21,7 @@ class MeldingConsumer() {
         containerFactory = "kafkaListenerContainerFactory",
         properties = ["auto.offset.reset = earliest"],
         id = "ditt-sykefravaer-melding",
+        idIsGroup = false,
     )
     fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         prosesserKafkaMelding(cr.key(), cr.value())
