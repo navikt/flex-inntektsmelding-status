@@ -1,6 +1,7 @@
 package no.nav.helse.flex
 
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
+import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.actuate.metrics.AutoConfigureMetrics
@@ -19,6 +20,9 @@ abstract class FellesTestOppsett() {
 
     @Autowired
     lateinit var inntektsmeldingRepository: InntektsmeldingRepository
+
+    @Autowired
+    lateinit var inntektsmeldingStatusRepository: InntektsmeldingStatusRepository
 
     companion object {
 

@@ -1,7 +1,7 @@
 package no.nav.helse.flex.inntektsmelding
 
 import no.nav.helse.flex.FellesTestOppsett
-import org.amshove.kluent.`should be equal to`
+import org.amshove.kluent.shouldBeEqualTo
 import org.junit.jupiter.api.Test
 import org.springframework.data.repository.findByIdOrNull
 import java.time.Instant
@@ -11,10 +11,8 @@ internal class InntektsmeldingRepositoryTest : FellesTestOppsett() {
 
     @Test
     fun `Test Flyway-migrering`() {
-
         val now = Instant.now()
         val fomTom = LocalDate.now()
-
         val inntektsmeldingDbRecord = InntektsmeldingDbRecord(
             fnr = "fnr",
             orgNr = "orgNr",
@@ -26,10 +24,18 @@ internal class InntektsmeldingRepositoryTest : FellesTestOppsett() {
             eksternTimestamp = now.minusMillis(10000)
         )
 
-        val (id) = inntektsmeldingRepository.save(inntektsmeldingDbRecord)
+        val (inntektsmeldingId) = inntektsmeldingRepository.save(inntektsmeldingDbRecord)
+        val inntektsmeldingHentet = inntektsmeldingRepository.findByIdOrNull(inntektsmeldingId!!)!!
+        inntektsmeldingHentet.fnr shouldBeEqualTo inntektsmeldingDbRecord.fnr
 
-        val hentet = inntektsmeldingRepository.findByIdOrNull(id!!)!!
+        val inntektsmeldingStatusDbRecord = InntektsmeldingStatusDbRecord(
+            inntektsmeldingId = inntektsmeldingId,
+            opprettet = now,
+            status = InntektsmeldingStatus.MANGLER
+        )
 
-        hentet.fnr `should be equal to` inntektsmeldingDbRecord.fnr
+        val (inntektsmeldingStatusId) = inntektsmeldingStatusRepository.save(inntektsmeldingStatusDbRecord)
+        val inntektsmeldingStatusHentet = inntektsmeldingStatusRepository.findByIdOrNull(inntektsmeldingStatusId!!)!!
+        inntektsmeldingStatusHentet.status shouldBeEqualTo inntektsmeldingStatusDbRecord.status
     }
 }
