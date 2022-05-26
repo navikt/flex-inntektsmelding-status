@@ -5,8 +5,10 @@
         </encoder>
     </appender>
 
-    <root level="INFO">
+    <root level="WARN">
         <appender-ref ref="CONSOLE"/>
     </root>
+
+    <logger name="no.nav.helse.flex" level="INFO" additivity="false"/>
 
 </configuration>
