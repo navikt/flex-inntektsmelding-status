@@ -2,10 +2,13 @@ package no.nav.helse.flex
 
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
+import no.nav.helse.flex.inntektsmelding.StatusRepository
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.actuate.metrics.AutoConfigureMetrics
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.jdbc.core.JdbcTemplate
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
@@ -23,6 +26,12 @@ abstract class FellesTestOppsett() {
 
     @Autowired
     lateinit var inntektsmeldingStatusRepository: InntektsmeldingStatusRepository
+
+    @Autowired
+    lateinit var statusRepository: StatusRepository
+
+    @Autowired
+    lateinit var jdbcTemplate: JdbcTemplate
 
     companion object {
 
@@ -48,5 +57,15 @@ abstract class FellesTestOppsett() {
 
             threads.forEach { it.join() }
         }
+    }
+
+    @BeforeAll
+    fun forAlleTester() {
+        slettFraDatabase()
+    }
+
+    fun slettFraDatabase() {
+        jdbcTemplate.update("DELETE FROM inntektsmelding_status")
+        jdbcTemplate.update("DELETE FROM inntektsmelding")
     }
 }
