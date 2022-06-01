@@ -17,21 +17,21 @@ class StatusRepository(
         return namedParameterJdbcTemplate.queryForObject(
             """
             SELECT im.id,
-                   fnr,
-                   org_nr,
-                   org_navn,
+                   im.fnr,
+                   im.org_nr,
+                   im.org_navn,
                    im.opprettet,
-                   vedtak_fom,
-                   vedtak_tom,
-                   ekstern_timestamp,
-                   ekstern_id,
+                   im.vedtak_fom,
+                   im.vedtak_tom,
+                   im.ekstern_timestamp,
+                   im.ekstern_id,
                    status.id AS status_id,
                    status.status,
                    status.opprettet AS status_opprettet
             FROM inntektsmelding im
             INNER JOIN inntektsmelding_status status on status.inntektsmelding_id = im.id
             WHERE im.id = :inntektsmelding_id
-            ORDER BY status.opprettet                
+            ORDER BY status_opprettet               
             """,
             MapSqlParameterSource().addValue("inntektsmelding_id", inntektsmeldingId)
         ) { resultSet, _ ->
