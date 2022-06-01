@@ -1,6 +1,7 @@
 package no.nav.helse.flex.inntektsmelding
 
 import no.nav.helse.flex.FellesTestOppsett
+import org.amshove.kluent.`should be`
 import org.amshove.kluent.`should be equal to`
 import org.amshove.kluent.shouldHaveSize
 import org.junit.jupiter.api.BeforeEach
@@ -19,14 +20,14 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
 
     @Test
     fun `Hent inntektsmeldinger med angitt status`() {
-        lagInntektsmeldingMedStatus(InntektsmeldingStatus.MANGLER)
+        lagInntektsmeldingMedStatus(StatusVerdi.MANGLER)
         val andreId = lagInntektsmeldingMedStatus(
-            InntektsmeldingStatus.MANGLER,
-            InntektsmeldingStatus.BRUKERNOTIFIKSJON_LUKKET
+            StatusVerdi.MANGLER,
+            StatusVerdi.BRUKERNOTIFIKSJON_LUKKET
         )
 
         val inntektsmeldinger = statusRepository.hentAlleMedNyesteStatus(
-            InntektsmeldingStatus.BRUKERNOTIFIKSJON_LUKKET
+            StatusVerdi.BRUKERNOTIFIKSJON_LUKKET
         )
 
         inntektsmeldinger shouldHaveSize 1
@@ -35,15 +36,15 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
 
     @Test
     fun `Hent alle inntektsmeldigner med to forskjellige angitte statuser`() {
-        val forsteId = lagInntektsmeldingMedStatus(InntektsmeldingStatus.MANGLER)
+        val forsteId = lagInntektsmeldingMedStatus(StatusVerdi.MANGLER)
         val andreId = lagInntektsmeldingMedStatus(
-            InntektsmeldingStatus.MANGLER,
-            InntektsmeldingStatus.BRUKERNOTIFIKSJON_LUKKET
+            StatusVerdi.MANGLER,
+            StatusVerdi.BRUKERNOTIFIKSJON_LUKKET
         )
 
         val inntektsmeldinger = statusRepository.hentAlleMedNyesteStatus(
-            InntektsmeldingStatus.MANGLER,
-            InntektsmeldingStatus.BRUKERNOTIFIKSJON_LUKKET
+            StatusVerdi.MANGLER,
+            StatusVerdi.BRUKERNOTIFIKSJON_LUKKET
         )
 
         inntektsmeldinger shouldHaveSize 2
@@ -51,7 +52,23 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
         inntektsmeldinger.drop(1).first().id `should be equal to` andreId
     }
 
-    private fun lagInntektsmeldingMedStatus(vararg statuser: InntektsmeldingStatus): String {
+    @Test
+    fun `Hent inntektsmelding med statushistorikk`() {
+        val inntektsmeldingId = lagInntektsmeldingMedStatus(
+            StatusVerdi.MANGLER,
+            StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT,
+            StatusVerdi.BRUKERNOTIFIKSJON_SENDT
+        )
+
+        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingId)
+        inntektsmelding!!.id `should be equal to` inntektsmeldingId
+        inntektsmelding.statusHistorikk.size `should be equal to` 3
+        inntektsmelding.statusHistorikk.first().status `should be` StatusVerdi.MANGLER
+        inntektsmelding.statusHistorikk.drop(1).first().status `should be equal to` StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT
+        inntektsmelding.statusHistorikk.drop(2).first().status `should be equal to` StatusVerdi.BRUKERNOTIFIKSJON_SENDT
+    }
+
+    private fun lagInntektsmeldingMedStatus(vararg statuser: StatusVerdi): String {
         val localDate = LocalDate.now()
         val instant = Instant.now()
         val postfix = RandomStringUtils.randomAlphanumeric(3)
