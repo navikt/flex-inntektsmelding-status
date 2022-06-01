@@ -8,9 +8,11 @@ import no.nav.helse.flex.kafka.brukernotifikasjonDoneTopic
 import no.nav.helse.flex.logger
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 @Component
+@Profile("brukernot")
 class BrukernotifikasjonKafkaProducer(
     private val beskjedKafkaProducer: KafkaProducer<NokkelInput, BeskjedInput>,
     private val doneKafkaProducer: KafkaProducer<NokkelInput, DoneInput>

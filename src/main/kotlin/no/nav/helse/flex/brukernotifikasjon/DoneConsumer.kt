@@ -5,11 +5,13 @@ import no.nav.brukernotifikasjon.schemas.input.NokkelInput
 import no.nav.helse.flex.kafka.brukernotifikasjonDoneTopic
 import no.nav.helse.flex.logger
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.springframework.context.annotation.Profile
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 
 @Component
+@Profile("brukernot")
 class DoneConsumer {
 
     val log = logger()
