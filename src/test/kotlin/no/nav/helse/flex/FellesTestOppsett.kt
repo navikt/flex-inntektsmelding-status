@@ -20,7 +20,7 @@ private class PostgreSQLContainer14 : PostgreSQLContainer<PostgreSQLContainer14>
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureMetrics
 @SpringBootTest(classes = [Application::class])
-abstract class FellesTestOppsett() {
+abstract class FellesTestOppsett {
 
     @Autowired
     lateinit var inntektsmeldingRepository: InntektsmeldingRepository

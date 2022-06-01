@@ -2,9 +2,9 @@ KAFKA_TRUSTSTORE_PATH: ""
 KAFKA_CREDSTORE_PASSWORD: ""
 KAFKA_SECURITY_PROTOCOL: "PLAINTEXT"
 KAFKA_KEYSTORE_PATH: ""
-KAFKA_AUTO_OFFSET_RESET: "earliest"
-SERVICEUSER_USERNAME: "user"
-SERVICEUSER_PASSWORD: "pwd"
+KAFKA_SCHEMA_REGISTRY: "mock://url"
+KAFKA_SCHEMA_REGISTRY_USER: ""
+KAFKA_SCHEMA_REGISTRY_PASSWORD: ""
 
 spring:
   main.banner-mode: 'off'
@@ -16,16 +16,8 @@ spring:
     hikari:
       minimum-idle: 1
       maximum-pool-size: 3
-  kafka:
-    bootstrap-servers: ${KAFKA_BROKERS}
-    properties:
-      security.protocol: PLAINTEXT
-    consumer:
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      group-id: "flex-inntektsmelding-status"
-      max-poll-records: 1
-      auto-offset-reset: latest
-      enable-auto-commit: false
+
+aiven-kafka:
+  auto-offset-reset: latest
 
 logging.config: "classpath:logback-test.xml"
