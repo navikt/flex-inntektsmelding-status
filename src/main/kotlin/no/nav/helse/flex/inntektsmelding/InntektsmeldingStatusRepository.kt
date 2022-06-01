@@ -15,10 +15,10 @@ data class InntektsmeldingStatusDbRecord(
     val id: String? = null,
     val inntektsmeldingId: String,
     val opprettet: Instant,
-    val status: InntektsmeldingStatus,
+    val status: StatusVerdi,
 )
 
-enum class InntektsmeldingStatus {
+enum class StatusVerdi {
     MANGLER,
     MOTTATT,
     BRUKERNOTIFIKSJON_SENDT,
