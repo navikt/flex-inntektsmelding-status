@@ -1,5 +1,6 @@
 package no.nav.helse.flex
 
+import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
 import no.nav.helse.flex.inntektsmelding.StatusRepository
@@ -32,6 +33,9 @@ abstract class FellesTestOppsett() {
 
     @Autowired
     lateinit var jdbcTemplate: JdbcTemplate
+
+    @Autowired
+    lateinit var lockRepository: LockRepository
 
     companion object {
 
