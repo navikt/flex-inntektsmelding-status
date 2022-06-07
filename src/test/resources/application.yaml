@@ -6,7 +6,6 @@ KAFKA_AUTO_OFFSET_RESET: "earliest"
 SERVICEUSER_USERNAME: "user"
 SERVICEUSER_PASSWORD: "pwd"
 
-
 spring:
   main.banner-mode: 'off'
   profiles:
@@ -28,3 +27,5 @@ spring:
       max-poll-records: 1
       auto-offset-reset: latest
       enable-auto-commit: false
+
+logging.config: "classpath:logback-test.xml"
