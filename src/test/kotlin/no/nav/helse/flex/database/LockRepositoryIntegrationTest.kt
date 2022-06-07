@@ -18,25 +18,27 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
+private const val WAIT_FOR_MILLISECONDS = 1000L
+
 class LockRepositoryIntegrationTest : FellesTestOppsett() {
 
     @Autowired
-    private val transactionManager: PlatformTransactionManager? = null
+    private lateinit var transactionManager: PlatformTransactionManager
 
-    private var transactionTemplate: TransactionTemplate? = null
+    private lateinit var transactionTemplate: TransactionTemplate
 
     @BeforeEach
     fun setUp() {
-        transactionTemplate = TransactionTemplate(transactionManager!!)
+        transactionTemplate = TransactionTemplate(transactionManager)
     }
 
     @Test
-    fun `Sjekker at vi er en i transaksjon`() {
+    fun `Sjekk at kallet foregår i en i transaksjon`() {
         doInTransaction { require(TransactionSynchronizationManager.isActualTransactionActive()) }
     }
 
     @Test
-    fun `Feiler når vi ikke er i en transaksjon`() {
+    fun `Feiler når kallet ikke er i en transaksjon`() {
         invoking { lockRepository.settAdvisoryTransactionLock(1) } shouldThrow AnyException
     }
 
@@ -71,17 +73,18 @@ class LockRepositoryIntegrationTest : FellesTestOppsett() {
             }
         }
 
-        // Venter ett sekund før vi tillater transaksjonen som holder på låsen å avslutte.
-        TimeUnit.SECONDS.sleep(1L).let {
+        // Venter før vi tillater transaksjonen som holder på låsen å avslutte.
+        TimeUnit.MILLISECONDS.sleep(WAIT_FOR_MILLISECONDS).let {
             completer.complete(Any())
         }
 
         andreLatch.await()
-        Duration.between(firstTimestamp, secondTimestamp).toMillis() `should be in range` 1000L..1100L
+        Duration.between(firstTimestamp, secondTimestamp)
+            .toMillis() `should be in range` WAIT_FOR_MILLISECONDS..WAIT_FOR_MILLISECONDS + 100L
     }
 
     private fun doInTransaction(function: () -> Unit) {
-        transactionTemplate!!.execute {
+        transactionTemplate.execute {
             function()
         }
     }
