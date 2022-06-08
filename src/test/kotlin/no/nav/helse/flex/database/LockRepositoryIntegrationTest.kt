@@ -1,13 +1,15 @@
 package no.nav.helse.flex.database
 
 import no.nav.helse.flex.FellesTestOppsett
-import org.amshove.kluent.AnyException
 import org.amshove.kluent.invoking
+import org.amshove.kluent.`should be`
 import org.amshove.kluent.`should be in range`
 import org.amshove.kluent.shouldThrow
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.transaction.IllegalTransactionStateException
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate
@@ -18,7 +20,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
-private const val WAIT_FOR_MILLISECONDS = 1000L
+private const val FORSINKELSE = 1000L
 
 class LockRepositoryIntegrationTest : FellesTestOppsett() {
 
@@ -39,48 +41,51 @@ class LockRepositoryIntegrationTest : FellesTestOppsett() {
 
     @Test
     fun `Feiler når kallet ikke er i en transaksjon`() {
-        invoking { lockRepository.settAdvisoryTransactionLock(1) } shouldThrow AnyException
+        invoking { lockRepository.settAdvisoryTransactionLock(1) } shouldThrow IllegalTransactionStateException::class
     }
 
     @Test
     fun `Test at to transaksjoner ikke kan låse samtidig`() {
         val completer = CompletableFuture<Any>()
-        val forsteLatch = CountDownLatch(1)
-        val andreLatch = CountDownLatch(1)
+        val countDownLatch = CountDownLatch(2)
 
-        lateinit var firstTimestamp: Instant
-        lateinit var secondTimestamp: Instant
+        lateinit var forsteTimestamp: Instant
+        lateinit var andreTimestamp: Instant
 
         thread {
             doInTransaction {
                 lockRepository.settAdvisoryTransactionLock(1)
-                firstTimestamp = Instant.now()
-                forsteLatch.countDown()
+                forsteTimestamp = Instant.now()
+                countDownLatch.countDown()
                 // Venter på completion før transaksjonen avsluttes
                 completer.get()
             }
         }
 
         // Venter til vi vet at den første tråden har startet før vi starter en ny transaksjon.
-        forsteLatch.await()
+//        forsteLatch.await()
+
+        await().atMost(1L, TimeUnit.SECONDS).until { countDownLatch.count == 1L }
 
         thread {
             doInTransaction {
                 // Låsen i den andre transaksjonen skal ikke bli satt før den første er ferdig.
                 lockRepository.settAdvisoryTransactionLock(1)
-                secondTimestamp = Instant.now()
-                andreLatch.countDown()
+                andreTimestamp = Instant.now()
+                countDownLatch.countDown()
             }
         }
 
         // Venter før vi tillater transaksjonen som holder på låsen å avslutte.
-        TimeUnit.MILLISECONDS.sleep(WAIT_FOR_MILLISECONDS).let {
+        TimeUnit.MILLISECONDS.sleep(FORSINKELSE).let {
             completer.complete(Any())
         }
 
-        andreLatch.await()
-        Duration.between(firstTimestamp, secondTimestamp)
-            .toMillis() `should be in range` WAIT_FOR_MILLISECONDS..WAIT_FOR_MILLISECONDS + 100L
+        val completed = countDownLatch.await(1L, TimeUnit.SECONDS)
+        completed `should be` true
+
+        Duration.between(forsteTimestamp, andreTimestamp)
+            .toMillis() `should be in range` FORSINKELSE..FORSINKELSE + 200L
     }
 
     private fun doInTransaction(function: () -> Unit) {
