@@ -1,7 +1,9 @@
-package no.nav.helse.flex.inntektsmelding
+package no.nav.helse.flex.testdata
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.helse.flex.kafka.bomloInntektsmeldingManglerTopic
+import no.nav.helse.flex.inntektsmelding.InntekstmeldingService
+import no.nav.helse.flex.inntektsmelding.InntektsmeldingKafkaDto
+import no.nav.helse.flex.kafka.inntektsmeldingstatusTestdataTopic
 import no.nav.helse.flex.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.context.annotation.Profile
@@ -10,15 +12,15 @@ import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 
 @Component
-@Profile("bomlo")
-class InntektsmeldingConsumer(
+@Profile("testdata")
+class InntektsmeldingConsumerTestdata(
     private val inntekstmeldingService: InntekstmeldingService
 ) {
     @KafkaListener(
-        topics = [bomloInntektsmeldingManglerTopic],
+        topics = [inntektsmeldingstatusTestdataTopic],
         containerFactory = "aivenKafkaListenerContainerFactory",
         properties = ["auto.offset.reset = earliest"],
-        id = "flex-inntektsmelding-status-inntektsmelding",
+        id = "flex-inntektsmelding-status-inntektsmelding-testdata",
         idIsGroup = false,
     )
     fun listenToTest(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {

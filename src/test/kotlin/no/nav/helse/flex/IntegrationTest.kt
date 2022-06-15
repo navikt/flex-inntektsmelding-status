@@ -4,7 +4,7 @@ import no.nav.helse.flex.inntektsmelding.InntektsmeldingKafkaDto
 import no.nav.helse.flex.inntektsmelding.Status
 import no.nav.helse.flex.inntektsmelding.StatusVerdi
 import no.nav.helse.flex.inntektsmelding.Vedtaksperiode
-import no.nav.helse.flex.kafka.inntektsmeldingstatusTestdataTopic
+import no.nav.helse.flex.kafka.bomloInntektsmeldingManglerTopic
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldHaveSize
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -38,7 +38,7 @@ class IntegrationTest : FellesTestOppsett() {
 
         kafkaProducer.send(
             ProducerRecord(
-                inntektsmeldingstatusTestdataTopic,
+                bomloInntektsmeldingManglerTopic,
                 fnr,
                 InntektsmeldingKafkaDto(
                     id = eksternId,
