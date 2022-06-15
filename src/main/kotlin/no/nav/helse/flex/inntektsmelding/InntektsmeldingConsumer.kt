@@ -2,12 +2,10 @@ package no.nav.helse.flex.inntektsmelding
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.database.LockRepository
-import no.nav.helse.flex.kafka.bomloInntektsmeldingManglerTopic
 import no.nav.helse.flex.kafka.inntektsmeldingstatusTestdataTopic
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.springframework.context.annotation.Profile
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
@@ -31,20 +29,6 @@ class InntektsmeldingConsumer(
         idIsGroup = false,
     )
     fun listenToTest(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
-        prosesserKafkaMelding(cr.value())
-
-        acknowledgment.acknowledge()
-    }
-
-    @Profile("bomlo")
-    @KafkaListener(
-        topics = [bomloInntektsmeldingManglerTopic],
-        containerFactory = "aivenKafkaListenerContainerFactory",
-        properties = ["auto.offset.reset = earliest"],
-        id = "flex-inntektsmelding-status-inntektsmelding",
-        idIsGroup = false,
-    )
-    fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         prosesserKafkaMelding(cr.value())
 
         acknowledgment.acknowledge()
