@@ -2,10 +2,8 @@ package no.nav.helse.flex.inntektsmelding
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.database.LockRepository
-import no.nav.helse.flex.inntektsmelding.Hendelse.INNTEKTSMELDING_MANGLER
-import no.nav.helse.flex.inntektsmelding.Hendelse.INNTEKTSMELDING_MOTTATT
-import no.nav.helse.flex.inntektsmelding.Hendelse.VEDTAKSPERIODE_FORKASTET
 import no.nav.helse.flex.kafka.bomloInntektsmeldingManglerTopic
+import no.nav.helse.flex.kafka.inntektsmeldingstatusTestdataTopic
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -17,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
 @Component
-@Profile("bomlo")
 class InntektsmeldingConsumer(
     private val inntektsmeldingRepository: InntektsmeldingRepository,
     private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
@@ -27,6 +24,20 @@ class InntektsmeldingConsumer(
     val log = logger()
 
     @KafkaListener(
+        topics = [inntektsmeldingstatusTestdataTopic],
+        containerFactory = "aivenKafkaListenerContainerFactory",
+        properties = ["auto.offset.reset = earliest"],
+        id = "flex-inntektsmelding-status-inntektsmelding-testdata",
+        idIsGroup = false,
+    )
+    fun listenToTest(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+        prosesserKafkaMelding(cr.value())
+
+        acknowledgment.acknowledge()
+    }
+
+    @Profile("bomlo")
+    @KafkaListener(
         topics = [bomloInntektsmeldingManglerTopic],
         containerFactory = "aivenKafkaListenerContainerFactory",
         properties = ["auto.offset.reset = earliest"],
@@ -34,36 +45,33 @@ class InntektsmeldingConsumer(
         idIsGroup = false,
     )
     fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
-        prosesserKafkaMelding(cr.value(), cr.timestamp())
+        prosesserKafkaMelding(cr.value())
 
         acknowledgment.acknowledge()
     }
 
     @Transactional
-    fun prosesserKafkaMelding(
-        value: String,
-        timestamp: Long,
-    ) {
+    fun prosesserKafkaMelding(value: String) {
         val kafkaDto: InntektsmeldingKafkaDto = objectMapper.readValue(value)
 
-        log.info("Hendelse ${kafkaDto.hendelse} for ${kafkaDto.uuid}")
+        log.info("Hendelse ${kafkaDto.status} for ${kafkaDto.id}")
 
         // TODO: test med lock
         // lockRepository.settAdvisoryTransactionLock(kafkaDto.fnr)
 
-        var dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(kafkaDto.uuid.toString())?.id
+        var dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(kafkaDto.id)?.id
 
         if (dbId == null) {
             dbId = inntektsmeldingRepository.save(
                 InntektsmeldingDbRecord(
-                    fnr = kafkaDto.fnr.toString(),
-                    orgNr = kafkaDto.orgnummer,
+                    fnr = kafkaDto.sykmeldt,
+                    orgNr = kafkaDto.arbeidsgiver,
                     orgNavn = "", // TODO: Hent orgnavn
                     opprettet = Instant.now(),
-                    vedtakFom = kafkaDto.vedtaksperiodeFom,
-                    vedtakTom = kafkaDto.vedtaksperiodeTom,
-                    eksternId = kafkaDto.uuid.toString(),
-                    eksternTimestamp = Instant.ofEpochMilli(timestamp)
+                    vedtakFom = kafkaDto.vedtaksperiode.fom,
+                    vedtakTom = kafkaDto.vedtaksperiode.tom,
+                    eksternId = kafkaDto.id,
+                    eksternTimestamp = kafkaDto.tidspunkt.toInstant()
                 )
             ).id!!
         }
@@ -72,15 +80,17 @@ class InntektsmeldingConsumer(
             InntektsmeldingStatusDbRecord(
                 inntektsmeldingId = dbId,
                 opprettet = Instant.now(),
-                status = kafkaDto.hendelse.tilStatus()
+                status = kafkaDto.status.tilStatusVerdi()
             )
         )
     }
 
-    private fun Hendelse.tilStatus(): StatusVerdi {
+    private fun Status.tilStatusVerdi(): StatusVerdi {
         return when (this) {
-            INNTEKTSMELDING_MANGLER -> StatusVerdi.MANGLER
-            INNTEKTSMELDING_MOTTATT, VEDTAKSPERIODE_FORKASTET -> StatusVerdi.MOTTATT
+            Status.MANGLER_INNTEKTSMELDING -> StatusVerdi.MANGLER_INNTEKTSMELDING
+            Status.HAR_INNTEKTSMELDING -> StatusVerdi.HAR_INNTEKTSMELDING
+            Status.TRENGER_IKKE_INNTEKTSMELDING -> StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING
+            Status.BEHANDLES_UTENFOR_SPLEIS -> StatusVerdi.BEHANDLES_UTENFOR_SPLEIS
         }
     }
 }

@@ -1,19 +1,26 @@
 package no.nav.helse.flex.inntektsmelding
 
 import java.time.LocalDate
-import java.util.*
+import java.time.OffsetDateTime
 
 data class InntektsmeldingKafkaDto(
-    val uuid: UUID,
-    val fnr: Long,
-    val orgnummer: String,
-    val vedtaksperiodeFom: LocalDate,
-    val vedtaksperiodeTom: LocalDate,
-    val hendelse: Hendelse,
+    val id: String,
+    val status: Status,
+    val sykmeldt: String,
+    val arbeidsgiver: String,
+    val vedtaksperiode: Vedtaksperiode,
+    val tidspunkt: OffsetDateTime,
 )
 
-enum class Hendelse {
-    INNTEKTSMELDING_MANGLER,
-    INNTEKTSMELDING_MOTTATT,
-    VEDTAKSPERIODE_FORKASTET,
+data class Vedtaksperiode(
+    val id: String,
+    val fom: LocalDate,
+    val tom: LocalDate,
+)
+
+enum class Status {
+    MANGLER_INNTEKTSMELDING,
+    HAR_INNTEKTSMELDING,
+    TRENGER_IKKE_INNTEKTSMELDING,
+    BEHANDLES_UTENFOR_SPLEIS,
 }
