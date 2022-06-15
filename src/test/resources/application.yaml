@@ -9,7 +9,7 @@ KAFKA_SCHEMA_REGISTRY_PASSWORD: ""
 spring:
   main.banner-mode: 'off'
   profiles:
-    active: test, bomlo
+    active: test, bomlo, brukernot
   flyway:
     enabled: true
   datasource:
