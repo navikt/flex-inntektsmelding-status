@@ -48,7 +48,8 @@ class InntektsmeldingConsumer(
 
         log.info("Hendelse ${kafkaDto.hendelse} for ${kafkaDto.uuid}")
 
-        lockRepository.settAdvisoryTransactionLock(kafkaDto.fnr)
+        // TODO: test med lock
+        // lockRepository.settAdvisoryTransactionLock(kafkaDto.fnr)
 
         var dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(kafkaDto.uuid.toString())?.id
 
