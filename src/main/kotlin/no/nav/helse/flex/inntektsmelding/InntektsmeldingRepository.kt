@@ -8,7 +8,10 @@ import java.time.Instant
 import java.time.LocalDate
 
 @Repository
-interface InntektsmeldingRepository : CrudRepository<InntektsmeldingDbRecord, String>
+interface InntektsmeldingRepository : CrudRepository<InntektsmeldingDbRecord, String> {
+    fun existsByEksternId(eksternId: String): Boolean
+    fun findInntektsmeldingDbRecordByEksternId(eksternId: String): InntektsmeldingDbRecord?
+}
 
 @Table("inntektsmelding")
 data class InntektsmeldingDbRecord(

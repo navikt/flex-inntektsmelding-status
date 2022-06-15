@@ -7,7 +7,9 @@ import org.springframework.stereotype.Repository
 import java.time.Instant
 
 @Repository
-interface InntektsmeldingStatusRepository : CrudRepository<InntektsmeldingStatusDbRecord, String>
+interface InntektsmeldingStatusRepository : CrudRepository<InntektsmeldingStatusDbRecord, String> {
+    fun existsByInntektsmeldingId(inntektsmeldingId: String): Boolean
+}
 
 @Table("inntektsmelding_status")
 data class InntektsmeldingStatusDbRecord(
