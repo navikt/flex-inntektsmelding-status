@@ -16,13 +16,14 @@ class InntekstmeldingService(
 
     @Transactional
     fun prosesserKafkaMelding(kafkaDto: InntektsmeldingKafkaDto) {
+        val eksternId = kafkaDto.vedtaksperiode.id
 
-        log.info("Hendelse ${kafkaDto.status} for ${kafkaDto.id}")
+        log.info("Inntektsmelding status ${kafkaDto.status} for $eksternId")
 
         // TODO: test med lock
         // lockRepository.settAdvisoryTransactionLock(kafkaDto.fnr)
 
-        var dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(kafkaDto.id)?.id
+        var dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)?.id
 
         if (dbId == null) {
             dbId = inntektsmeldingRepository.save(
@@ -33,7 +34,7 @@ class InntekstmeldingService(
                     opprettet = Instant.now(),
                     vedtakFom = kafkaDto.vedtaksperiode.fom,
                     vedtakTom = kafkaDto.vedtaksperiode.tom,
-                    eksternId = kafkaDto.id,
+                    eksternId = eksternId,
                     eksternTimestamp = kafkaDto.tidspunkt.toInstant()
                 )
             ).id!!
