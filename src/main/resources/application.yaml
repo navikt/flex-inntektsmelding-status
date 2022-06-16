@@ -14,26 +14,9 @@ spring:
     hikari:
       minimum-idle: 1
       maximum-pool-size: 5
-  kafka:
-    bootstrap-servers: ${KAFKA_BROKERS}
-    properties:
-      security.protocol: SSL
-      ssl:
-        keystore:
-          type: PKCS12
-          location: ${KAFKA_KEYSTORE_PATH}
-          password: ${KAFKA_CREDSTORE_PASSWORD}
-        truststore:
-          location: ${KAFKA_TRUSTSTORE_PATH}
-          password: ${KAFKA_CREDSTORE_PASSWORD}
-        endpoint.identification.algorithm:
-    consumer:
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      group-id: "flex-inntektsmelding-status"
-      max-poll-records: 1
-      auto-offset-reset: none
-      enable-auto-commit: false
+
+aiven-kafka:
+  auto-offset-reset: none
 
 management:
   endpoint:
@@ -49,5 +32,3 @@ management:
   metrics.export.prometheus.enabled: true
 
 logging.config: "classpath:logback.xml"
-
-

@@ -20,9 +20,9 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
 
     @Test
     fun `Hent inntektsmeldinger med angitt status`() {
-        lagInntektsmeldingMedStatus(StatusVerdi.MANGLER)
+        lagInntektsmeldingMedStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
         val andreId = lagInntektsmeldingMedStatus(
-            StatusVerdi.MANGLER,
+            StatusVerdi.MANGLER_INNTEKTSMELDING,
             StatusVerdi.BRUKERNOTIFIKSJON_LUKKET
         )
 
@@ -36,14 +36,14 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
 
     @Test
     fun `Hent alle inntektsmeldigner med to forskjellige angitte statuser`() {
-        val forsteId = lagInntektsmeldingMedStatus(StatusVerdi.MANGLER)
+        val forsteId = lagInntektsmeldingMedStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
         val andreId = lagInntektsmeldingMedStatus(
-            StatusVerdi.MANGLER,
+            StatusVerdi.MANGLER_INNTEKTSMELDING,
             StatusVerdi.BRUKERNOTIFIKSJON_LUKKET
         )
 
         val inntektsmeldinger = statusRepository.hentAlleMedNyesteStatus(
-            StatusVerdi.MANGLER,
+            StatusVerdi.MANGLER_INNTEKTSMELDING,
             StatusVerdi.BRUKERNOTIFIKSJON_LUKKET
         )
 
@@ -55,7 +55,7 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
     @Test
     fun `Hent inntektsmelding med statushistorikk`() {
         val inntektsmeldingId = lagInntektsmeldingMedStatus(
-            StatusVerdi.MANGLER,
+            StatusVerdi.MANGLER_INNTEKTSMELDING,
             StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT,
             StatusVerdi.BRUKERNOTIFIKSJON_SENDT
         )
@@ -63,7 +63,7 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
         val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingId)
         inntektsmelding!!.id `should be equal to` inntektsmeldingId
         inntektsmelding.statusHistorikk.size `should be equal to` 3
-        inntektsmelding.statusHistorikk.first().status `should be` StatusVerdi.MANGLER
+        inntektsmelding.statusHistorikk.first().status `should be` StatusVerdi.MANGLER_INNTEKTSMELDING
         inntektsmelding.statusHistorikk.drop(1).first().status `should be equal to` StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT
         inntektsmelding.statusHistorikk.drop(2).first().status `should be equal to` StatusVerdi.BRUKERNOTIFIKSJON_SENDT
     }

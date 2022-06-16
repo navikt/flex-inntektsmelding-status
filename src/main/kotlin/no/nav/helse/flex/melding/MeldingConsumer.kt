@@ -1,15 +1,13 @@
-package no.nav.helse.flex.kafka.consumer
+package no.nav.helse.flex.melding
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.helse.flex.kafka.dittSykefravaerMeldingTopic
 import no.nav.helse.flex.logger
-import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
-
-const val MELDING_TOPIC = "flex." + "ditt-sykefravaer-melding"
 
 @Component
 class MeldingConsumer {
@@ -17,8 +15,8 @@ class MeldingConsumer {
     val log = logger()
 
     @KafkaListener(
-        topics = [MELDING_TOPIC],
-        containerFactory = "kafkaListenerContainerFactory",
+        topics = [dittSykefravaerMeldingTopic],
+        containerFactory = "aivenKafkaListenerContainerFactory",
         properties = ["auto.offset.reset = earliest"],
         id = "ditt-sykefravaer-melding",
         idIsGroup = false,

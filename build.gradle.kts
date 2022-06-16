@@ -15,16 +15,23 @@ java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
-    maven {
-        url = uri("https://maven.pkg.github.com/navikt/maven-release")
-    }
+
+    maven(url = "https://packages.confluent.io/maven/")
+
+    maven(url = "https://jitpack.io")
+
+    maven(url = uri("https://maven.pkg.github.com/navikt/maven-release"))
 }
 
 val testContainersVersion = "1.17.2"
 val logstashLogbackEncoderVersion = "7.2"
 val kluentVersion = "1.68"
+val brukernotifikasjonAvroVersion = "2.5.1"
+val confluentVersion = "7.1.0"
 
 dependencies {
+    implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
+    implementation("com.github.navikt:brukernotifikasjon-schemas:$brukernotifikasjonAvroVersion")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.kafka:spring-kafka")
@@ -65,5 +72,6 @@ tasks.withType<Test> {
     useJUnitPlatform()
     testLogging {
         events("STANDARD_OUT", "STARTED", "PASSED", "FAILED", "SKIPPED")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
 }

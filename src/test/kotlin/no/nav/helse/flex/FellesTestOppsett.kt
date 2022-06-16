@@ -20,7 +20,7 @@ private class PostgreSQLContainer14 : PostgreSQLContainer<PostgreSQLContainer14>
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureMetrics
 @SpringBootTest(classes = [Application::class])
-abstract class FellesTestOppsett() {
+abstract class FellesTestOppsett {
 
     @Autowired
     lateinit var inntektsmeldingRepository: InntektsmeldingRepository
@@ -46,7 +46,6 @@ abstract class FellesTestOppsett() {
                 KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.0.1")).apply {
                     start()
                     System.setProperty("KAFKA_BROKERS", bootstrapServers)
-                    System.setProperty("on-prem-kafka.bootstrap-servers", bootstrapServers)
                 }
             }.also { threads.add(it) }
 

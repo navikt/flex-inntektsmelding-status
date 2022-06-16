@@ -3,4 +3,4 @@ environment: dev
 replicas_min: 1
 replicas_max: 2
 env:
-  SPRING_PROFILES_ACTIVE: default,testdatareset
+  SPRING_PROFILES_ACTIVE: default,testdata

@@ -7,7 +7,9 @@ import org.springframework.stereotype.Repository
 import java.time.Instant
 
 @Repository
-interface InntektsmeldingStatusRepository : CrudRepository<InntektsmeldingStatusDbRecord, String>
+interface InntektsmeldingStatusRepository : CrudRepository<InntektsmeldingStatusDbRecord, String> {
+    fun existsByInntektsmeldingId(inntektsmeldingId: String): Boolean
+}
 
 @Table("inntektsmelding_status")
 data class InntektsmeldingStatusDbRecord(
@@ -19,8 +21,11 @@ data class InntektsmeldingStatusDbRecord(
 )
 
 enum class StatusVerdi {
-    MANGLER,
-    MOTTATT,
+    MANGLER_INNTEKTSMELDING,
+    HAR_INNTEKTSMELDING,
+    TRENGER_IKKE_INNTEKTSMELDING,
+    BEHANDLES_UTENFOR_SPLEIS,
+
     BRUKERNOTIFIKSJON_SENDT,
     DITT_SYKEFRAVAER_MELDING_SENDT,
     BRUKERNOTIFIKSJON_LUKKET,
