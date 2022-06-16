@@ -1,16 +1,9 @@
 package no.nav.helse.flex
 
-import no.nav.helse.flex.cronjob.BestillBeskjed
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
 import no.nav.helse.flex.inntektsmelding.StatusRepository
-import no.nav.helse.flex.kafka.brukernotifikasjonBeskjedTopic
-import no.nav.helse.flex.kafka.brukernotifikasjonDoneTopic
-import no.nav.helse.flex.kafka.dittSykefravaerMeldingTopic
-import org.amshove.kluent.shouldBeEmpty
-import org.apache.avro.generic.GenericRecord
-import org.apache.kafka.clients.consumer.Consumer
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,18 +37,6 @@ abstract class FellesTestOppsett {
     @Autowired
     lateinit var lockRepository: LockRepository
 
-    @Autowired
-    lateinit var bestillBeskjed: BestillBeskjed
-
-    @Autowired
-    lateinit var doneKafkaConsumer: Consumer<GenericRecord, GenericRecord>
-
-    @Autowired
-    lateinit var beskjedKafkaConsumer: Consumer<GenericRecord, GenericRecord>
-
-    @Autowired
-    lateinit var meldingKafkaConsumer: Consumer<String, String>
-
     companion object {
 
         init {
@@ -79,17 +60,6 @@ abstract class FellesTestOppsett {
 
             threads.forEach { it.join() }
         }
-    }
-
-    @BeforeAll
-    fun `Vi leser beskjed, done og melding kafka topicet og feiler om noe eksisterer`() {
-        beskjedKafkaConsumer.subscribeHvisIkkeSubscribed(brukernotifikasjonBeskjedTopic)
-        doneKafkaConsumer.subscribeHvisIkkeSubscribed(brukernotifikasjonDoneTopic)
-        meldingKafkaConsumer.subscribeHvisIkkeSubscribed(dittSykefravaerMeldingTopic)
-
-        beskjedKafkaConsumer.hentProduserteRecords().shouldBeEmpty()
-        doneKafkaConsumer.hentProduserteRecords().shouldBeEmpty()
-        meldingKafkaConsumer.hentProduserteRecords().shouldBeEmpty()
     }
 
     @BeforeAll

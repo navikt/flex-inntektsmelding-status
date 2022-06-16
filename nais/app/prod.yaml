@@ -4,4 +4,3 @@ replicas_min: 1
 replicas_max: 2
 env:
   SPRING_PROFILES_ACTIVE: default
-  INNTEKTSMELDING_MANGLER_URL: https://www.nav.no/syk/sykefravaer/inntektsmelding
