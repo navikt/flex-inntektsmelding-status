@@ -39,6 +39,7 @@ class StatusRepository(
         }
     }
 
+    // TODO: Skjønner ikke helt hvordan denne funker :thinking:
     fun hentAlleMedNyesteStatus(vararg harStatus: StatusVerdi): List<InntektsmeldingMedStatus> {
         return namedParameterJdbcTemplate.query(
             """

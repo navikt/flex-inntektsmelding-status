@@ -6,14 +6,14 @@ import no.nav.brukernotifikasjon.schemas.input.NokkelInput
 import no.nav.helse.flex.kafka.brukernotifikasjonBeskjedTopic
 import no.nav.helse.flex.kafka.brukernotifikasjonDoneTopic
 import no.nav.helse.flex.logger
-import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.stereotype.Component
 
 @Component
 class BrukernotifikasjonKafkaProducer(
-    private val beskjedKafkaProducer: KafkaProducer<NokkelInput, BeskjedInput>,
-    private val doneKafkaProducer: KafkaProducer<NokkelInput, DoneInput>
+    private val beskjedKafkaProducer: Producer<NokkelInput, BeskjedInput>,
+    private val doneKafkaProducer: Producer<NokkelInput, DoneInput>
 ) {
     val log = logger()
 

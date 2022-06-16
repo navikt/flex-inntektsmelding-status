@@ -21,7 +21,7 @@ class InntektsmeldingConsumer(
         id = "flex-inntektsmelding-status-inntektsmelding",
         idIsGroup = false,
     )
-    fun listenToTest(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+    fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val kafkaDto: InntektsmeldingKafkaDto = objectMapper.readValue(cr.value())
 
         inntekstmeldingService.prosesserKafkaMelding(kafkaDto)
