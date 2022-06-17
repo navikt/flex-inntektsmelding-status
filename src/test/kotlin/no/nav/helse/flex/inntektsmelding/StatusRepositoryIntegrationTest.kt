@@ -35,7 +35,7 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
     }
 
     @Test
-    fun `Hent alle inntektsmeldigner med to forskjellige angitte statuser`() {
+    fun `Hent alle inntektsmeldinger med to forskjellige angitte statuser`() {
         val forsteId = lagInntektsmeldingMedStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
         val andreId = lagInntektsmeldingMedStatus(
             StatusVerdi.MANGLER_INNTEKTSMELDING,
@@ -50,6 +50,15 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
         inntektsmeldinger shouldHaveSize 2
         inntektsmeldinger.first().id `should be equal to` forsteId
         inntektsmeldinger.drop(1).first().id `should be equal to` andreId
+    }
+
+    @Test
+    fun `Hent inntektsmelding med statushistorikk før første status er lagret`() {
+        val inntektsmeldingId = lagInntektsmeldingMedStatus()
+
+        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingId)
+        inntektsmelding!!.id `should be equal to` inntektsmeldingId
+        inntektsmelding.statusHistorikk.size `should be equal to` 0
     }
 
     @Test

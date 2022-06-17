@@ -29,9 +29,9 @@ class StatusRepository(
                    status.status,
                    status.opprettet AS status_opprettet
             FROM inntektsmelding im
-            INNER JOIN inntektsmelding_status status on status.inntektsmelding_id = im.id
+            LEFT JOIN inntektsmelding_status status on status.inntektsmelding_id = im.id
             WHERE im.id = :inntektsmelding_id
-            ORDER BY status_opprettet               
+            ORDER BY status_opprettet
             """,
             MapSqlParameterSource().addValue("inntektsmelding_id", inntektsmeldingId)
         ) { resultSet, _ ->
@@ -87,7 +87,11 @@ class StatusRepository(
     }
 
     private fun ResultSet.tilInntektsmeldingMedStatusHistorikk(): InntektsmeldingMedStatusHistorikk {
-        val statusVerdier = mutableListOf(mapInntektsmeldingStatus())
+        val statusVerdier = if (this.getString("status_id") != null) {
+            mutableListOf(mapInntektsmeldingStatus())
+        } else {
+            mutableListOf()
+        }
 
         val inntektsmelding = InntektsmeldingMedStatusHistorikk(
             id = getString("id"),
@@ -111,9 +115,9 @@ class StatusRepository(
 
     private fun ResultSet.mapInntektsmeldingStatus() =
         InntektsmeldingStatus(
-            id = getString("id"),
+            id = getString("status_id"),
             status = StatusVerdi.valueOf(getString("status")),
-            opprettet = getTimestamp("opprettet").toInstant(),
+            opprettet = getTimestamp("status_opprettet").toInstant(),
         )
 }
 
