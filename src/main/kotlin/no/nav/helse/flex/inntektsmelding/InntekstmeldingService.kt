@@ -10,6 +10,7 @@ import java.time.Instant
 class InntekstmeldingService(
     private val inntektsmeldingRepository: InntektsmeldingRepository,
     private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
+    private val statusRepository: StatusRepository,
     private val lockRepository: LockRepository,
 ) {
     val log = logger()
@@ -23,6 +24,18 @@ class InntekstmeldingService(
         // TODO: test med lock
         // lockRepository.settAdvisoryTransactionLock(kafkaDto.fnr)
 
+        val dbId = lagreInntektsmeldingHvisDenIkkeFinnesAllerede(kafkaDto, eksternId)
+        val inntektsmeldingMedStatusHistorikk = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
+
+        when (kafkaDto.status) {
+            Status.MANGLER_INNTEKTSMELDING -> manglerInntektsmelding(kafkaDto, dbId, inntektsmeldingMedStatusHistorikk)
+            Status.HAR_INNTEKTSMELDING -> harInntektsmelding(kafkaDto, dbId, inntektsmeldingMedStatusHistorikk)
+            Status.TRENGER_IKKE_INNTEKTSMELDING -> trengerIkkeInntektsmelding(kafkaDto, dbId, inntektsmeldingMedStatusHistorikk)
+            Status.BEHANDLES_UTENFOR_SPLEIS -> behandlesUtenforSplies(kafkaDto, dbId, inntektsmeldingMedStatusHistorikk)
+        }
+    }
+
+    private fun lagreInntektsmeldingHvisDenIkkeFinnesAllerede(kafkaDto: InntektsmeldingKafkaDto, eksternId: String): String {
         var dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)?.id
 
         if (dbId == null) {
@@ -40,6 +53,23 @@ class InntekstmeldingService(
             ).id!!
         }
 
+        return dbId
+    }
+
+    private fun manglerInntektsmelding(
+        kafkaDto: InntektsmeldingKafkaDto,
+        dbId: String,
+        statusHistorikk: InntektsmeldingMedStatusHistorikk
+    ) {
+        if (statusHistorikk.statusHistorikk.isNotEmpty()) {
+            if (statusHistorikk.statusHistorikk.size == 1 && statusHistorikk.statusHistorikk.first().status == StatusVerdi.MANGLER_INNTEKTSMELDING) {
+                log.info("Inntektsmelding ${kafkaDto.vedtaksperiode.id} har allerede status for MANGLER_INNTEKTSMELDING, lagrer ikke dublikat")
+                return
+            }
+
+            throw RuntimeException("Inntektsmelding ${kafkaDto.vedtaksperiode.id} med status MANGLER_INNTEKTSMELDING har allerede disse statusene ${statusHistorikk.statusHistorikk.map { it.status }}")
+        }
+
         inntektsmeldingStatusRepository.save(
             InntektsmeldingStatusDbRecord(
                 inntektsmeldingId = dbId,
@@ -47,6 +77,38 @@ class InntekstmeldingService(
                 status = kafkaDto.status.tilStatusVerdi()
             )
         )
+    }
+
+    private fun harInntektsmelding(
+        kafkaDto: InntektsmeldingKafkaDto,
+        dbId: String,
+        statusHistorikk: InntektsmeldingMedStatusHistorikk
+    ) {
+        log.info("harInntektsmelding $kafkaDto $dbId $statusHistorikk")
+        // if brukernot beskjed, send done, ny beskjed inntektsmelding mottatt
+        // if dittsykefravær melding, send lukkmelding, ny melding inntektsmelding mottatt
+        // if første status, lagre og ok
+    }
+
+    private fun trengerIkkeInntektsmelding(
+        kafkaDto: InntektsmeldingKafkaDto,
+        dbId: String,
+        statusHistorikk: InntektsmeldingMedStatusHistorikk
+    ) {
+        log.info("trengerIkkeInntektsmelding $kafkaDto $dbId $statusHistorikk")
+        // if brukernot beskjed, send done
+        // if dittsykefravær melding, send lukkmelding
+        // if første status, lagre og ok
+    }
+
+    private fun behandlesUtenforSplies(
+        kafkaDto: InntektsmeldingKafkaDto,
+        dbId: String,
+        statusHistorikk: InntektsmeldingMedStatusHistorikk
+    ) {
+        log.info("behandlesUtenforSplies $kafkaDto $dbId $statusHistorikk")
+        // if ikke første status, kast feil
+        // else lagre og ok
     }
 
     private fun Status.tilStatusVerdi(): StatusVerdi {
