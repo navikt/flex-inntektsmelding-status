@@ -26,8 +26,6 @@ class InntekstmeldingService(
     fun prosesserKafkaMelding(kafkaDto: InntektsmeldingKafkaDto) {
         val eksternId = kafkaDto.vedtaksperiode.id
 
-        log.info("Inntektsmelding status ${kafkaDto.status} for $eksternId")
-
         // TODO: test med lock
         // lockRepository.settAdvisoryTransactionLock(kafkaDto.fnr)
 
@@ -58,6 +56,8 @@ class InntekstmeldingService(
                     eksternTimestamp = kafkaDto.tidspunkt.toInstant()
                 )
             ).id!!
+
+            log.info("Lagret ny inntektsmelding periode $eksternId")
         }
 
         return dbId
@@ -84,6 +84,8 @@ class InntekstmeldingService(
                 status = kafkaDto.status.tilStatusVerdi()
             )
         )
+
+        log.info("Inntektsmelding ${kafkaDto.vedtaksperiode.id} er lagret med status ${kafkaDto.status.tilStatusVerdi()}")
     }
 
     private fun harInntektsmelding(
