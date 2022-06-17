@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.listener.ContainerProperties
+import kotlin.random.Random.Default.nextInt
 
 @Configuration
 class AivenConsumer(
@@ -18,8 +19,8 @@ class AivenConsumer(
     private fun simpleConsumerConfig() = mapOf(
         ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
         ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-        ConsumerConfig.GROUP_ID_CONFIG to "flex-inntektsmelding-status",
-        ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to kafkaAutoOffsetReset,
+        ConsumerConfig.GROUP_ID_CONFIG to "flex-inntektsmelding-status-${nextInt()}",
+        ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
         ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
         ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 1,
     ) + aivenKafkaConfig.commonConfig()

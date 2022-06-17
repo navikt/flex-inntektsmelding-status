@@ -5,6 +5,7 @@ import no.nav.helse.flex.logger
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import javax.annotation.PostConstruct
 
 @Component
 class InntekstmeldingService(
@@ -14,6 +15,12 @@ class InntekstmeldingService(
     private val lockRepository: LockRepository,
 ) {
     val log = logger()
+
+    @PostConstruct
+    fun cleanDB() {
+        inntektsmeldingStatusRepository.deleteAll()
+        inntektsmeldingRepository.deleteAll()
+    }
 
     @Transactional
     fun prosesserKafkaMelding(kafkaDto: InntektsmeldingKafkaDto) {
