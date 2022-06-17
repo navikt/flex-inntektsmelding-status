@@ -1,10 +1,18 @@
 package no.nav.helse.flex.inntektsmelding
 
+import no.nav.brukernotifikasjon.schemas.builders.DoneInputBuilder
+import no.nav.brukernotifikasjon.schemas.builders.NokkelInputBuilder
+import no.nav.helse.flex.brukernotifikasjon.BrukernotifikasjonKafkaProducer
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.logger
+import no.nav.helse.flex.melding.LukkMelding
+import no.nav.helse.flex.melding.MeldingKafkaDto
+import no.nav.helse.flex.melding.MeldingKafkaProducer
+import no.nav.helse.flex.util.tilOsloInstant
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import java.time.LocalDateTime
 import javax.annotation.PostConstruct
 
 @Component
@@ -12,6 +20,8 @@ class InntekstmeldingService(
     private val inntektsmeldingRepository: InntektsmeldingRepository,
     private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
     private val statusRepository: StatusRepository,
+    private val brukernotifikasjonKafkaProducer: BrukernotifikasjonKafkaProducer,
+    private val meldingKafkaProducer: MeldingKafkaProducer,
     private val lockRepository: LockRepository,
 ) {
     val log = logger()
@@ -35,12 +45,19 @@ class InntekstmeldingService(
         when (kafkaDto.status) {
             Status.MANGLER_INNTEKTSMELDING -> manglerInntektsmelding(kafkaDto, dbId, inntektsmeldingMedStatusHistorikk)
             Status.HAR_INNTEKTSMELDING -> harInntektsmelding(kafkaDto, dbId, inntektsmeldingMedStatusHistorikk)
-            Status.TRENGER_IKKE_INNTEKTSMELDING -> trengerIkkeInntektsmelding(kafkaDto, dbId, inntektsmeldingMedStatusHistorikk)
+            Status.TRENGER_IKKE_INNTEKTSMELDING -> trengerIkkeInntektsmelding(
+                kafkaDto,
+                dbId,
+                inntektsmeldingMedStatusHistorikk
+            )
             Status.BEHANDLES_UTENFOR_SPLEIS -> behandlesUtenforSplies(kafkaDto, dbId, inntektsmeldingMedStatusHistorikk)
         }
     }
 
-    private fun lagreInntektsmeldingHvisDenIkkeFinnesAllerede(kafkaDto: InntektsmeldingKafkaDto, eksternId: String): String {
+    private fun lagreInntektsmeldingHvisDenIkkeFinnesAllerede(
+        kafkaDto: InntektsmeldingKafkaDto,
+        eksternId: String
+    ): String {
         var dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)?.id
 
         if (dbId == null) {
@@ -93,10 +110,76 @@ class InntekstmeldingService(
         dbId: String,
         statusHistorikk: InntektsmeldingMedStatusHistorikk
     ) {
-        log.info("harInntektsmelding $kafkaDto $dbId $statusHistorikk")
-        // if brukernot beskjed, send done, ny beskjed inntektsmelding mottatt
-        // if dittsykefravær melding, send lukkmelding, ny melding inntektsmelding mottatt
-        // if første status, lagre og ok
+        inntektsmeldingStatusRepository.save(
+            InntektsmeldingStatusDbRecord(
+                inntektsmeldingId = dbId,
+                opprettet = Instant.now(),
+                status = kafkaDto.status.tilStatusVerdi()
+            )
+        )
+
+        if (statusHistorikk.statusHistorikk.isEmpty()) {
+            log.info("Inntektsmelding ${kafkaDto.vedtaksperiode.id} har inntektsmelding, gjør ingenting")
+            return
+        }
+
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_SENDT }) {
+            if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT }) {
+                log.info("Inntektsmelding ${kafkaDto.vedtaksperiode.id} har mottatt inntektsmelding og brukernotifikasjon er allerede donet")
+            } else {
+                brukernotifikasjonKafkaProducer.sendDonemelding(
+                    NokkelInputBuilder()
+                        .withAppnavn("flex-inntektsmelding-status")
+                        .withNamespace("flex")
+                        .withFodselsnummer(statusHistorikk.fnr)
+                        .withEventId(statusHistorikk.eksternId)
+                        .withGrupperingsId(statusHistorikk.eksternId)
+                        .build(),
+                    DoneInputBuilder()
+                        .withTidspunkt(LocalDateTime.now())
+                        .build()
+                )
+
+                inntektsmeldingStatusRepository.save(
+                    InntektsmeldingStatusDbRecord(
+                        inntektsmeldingId = dbId,
+                        opprettet = Instant.now(),
+                        status = StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT
+                    )
+                )
+
+                log.info("Inntektsmelding ${kafkaDto.vedtaksperiode.id} har mottatt inntektsmelding, donet brukernotifikasjonen")
+            }
+
+            // TODO: Send inntektsmelding mottatt beskjed
+        }
+
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MELDING_SENDT }) {
+            // TODO: Hvordan blir flyten når meldingen lukkes i fra ditt sykefravær, må vi også sjekke DITT_SYKEFRAVAER_LUKKET
+            if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_DONE_SENDT }) {
+                log.info("Inntektsmelding ${kafkaDto.vedtaksperiode.id} har mottatt inntektsmelding og ditt sykefravær melding er allerede donet")
+            } else {
+                meldingKafkaProducer.produserMelding(
+                    meldingUuid = statusHistorikk.eksternId,
+                    meldingKafkaDto = MeldingKafkaDto(
+                        fnr = statusHistorikk.fnr,
+                        lukkMelding = LukkMelding(
+                            timestamp = LocalDateTime.now().tilOsloInstant(),
+                        ),
+                    )
+                )
+
+                inntektsmeldingStatusRepository.save(
+                    InntektsmeldingStatusDbRecord(
+                        inntektsmeldingId = dbId,
+                        opprettet = Instant.now(),
+                        status = StatusVerdi.DITT_SYKEFRAVAER_DONE_SENDT
+                    )
+                )
+            }
+
+            // TODO: Send inntektsmelding mottatt melding
+        }
     }
 
     private fun trengerIkkeInntektsmelding(

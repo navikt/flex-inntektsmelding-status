@@ -17,6 +17,7 @@ class BrukernotifikasjonKafkaProducer(
 ) {
     val log = logger()
 
+    // TODO: Bygg input her
     fun opprettBrukernotifikasjonBeskjed(nokkel: NokkelInput, beskjed: BeskjedInput) {
         try {
             beskjedKafkaProducer.send(
@@ -32,6 +33,7 @@ class BrukernotifikasjonKafkaProducer(
         }
     }
 
+    // TODO: Bygg input her
     fun sendDonemelding(nokkel: NokkelInput, done: DoneInput) {
         try {
             doneKafkaProducer.send(
