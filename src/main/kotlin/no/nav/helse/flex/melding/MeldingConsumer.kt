@@ -17,7 +17,7 @@ class MeldingConsumer {
     @KafkaListener(
         topics = [dittSykefravaerMeldingTopic],
         containerFactory = "aivenKafkaListenerContainerFactory",
-        properties = ["auto.offset.reset = earliest"],
+        properties = ["auto.offset.reset = latest"],
         id = "ditt-sykefravaer-melding",
         idIsGroup = false,
     )
