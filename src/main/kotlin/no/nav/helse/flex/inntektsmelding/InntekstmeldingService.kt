@@ -1,8 +1,6 @@
 package no.nav.helse.flex.inntektsmelding
 
-import no.nav.brukernotifikasjon.schemas.builders.DoneInputBuilder
-import no.nav.brukernotifikasjon.schemas.builders.NokkelInputBuilder
-import no.nav.helse.flex.brukernotifikasjon.BrukernotifikasjonKafkaProducer
+import no.nav.helse.flex.brukernotifikasjon.Brukernotifikasjon
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.LukkMelding
@@ -20,7 +18,7 @@ class InntekstmeldingService(
     private val inntektsmeldingRepository: InntektsmeldingRepository,
     private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
     private val statusRepository: StatusRepository,
-    private val brukernotifikasjonKafkaProducer: BrukernotifikasjonKafkaProducer,
+    private val brukernotifikasjon: Brukernotifikasjon,
     private val meldingKafkaProducer: MeldingKafkaProducer,
     private val lockRepository: LockRepository,
 ) {
@@ -127,17 +125,9 @@ class InntekstmeldingService(
             if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT }) {
                 log.info("Inntektsmelding ${kafkaDto.vedtaksperiode.id} har mottatt inntektsmelding og brukernotifikasjon er allerede donet")
             } else {
-                brukernotifikasjonKafkaProducer.sendDonemelding(
-                    NokkelInputBuilder()
-                        .withAppnavn("flex-inntektsmelding-status")
-                        .withNamespace("flex")
-                        .withFodselsnummer(statusHistorikk.fnr)
-                        .withEventId(statusHistorikk.eksternId)
-                        .withGrupperingsId(statusHistorikk.eksternId)
-                        .build(),
-                    DoneInputBuilder()
-                        .withTidspunkt(LocalDateTime.now())
-                        .build()
+                brukernotifikasjon.sendDonemelding(
+                    fnr = statusHistorikk.fnr,
+                    eksternId = statusHistorikk.eksternId,
                 )
 
                 inntektsmeldingStatusRepository.save(
@@ -147,8 +137,6 @@ class InntekstmeldingService(
                         status = StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT
                     )
                 )
-
-                log.info("Inntektsmelding ${kafkaDto.vedtaksperiode.id} har mottatt inntektsmelding, donet brukernotifikasjonen")
             }
 
             // TODO: Send inntektsmelding mottatt beskjed

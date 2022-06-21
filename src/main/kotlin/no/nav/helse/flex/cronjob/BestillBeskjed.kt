@@ -1,8 +1,6 @@
 package no.nav.helse.flex.cronjob
 
-import no.nav.brukernotifikasjon.schemas.builders.BeskjedInputBuilder
-import no.nav.brukernotifikasjon.schemas.builders.NokkelInputBuilder
-import no.nav.helse.flex.brukernotifikasjon.BrukernotifikasjonKafkaProducer
+import no.nav.helse.flex.brukernotifikasjon.Brukernotifikasjon
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingMedStatus
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusDbRecord
@@ -20,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.net.URL
 import java.time.Instant
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
@@ -30,7 +27,7 @@ class BestillBeskjed(
     private val statusRepository: StatusRepository,
     private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
     private val lockRepository: LockRepository,
-    private val brukernotifikasjonKafkaProducer: BrukernotifikasjonKafkaProducer,
+    private val brukernotifikasjon: Brukernotifikasjon,
     private val meldingKafkaProducer: MeldingKafkaProducer,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
 ) {
@@ -46,7 +43,7 @@ class BestillBeskjed(
     }
 
     fun jobMedParameter(opprettetFor: Instant) {
-        var beskjederBestillt = 0
+        var beskjederBestilt = 0
 
         val manglerBeskjed = statusRepository
             .hentAlleMedNyesteStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
@@ -54,11 +51,11 @@ class BestillBeskjed(
 
         manglerBeskjed.forEach {
             opprettVarsler(it)
-            beskjederBestillt++
+            beskjederBestilt++
         }
 
-        if (beskjederBestillt > 0) {
-            log.info("Behandlet $beskjederBestillt antall inntektsmeldinger som mangler etter 4 måneder")
+        if (beskjederBestilt > 0) {
+            log.info("Behandlet $beskjederBestilt antall inntektsmeldinger som mangler etter 4 måneder")
         }
     }
 
@@ -89,21 +86,11 @@ class BestillBeskjed(
         inntektsmeldingMedStatus: InntektsmeldingMedStatus,
         now: LocalDateTime,
     ) {
-        brukernotifikasjonKafkaProducer.opprettBrukernotifikasjonBeskjed(
-            NokkelInputBuilder()
-                .withAppnavn("flex-inntektsmelding-status")
-                .withNamespace("flex")
-                .withFodselsnummer(inntektsmeldingMedStatus.fnr)
-                .withEventId(inntektsmeldingMedStatus.eksternId)
-                .withGrupperingsId(inntektsmeldingMedStatus.eksternId)
-                .build(),
-            BeskjedInputBuilder()
-                .withTidspunkt(now)
-                .withTekst("Vi mangler inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefravær f.o.m. ${inntektsmeldingMedStatus.vedtakFom.format(norskDateFormat)}. Se mer informasjon.")
-                .withLink(URL(inntektsmeldingManglerUrl))
-                .withSikkerhetsnivaa(4)
-                .withEksternVarsling(false)
-                .build()
+        brukernotifikasjon.beskjedManglerInntektsmelding(
+            fnr = inntektsmeldingMedStatus.fnr,
+            eksternId = inntektsmeldingMedStatus.eksternId,
+            orgNavn = inntektsmeldingMedStatus.orgNavn,
+            fom = inntektsmeldingMedStatus.vedtakFom,
         )
 
         inntektsmeldingStatusRepository.save(
@@ -113,8 +100,6 @@ class BestillBeskjed(
                 status = StatusVerdi.BRUKERNOTIFIKSJON_SENDT,
             )
         )
-
-        log.info("Bestillte beskjed for manglende inntektsmelding ${inntektsmeldingMedStatus.eksternId}")
     }
 
     private fun bestillMelding(
