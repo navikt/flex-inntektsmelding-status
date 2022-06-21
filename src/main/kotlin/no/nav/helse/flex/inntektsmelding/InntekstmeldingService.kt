@@ -139,10 +139,21 @@ class InntekstmeldingService(
         dbId: String,
         statusHistorikk: InntektsmeldingMedStatusHistorikk
     ) {
-        log.info("trengerIkkeInntektsmelding $kafkaDto $dbId $statusHistorikk")
-        // if brukernot beskjed, send done
-        // if dittsykefravær melding, send lukkmelding
-        // if første status, lagre og ok
+        inntektsmeldingStatusRepository.save(
+            InntektsmeldingStatusDbRecord(
+                inntektsmeldingId = dbId,
+                opprettet = Instant.now(),
+                status = kafkaDto.status.tilStatusVerdi()
+            )
+        )
+
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_SENDT }) {
+            doneBeskjed(statusHistorikk, dbId)
+        }
+
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MELDING_SENDT }) {
+            doneMelding(statusHistorikk, dbId)
+        }
     }
 
     private fun behandlesUtenforSplies(
