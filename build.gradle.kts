@@ -13,6 +13,9 @@ version = "1.0.0"
 description = "flex-inntektsmelding-status"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
+val githubUser: String by project
+val githubPassword: String by project
+
 repositories {
     mavenCentral()
 
@@ -20,7 +23,13 @@ repositories {
 
     maven(url = "https://jitpack.io")
 
-    maven(url = uri("https://maven.pkg.github.com/navikt/maven-release"))
+    maven {
+        url = uri("https://maven.pkg.github.com/navikt/maven-release")
+        credentials {
+            username = githubUser
+            password = githubPassword
+        }
+    }
 }
 
 val testContainersVersion = "1.17.2"
@@ -28,6 +37,7 @@ val logstashLogbackEncoderVersion = "7.2"
 val kluentVersion = "1.68"
 val brukernotifikasjonAvroVersion = "2.5.1"
 val confluentVersion = "7.1.0"
+val sykepengesoknadKafkaVersion = "2022.02.10-16.07-0892e94a"
 
 dependencies {
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
@@ -46,6 +56,7 @@ dependencies {
     implementation("org.postgresql:postgresql")
     implementation("org.flywaydb:flyway-core")
     implementation("io.micrometer:micrometer-registry-prometheus")
+    implementation("no.nav.helse.flex:sykepengesoknad-kafka:$sykepengesoknadKafkaVersion")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:kafka:$testContainersVersion")

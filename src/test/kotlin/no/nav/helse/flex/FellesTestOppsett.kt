@@ -4,6 +4,7 @@ import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
 import no.nav.helse.flex.inntektsmelding.StatusRepository
+import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,6 +31,9 @@ abstract class FellesTestOppsett {
 
     @Autowired
     lateinit var statusRepository: StatusRepository
+
+    @Autowired
+    lateinit var organisasjonRepository: OrganisasjonRepository
 
     @Autowired
     lateinit var jdbcTemplate: JdbcTemplate
