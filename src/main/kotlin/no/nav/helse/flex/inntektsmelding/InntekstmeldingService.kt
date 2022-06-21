@@ -85,11 +85,11 @@ class InntekstmeldingService(
     ) {
         if (statusHistorikk.statusHistorikk.isNotEmpty()) {
             if (statusHistorikk.statusHistorikk.size == 1 && statusHistorikk.statusHistorikk.first().status == StatusVerdi.MANGLER_INNTEKTSMELDING) {
-                log.info("Inntektsmelding ${kafkaDto.vedtaksperiode.id} har allerede status for MANGLER_INNTEKTSMELDING, lagrer ikke dublikat")
+                log.info("Inntektsmelding ${statusHistorikk.eksternId} har allerede status for MANGLER_INNTEKTSMELDING, lagrer ikke dublikat")
                 return
             }
 
-            throw RuntimeException("Inntektsmelding ${kafkaDto.vedtaksperiode.id} med status MANGLER_INNTEKTSMELDING har allerede disse statusene ${statusHistorikk.statusHistorikk.map { it.status }}")
+            throw RuntimeException("Inntektsmelding ${statusHistorikk.eksternId} med status MANGLER_INNTEKTSMELDING har allerede disse statusene ${statusHistorikk.statusHistorikk.map { it.status }}")
         }
 
         inntektsmeldingStatusRepository.save(
@@ -100,7 +100,7 @@ class InntekstmeldingService(
             )
         )
 
-        log.info("Inntektsmelding ${kafkaDto.vedtaksperiode.id} er lagret med status ${kafkaDto.status.tilStatusVerdi()}")
+        log.info("Inntektsmelding ${statusHistorikk.eksternId} er lagret med status ${kafkaDto.status.tilStatusVerdi()}")
     }
 
     private fun harInntektsmelding(
@@ -117,54 +117,18 @@ class InntekstmeldingService(
         )
 
         if (statusHistorikk.statusHistorikk.isEmpty()) {
-            log.info("Inntektsmelding ${kafkaDto.vedtaksperiode.id} har inntektsmelding, gjør ingenting")
+            log.info("Inntektsmelding ${statusHistorikk.eksternId} har inntektsmelding, gjør ingenting")
             return
         }
 
         if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_SENDT }) {
-            if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT }) {
-                log.info("Inntektsmelding ${kafkaDto.vedtaksperiode.id} har mottatt inntektsmelding og brukernotifikasjon er allerede donet")
-            } else {
-                brukernotifikasjon.sendDonemelding(
-                    fnr = statusHistorikk.fnr,
-                    eksternId = statusHistorikk.eksternId,
-                )
-
-                inntektsmeldingStatusRepository.save(
-                    InntektsmeldingStatusDbRecord(
-                        inntektsmeldingId = dbId,
-                        opprettet = Instant.now(),
-                        status = StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT
-                    )
-                )
-            }
+            doneBeskjed(statusHistorikk, dbId)
 
             // TODO: Send inntektsmelding mottatt beskjed
         }
 
         if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MELDING_SENDT }) {
-            // TODO: Hvordan blir flyten når meldingen lukkes i fra ditt sykefravær, må vi også sjekke DITT_SYKEFRAVAER_LUKKET
-            if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_DONE_SENDT }) {
-                log.info("Inntektsmelding ${kafkaDto.vedtaksperiode.id} har mottatt inntektsmelding og ditt sykefravær melding er allerede donet")
-            } else {
-                meldingKafkaProducer.produserMelding(
-                    meldingUuid = statusHistorikk.eksternId,
-                    meldingKafkaDto = MeldingKafkaDto(
-                        fnr = statusHistorikk.fnr,
-                        lukkMelding = LukkMelding(
-                            timestamp = LocalDateTime.now().tilOsloInstant(),
-                        ),
-                    )
-                )
-
-                inntektsmeldingStatusRepository.save(
-                    InntektsmeldingStatusDbRecord(
-                        inntektsmeldingId = dbId,
-                        opprettet = Instant.now(),
-                        status = StatusVerdi.DITT_SYKEFRAVAER_DONE_SENDT
-                    )
-                )
-            }
+            doneMelding(statusHistorikk, dbId)
 
             // TODO: Send inntektsmelding mottatt melding
         }
@@ -189,6 +153,56 @@ class InntekstmeldingService(
         log.info("behandlesUtenforSplies $kafkaDto $dbId $statusHistorikk")
         // if ikke første status, kast feil
         // else lagre og ok
+    }
+
+    private fun doneBeskjed(
+        statusHistorikk: InntektsmeldingMedStatusHistorikk,
+        dbId: String,
+    ) {
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT }) {
+            log.info("Inntektsmelding ${statusHistorikk.eksternId} har allerede donet brukernotifikasjon beskjed")
+        } else {
+            brukernotifikasjon.sendDonemelding(
+                fnr = statusHistorikk.fnr,
+                eksternId = statusHistorikk.eksternId,
+            )
+
+            inntektsmeldingStatusRepository.save(
+                InntektsmeldingStatusDbRecord(
+                    inntektsmeldingId = dbId,
+                    opprettet = Instant.now(),
+                    status = StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT
+                )
+            )
+        }
+    }
+
+    private fun doneMelding(
+        statusHistorikk: InntektsmeldingMedStatusHistorikk,
+        dbId: String,
+    ) {
+        // TODO: Hvordan blir flyten når meldingen lukkes i fra ditt sykefravær, må vi også sjekke DITT_SYKEFRAVAER_LUKKET
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_DONE_SENDT }) {
+            log.info("Inntektsmelding ${statusHistorikk.eksternId} har allerede donet ditt sykefravær melding")
+        } else {
+            meldingKafkaProducer.produserMelding(
+                meldingUuid = statusHistorikk.eksternId,
+                meldingKafkaDto = MeldingKafkaDto(
+                    fnr = statusHistorikk.fnr,
+                    lukkMelding = LukkMelding(
+                        timestamp = LocalDateTime.now().tilOsloInstant(),
+                    ),
+                )
+            )
+
+            inntektsmeldingStatusRepository.save(
+                InntektsmeldingStatusDbRecord(
+                    inntektsmeldingId = dbId,
+                    opprettet = Instant.now(),
+                    status = StatusVerdi.DITT_SYKEFRAVAER_DONE_SENDT
+                )
+            )
+        }
     }
 
     private fun Status.tilStatusVerdi(): StatusVerdi {
