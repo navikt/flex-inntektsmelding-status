@@ -39,3 +39,4 @@ const val brukernotifikasjonDoneTopic = "min-side." + "aapen-brukernotifikasjon-
 const val brukernotifikasjonBeskjedTopic = "min-side." + "aapen-brukernotifikasjon-beskjed-v1"
 const val bomloInntektsmeldingManglerTopic = "tbd." + "inntektsmeldingstatus"
 const val inntektsmeldingstatusTestdataTopic = "flex." + "inntektsmeldingstatus-testdata"
+const val sykepengesoknadTopic = "flex" + ".sykepengesoknad"

@@ -1,6 +1,7 @@
 package no.nav.helse.flex.organisasjon
 
 import no.nav.helse.flex.FellesTestOppsett
+import no.nav.helse.flex.kafka.sykepengesoknadTopic
 import no.nav.helse.flex.serialisertTilString
 import no.nav.helse.flex.sykepengesoknad.kafka.*
 import org.amshove.kluent.`should be equal to`
@@ -140,7 +141,7 @@ class OppdaterOrganisasjonTabellTest : FellesTestOppsett() {
     fun sendSykepengesoknad(soknad: SykepengesoknadDTO) {
         kafkaProducer.send(
             ProducerRecord(
-                FLEX_SYKEPENGESOKNAD_TOPIC,
+                sykepengesoknadTopic,
                 null,
                 soknad.id,
                 soknad.serialisertTilString()
