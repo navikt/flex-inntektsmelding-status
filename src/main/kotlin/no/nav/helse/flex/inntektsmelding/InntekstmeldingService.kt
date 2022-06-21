@@ -100,7 +100,7 @@ class InntekstmeldingService(
             )
         )
 
-        log.info("Inntektsmelding ${statusHistorikk.eksternId} er lagret med status ${kafkaDto.status.tilStatusVerdi()}")
+        log.info("Inntektsmelding ${statusHistorikk.eksternId} mangler inntektsmelding")
     }
 
     private fun harInntektsmelding(
@@ -161,9 +161,21 @@ class InntekstmeldingService(
         dbId: String,
         statusHistorikk: InntektsmeldingMedStatusHistorikk
     ) {
-        log.info("behandlesUtenforSplies $kafkaDto $dbId $statusHistorikk")
-        // if ikke første status, kast feil
-        // else lagre og ok
+        inntektsmeldingStatusRepository.save(
+            InntektsmeldingStatusDbRecord(
+                inntektsmeldingId = dbId,
+                opprettet = Instant.now(),
+                status = kafkaDto.status.tilStatusVerdi()
+            )
+        )
+
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_SENDT }) {
+            doneBeskjed(statusHistorikk, dbId)
+        }
+
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MELDING_SENDT }) {
+            doneMelding(statusHistorikk, dbId)
+        }
     }
 
     private fun doneBeskjed(
