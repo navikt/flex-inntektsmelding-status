@@ -79,7 +79,7 @@ class IntegrationTest : FellesTestOppsett() {
         inntektsmelding.vedtakTom shouldBeEqualTo tom
 
         inntektsmelding.statusHistorikk shouldHaveSize 1
-        inntektsmelding.statusHistorikk.first().status shouldBeEqualTo StatusVerdi.MANGLER_INNTEKTSMELDING
+        inntektsmelding.statusHistorikk.first() shouldBeEqualTo StatusVerdi.MANGLER_INNTEKTSMELDING
     }
 
     @Test
@@ -87,7 +87,7 @@ class IntegrationTest : FellesTestOppsett() {
     fun `Vi bestiller beskjed på ditt nav og melding på ditt sykefravær`() {
         bestillBeskjed.jobMedParameter(opprettetFor = OffsetDateTime.now(osloZone).toInstant())
 
-        val beskjedCR = beskjedKafkaConsumer.ventPåRecords(1)[0]
+        val beskjedCR = beskjedKafkaConsumer.ventPåRecords(1).first()
 
         val nokkelInput = beskjedCR.key()
         nokkelInput.get("appnavn") shouldBeEqualTo "flex-inntektsmelding-status"
@@ -103,7 +103,7 @@ class IntegrationTest : FellesTestOppsett() {
         beskjedInput.get("tekst") shouldBeEqualTo "Vi mangler inntektsmeldingen fra  for sykefravær f.o.m. 1. juni 2022. Se mer informasjon."
         beskjedInput.get("tidspunkt")
 
-        val meldingCR = meldingKafkaConsumer.ventPåRecords(1)[0]
+        val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
         meldingCR.key() shouldBeEqualTo eksternId
 
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())

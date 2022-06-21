@@ -67,13 +67,13 @@ class BestillBeskjed(
         val medAlleStatuser = statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingMedStatus.id)!!
         val now = LocalDateTime.now()
 
-        if (medAlleStatuser.statusHistorikk.none { it.status == StatusVerdi.MANGLER_INNTEKTSMELDING }) {
+        if (StatusVerdi.MANGLER_INNTEKTSMELDING !in medAlleStatuser.statusHistorikk) {
             log.warn("Inntektsmelding med ekstern id ${medAlleStatuser.eksternId} har ikke status MANGLER_INNTEKTSMELDING, dette skal ikke skje")
             return
         }
 
-        if (medAlleStatuser.statusHistorikk.any { it.status != StatusVerdi.MANGLER_INNTEKTSMELDING }) {
-            log.warn("Inntektsmelding med ekstern id ${medAlleStatuser.eksternId} kan ikke bestille beskjed med disse statusene ${medAlleStatuser.statusHistorikk.map { it.status }}")
+        if (medAlleStatuser.statusHistorikk.size > 1) {
+            log.warn("Inntektsmelding med ekstern id ${medAlleStatuser.eksternId} kan ikke bestille beskjed med disse statusene ${medAlleStatuser.statusHistorikk}")
             return
         }
 

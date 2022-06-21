@@ -81,15 +81,15 @@ class InntekstmeldingService(
     private fun manglerInntektsmelding(
         kafkaDto: InntektsmeldingKafkaDto,
         dbId: String,
-        statusHistorikk: InntektsmeldingMedStatusHistorikk
+        inntektsmelding: InntektsmeldingMedStatusHistorikk
     ) {
-        if (statusHistorikk.statusHistorikk.isNotEmpty()) {
-            if (statusHistorikk.statusHistorikk.size == 1 && statusHistorikk.statusHistorikk.first().status == StatusVerdi.MANGLER_INNTEKTSMELDING) {
-                log.info("Inntektsmelding ${statusHistorikk.eksternId} har allerede status for MANGLER_INNTEKTSMELDING, lagrer ikke dublikat")
+        if (inntektsmelding.statusHistorikk.isNotEmpty()) {
+            if (inntektsmelding.statusHistorikk.size == 1 && inntektsmelding.statusHistorikk.first() == StatusVerdi.MANGLER_INNTEKTSMELDING) {
+                log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede status for MANGLER_INNTEKTSMELDING, lagrer ikke dublikat")
                 return
             }
 
-            throw RuntimeException("Inntektsmelding ${statusHistorikk.eksternId} med status MANGLER_INNTEKTSMELDING har allerede disse statusene ${statusHistorikk.statusHistorikk.map { it.status }}")
+            throw RuntimeException("Inntektsmelding ${inntektsmelding.eksternId} med status MANGLER_INNTEKTSMELDING har allerede disse statusene ${inntektsmelding.statusHistorikk}")
         }
 
         inntektsmeldingStatusRepository.save(
@@ -100,13 +100,13 @@ class InntekstmeldingService(
             )
         )
 
-        log.info("Inntektsmelding ${statusHistorikk.eksternId} mangler inntektsmelding")
+        log.info("Inntektsmelding ${inntektsmelding.eksternId} mangler inntektsmelding")
     }
 
     private fun harInntektsmelding(
         kafkaDto: InntektsmeldingKafkaDto,
         dbId: String,
-        statusHistorikk: InntektsmeldingMedStatusHistorikk
+        inntektsmelding: InntektsmeldingMedStatusHistorikk
     ) {
         inntektsmeldingStatusRepository.save(
             InntektsmeldingStatusDbRecord(
@@ -116,21 +116,21 @@ class InntekstmeldingService(
             )
         )
 
-        if (statusHistorikk.statusHistorikk.isEmpty()) {
-            log.info("Inntektsmelding ${statusHistorikk.eksternId} har inntektsmelding, gjør ingenting")
+        if (inntektsmelding.statusHistorikk.isEmpty()) {
+            log.info("Inntektsmelding ${inntektsmelding.eksternId} har inntektsmelding, gjør ingenting")
             return
         }
 
-        log.info("Inntektsmelding ${statusHistorikk.eksternId} har mottatt manglende inntektsmelding")
+        log.info("Inntektsmelding ${inntektsmelding.eksternId} har mottatt manglende inntektsmelding")
 
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }) {
-            doneBeskjed(statusHistorikk, dbId)
+        if (StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
+            doneBeskjed(inntektsmelding, dbId)
 
             // TODO: Send inntektsmelding mottatt beskjed
         }
 
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }) {
-            doneMelding(statusHistorikk, dbId)
+        if (StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
+            doneMelding(inntektsmelding, dbId)
 
             // TODO: Send inntektsmelding mottatt melding
         }
@@ -139,7 +139,7 @@ class InntekstmeldingService(
     private fun trengerIkkeInntektsmelding(
         kafkaDto: InntektsmeldingKafkaDto,
         dbId: String,
-        statusHistorikk: InntektsmeldingMedStatusHistorikk
+        inntektsmelding: InntektsmeldingMedStatusHistorikk
     ) {
         inntektsmeldingStatusRepository.save(
             InntektsmeldingStatusDbRecord(
@@ -149,21 +149,21 @@ class InntekstmeldingService(
             )
         )
 
-        log.info("Inntektsmelding ${statusHistorikk.eksternId} trenger ikke inntektsmelding")
+        log.info("Inntektsmelding ${inntektsmelding.eksternId} trenger ikke inntektsmelding")
 
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }) {
-            doneBeskjed(statusHistorikk, dbId)
+        if (StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
+            doneBeskjed(inntektsmelding, dbId)
         }
 
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }) {
-            doneMelding(statusHistorikk, dbId)
+        if (StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
+            doneMelding(inntektsmelding, dbId)
         }
     }
 
     private fun behandlesUtenforSpleis(
         kafkaDto: InntektsmeldingKafkaDto,
         dbId: String,
-        statusHistorikk: InntektsmeldingMedStatusHistorikk
+        inntektsmelding: InntektsmeldingMedStatusHistorikk
     ) {
         inntektsmeldingStatusRepository.save(
             InntektsmeldingStatusDbRecord(
@@ -173,29 +173,29 @@ class InntekstmeldingService(
             )
         )
 
-        log.info("Inntektsmelding ${statusHistorikk.eksternId} behandles utenfor spleis")
+        log.info("Inntektsmelding ${inntektsmelding.eksternId} behandles utenfor spleis")
 
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }) {
-            doneBeskjed(statusHistorikk, dbId)
+        if (StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
+            doneBeskjed(inntektsmelding, dbId)
         }
 
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }) {
-            doneMelding(statusHistorikk, dbId)
+        if (StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
+            doneMelding(inntektsmelding, dbId)
         }
     }
 
     private fun doneBeskjed(
-        statusHistorikk: InntektsmeldingMedStatusHistorikk,
+        inntektsmelding: InntektsmeldingMedStatusHistorikk,
         dbId: String,
     ) {
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }) {
-            log.info("Inntektsmelding ${statusHistorikk.eksternId} har allerede donet brukernotifikasjon beskjed")
+        if (StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT in inntektsmelding.statusHistorikk) {
+            log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede donet brukernotifikasjon beskjed")
             return
         }
 
         brukernotifikasjon.sendDonemelding(
-            fnr = statusHistorikk.fnr,
-            eksternId = statusHistorikk.eksternId,
+            fnr = inntektsmelding.fnr,
+            eksternId = inntektsmelding.eksternId,
         )
 
         inntektsmeldingStatusRepository.save(
@@ -208,18 +208,18 @@ class InntekstmeldingService(
     }
 
     private fun doneMelding(
-        statusHistorikk: InntektsmeldingMedStatusHistorikk,
+        inntektsmelding: InntektsmeldingMedStatusHistorikk,
         dbId: String,
     ) {
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT }) {
-            log.info("Inntektsmelding ${statusHistorikk.eksternId} har allerede donet ditt sykefravær melding")
+        if (StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT in inntektsmelding.statusHistorikk) {
+            log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede donet ditt sykefravær melding")
             return
         }
 
         meldingKafkaProducer.produserMelding(
-            meldingUuid = statusHistorikk.eksternId,
+            meldingUuid = inntektsmelding.eksternId,
             meldingKafkaDto = MeldingKafkaDto(
-                fnr = statusHistorikk.fnr,
+                fnr = inntektsmelding.fnr,
                 lukkMelding = LukkMelding(
                     timestamp = LocalDateTime.now().tilOsloInstant(),
                 ),
