@@ -123,13 +123,13 @@ class InntekstmeldingService(
 
         log.info("Inntektsmelding ${statusHistorikk.eksternId} har mottatt manglende inntektsmelding")
 
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_SENDT }) {
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }) {
             doneBeskjed(statusHistorikk, dbId)
 
             // TODO: Send inntektsmelding mottatt beskjed
         }
 
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MELDING_SENDT }) {
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }) {
             doneMelding(statusHistorikk, dbId)
 
             // TODO: Send inntektsmelding mottatt melding
@@ -151,11 +151,11 @@ class InntekstmeldingService(
 
         log.info("Inntektsmelding ${statusHistorikk.eksternId} trenger ikke inntektsmelding")
 
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_SENDT }) {
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }) {
             doneBeskjed(statusHistorikk, dbId)
         }
 
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MELDING_SENDT }) {
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }) {
             doneMelding(statusHistorikk, dbId)
         }
     }
@@ -175,11 +175,11 @@ class InntekstmeldingService(
 
         log.info("Inntektsmelding ${statusHistorikk.eksternId} behandles utenfor spleis")
 
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_SENDT }) {
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }) {
             doneBeskjed(statusHistorikk, dbId)
         }
 
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MELDING_SENDT }) {
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }) {
             doneMelding(statusHistorikk, dbId)
         }
     }
@@ -188,58 +188,50 @@ class InntekstmeldingService(
         statusHistorikk: InntektsmeldingMedStatusHistorikk,
         dbId: String,
     ) {
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT }) {
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }) {
             log.info("Inntektsmelding ${statusHistorikk.eksternId} har allerede donet brukernotifikasjon beskjed")
-        } else {
-            brukernotifikasjon.sendDonemelding(
-                fnr = statusHistorikk.fnr,
-                eksternId = statusHistorikk.eksternId,
-            )
-
-            inntektsmeldingStatusRepository.save(
-                InntektsmeldingStatusDbRecord(
-                    inntektsmeldingId = dbId,
-                    opprettet = Instant.now(),
-                    status = StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT
-                )
-            )
+            return
         }
+
+        brukernotifikasjon.sendDonemelding(
+            fnr = statusHistorikk.fnr,
+            eksternId = statusHistorikk.eksternId,
+        )
+
+        inntektsmeldingStatusRepository.save(
+            InntektsmeldingStatusDbRecord(
+                inntektsmeldingId = dbId,
+                opprettet = Instant.now(),
+                status = StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT
+            )
+        )
     }
 
     private fun doneMelding(
         statusHistorikk: InntektsmeldingMedStatusHistorikk,
         dbId: String,
     ) {
-        // TODO: Hvordan blir flyten når meldingen lukkes i fra ditt sykefravær, må vi også sjekke DITT_SYKEFRAVAER_LUKKET
-        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_DONE_SENDT }) {
+        if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT }) {
             log.info("Inntektsmelding ${statusHistorikk.eksternId} har allerede donet ditt sykefravær melding")
-        } else {
-            meldingKafkaProducer.produserMelding(
-                meldingUuid = statusHistorikk.eksternId,
-                meldingKafkaDto = MeldingKafkaDto(
-                    fnr = statusHistorikk.fnr,
-                    lukkMelding = LukkMelding(
-                        timestamp = LocalDateTime.now().tilOsloInstant(),
-                    ),
-                )
-            )
-
-            inntektsmeldingStatusRepository.save(
-                InntektsmeldingStatusDbRecord(
-                    inntektsmeldingId = dbId,
-                    opprettet = Instant.now(),
-                    status = StatusVerdi.DITT_SYKEFRAVAER_DONE_SENDT
-                )
-            )
+            return
         }
-    }
 
-    private fun Status.tilStatusVerdi(): StatusVerdi {
-        return when (this) {
-            Status.MANGLER_INNTEKTSMELDING -> StatusVerdi.MANGLER_INNTEKTSMELDING // Venter på inntektsmelding
-            Status.HAR_INNTEKTSMELDING -> StatusVerdi.HAR_INNTEKTSMELDING // Inntektsmelding mottatt, eller vedtaksperiode som ikke trenger ny inntektsmelding
-            Status.TRENGER_IKKE_INNTEKTSMELDING -> StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING // Ikke utbetaling, innenfor arbeidsgiverperiode
-            Status.BEHANDLES_UTENFOR_SPLEIS -> StatusVerdi.BEHANDLES_UTENFOR_SPLEIS // Kastes ut fra speil og behandles i gosys
-        }
+        meldingKafkaProducer.produserMelding(
+            meldingUuid = statusHistorikk.eksternId,
+            meldingKafkaDto = MeldingKafkaDto(
+                fnr = statusHistorikk.fnr,
+                lukkMelding = LukkMelding(
+                    timestamp = LocalDateTime.now().tilOsloInstant(),
+                ),
+            )
+        )
+
+        inntektsmeldingStatusRepository.save(
+            InntektsmeldingStatusDbRecord(
+                inntektsmeldingId = dbId,
+                opprettet = Instant.now(),
+                status = StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT
+            )
+        )
     }
 }

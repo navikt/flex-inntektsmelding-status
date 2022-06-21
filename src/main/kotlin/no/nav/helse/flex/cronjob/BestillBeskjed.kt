@@ -97,7 +97,7 @@ class BestillBeskjed(
             InntektsmeldingStatusDbRecord(
                 inntektsmeldingId = inntektsmeldingMedStatus.id,
                 opprettet = now.tilOsloInstant(),
-                status = StatusVerdi.BRUKERNOTIFIKSJON_SENDT,
+                status = StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
             )
         )
     }
@@ -124,7 +124,7 @@ class BestillBeskjed(
             InntektsmeldingStatusDbRecord(
                 inntektsmeldingId = inntektsmeldingMedStatus.id,
                 opprettet = now.tilOsloInstant(),
-                status = StatusVerdi.DITT_SYKEFRAVAER_MELDING_SENDT,
+                status = StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT,
             )
         )
 
