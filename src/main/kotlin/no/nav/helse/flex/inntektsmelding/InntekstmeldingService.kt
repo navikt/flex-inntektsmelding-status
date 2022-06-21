@@ -48,7 +48,7 @@ class InntekstmeldingService(
                 dbId,
                 inntektsmeldingMedStatusHistorikk
             )
-            Status.BEHANDLES_UTENFOR_SPLEIS -> behandlesUtenforSplies(kafkaDto, dbId, inntektsmeldingMedStatusHistorikk)
+            Status.BEHANDLES_UTENFOR_SPLEIS -> behandlesUtenforSpleis(kafkaDto, dbId, inntektsmeldingMedStatusHistorikk)
         }
     }
 
@@ -160,7 +160,7 @@ class InntekstmeldingService(
         }
     }
 
-    private fun behandlesUtenforSplies(
+    private fun behandlesUtenforSpleis(
         kafkaDto: InntektsmeldingKafkaDto,
         dbId: String,
         statusHistorikk: InntektsmeldingMedStatusHistorikk
