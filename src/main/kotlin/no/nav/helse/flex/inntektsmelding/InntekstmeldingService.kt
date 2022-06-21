@@ -121,6 +121,8 @@ class InntekstmeldingService(
             return
         }
 
+        log.info("Inntektsmelding ${statusHistorikk.eksternId} har mottatt manglende inntektsmelding")
+
         if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_SENDT }) {
             doneBeskjed(statusHistorikk, dbId)
 
@@ -147,6 +149,8 @@ class InntekstmeldingService(
             )
         )
 
+        log.info("Inntektsmelding ${statusHistorikk.eksternId} trenger ikke inntektsmelding")
+
         if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_SENDT }) {
             doneBeskjed(statusHistorikk, dbId)
         }
@@ -168,6 +172,8 @@ class InntekstmeldingService(
                 status = kafkaDto.status.tilStatusVerdi()
             )
         )
+
+        log.info("Inntektsmelding ${statusHistorikk.eksternId} behandles utenfor spleis")
 
         if (statusHistorikk.statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_SENDT }) {
             doneBeskjed(statusHistorikk, dbId)
