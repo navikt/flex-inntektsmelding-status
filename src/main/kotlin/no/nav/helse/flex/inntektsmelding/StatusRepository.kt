@@ -38,7 +38,6 @@ class StatusRepository(
         }
     }
 
-    // TODO: Skjønner ikke helt hvordan denne funker :thinking:
     fun hentAlleMedNyesteStatus(vararg harStatus: StatusVerdi): List<InntektsmeldingMedStatus> {
         return namedParameterJdbcTemplate.query(
             """
@@ -102,7 +101,7 @@ class StatusRepository(
             vedtakTom = getDate("vedtak_tom").toLocalDate(),
             eksternTimestamp = getTimestamp("ekstern_timestamp").toInstant(),
             eksternId = getString("ekstern_id"),
-            statusHistorikk = statusVerdier
+            statusHistorikk = statusVerdier,
         )
 
         while (next()) {
@@ -139,5 +138,5 @@ data class InntektsmeldingMedStatusHistorikk(
     val vedtakTom: LocalDate,
     val eksternTimestamp: Instant,
     val eksternId: String,
-    val statusHistorikk: List<StatusVerdi>
+    val statusHistorikk: List<StatusVerdi>,
 )

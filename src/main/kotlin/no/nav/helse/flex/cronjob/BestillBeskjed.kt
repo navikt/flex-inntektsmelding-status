@@ -13,13 +13,12 @@ import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.util.norskDateFormat
-import no.nav.helse.flex.util.tilOsloInstant
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 
 @Component
@@ -34,8 +33,8 @@ class BestillBeskjed(
 
     private val log = logger()
 
-    private fun arbeidsgiverVarsel() = LocalDateTime.now().minusWeeks(3)
-    private fun sykmeldtVarsel() = arbeidsgiverVarsel().minusWeeks(1).tilOsloInstant()
+    private fun arbeidsgiverVarsel() = OffsetDateTime.now().minusWeeks(3)
+    private fun sykmeldtVarsel() = arbeidsgiverVarsel().minusWeeks(1).toInstant()
 
     @Scheduled(initialDelay = 2, fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
     fun job() {
@@ -65,7 +64,6 @@ class BestillBeskjed(
         // lockRepository.settAdvisoryTransactionLock(inntektsmeldingMedStatus.fnr.toLong())
 
         val medAlleStatuser = statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingMedStatus.id)!!
-        val now = LocalDateTime.now()
 
         if (StatusVerdi.MANGLER_INNTEKTSMELDING !in medAlleStatuser.statusHistorikk) {
             log.warn("Inntektsmelding med ekstern id ${medAlleStatuser.eksternId} har ikke status MANGLER_INNTEKTSMELDING, dette skal ikke skje")
@@ -77,15 +75,12 @@ class BestillBeskjed(
             return
         }
 
-        bestillBeskjed(inntektsmeldingMedStatus, now)
+        bestillBeskjed(inntektsmeldingMedStatus)
 
-        bestillMelding(inntektsmeldingMedStatus, now)
+        bestillMelding(inntektsmeldingMedStatus)
     }
 
-    private fun bestillBeskjed(
-        inntektsmeldingMedStatus: InntektsmeldingMedStatus,
-        now: LocalDateTime,
-    ) {
+    private fun bestillBeskjed(inntektsmeldingMedStatus: InntektsmeldingMedStatus) {
         brukernotifikasjon.beskjedManglerInntektsmelding(
             fnr = inntektsmeldingMedStatus.fnr,
             eksternId = inntektsmeldingMedStatus.eksternId,
@@ -96,16 +91,13 @@ class BestillBeskjed(
         inntektsmeldingStatusRepository.save(
             InntektsmeldingStatusDbRecord(
                 inntektsmeldingId = inntektsmeldingMedStatus.id,
-                opprettet = now.tilOsloInstant(),
+                opprettet = Instant.now(),
                 status = StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
             )
         )
     }
 
-    private fun bestillMelding(
-        inntektsmeldingMedStatus: InntektsmeldingMedStatus,
-        now: LocalDateTime,
-    ) {
+    private fun bestillMelding(inntektsmeldingMedStatus: InntektsmeldingMedStatus) {
         meldingKafkaProducer.produserMelding(
             meldingUuid = inntektsmeldingMedStatus.eksternId,
             meldingKafkaDto = MeldingKafkaDto(
@@ -123,11 +115,11 @@ class BestillBeskjed(
         inntektsmeldingStatusRepository.save(
             InntektsmeldingStatusDbRecord(
                 inntektsmeldingId = inntektsmeldingMedStatus.id,
-                opprettet = now.tilOsloInstant(),
+                opprettet = Instant.now(),
                 status = StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT,
             )
         )
 
-        log.info("Bestillte melding for manglende inntektsmelding ${inntektsmeldingMedStatus.eksternId}")
+        log.info("Bestilte melding for manglende inntektsmelding ${inntektsmeldingMedStatus.eksternId}")
     }
 }

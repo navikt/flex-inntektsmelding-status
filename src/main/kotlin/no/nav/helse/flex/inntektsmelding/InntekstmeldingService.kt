@@ -6,11 +6,9 @@ import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.LukkMelding
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
-import no.nav.helse.flex.util.tilOsloInstant
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
-import java.time.LocalDateTime
 import javax.annotation.PostConstruct
 
 @Component
@@ -221,7 +219,7 @@ class InntekstmeldingService(
             meldingKafkaDto = MeldingKafkaDto(
                 fnr = inntektsmelding.fnr,
                 lukkMelding = LukkMelding(
-                    timestamp = LocalDateTime.now().tilOsloInstant(),
+                    timestamp = Instant.now(),
                 ),
             )
         )
