@@ -6,6 +6,7 @@ import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.LukkMelding
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
+import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -17,6 +18,7 @@ class InntekstmeldingService(
     private val statusRepository: StatusRepository,
     private val brukernotifikasjon: Brukernotifikasjon,
     private val meldingKafkaProducer: MeldingKafkaProducer,
+    private val organisasjonRepository: OrganisasjonRepository,
     private val lockRepository: LockRepository,
 ) {
     val log = logger()
@@ -54,7 +56,7 @@ class InntekstmeldingService(
                 InntektsmeldingDbRecord(
                     fnr = kafkaDto.sykmeldt,
                     orgNr = kafkaDto.arbeidsgiver,
-                    orgNavn = "", // TODO: Hent orgnavn
+                    orgNavn = organisasjonRepository.findByOrgnummer(kafkaDto.arbeidsgiver)!!.navn,
                     opprettet = Instant.now(),
                     vedtakFom = kafkaDto.vedtaksperiode.fom,
                     vedtakTom = kafkaDto.vedtaksperiode.tom,

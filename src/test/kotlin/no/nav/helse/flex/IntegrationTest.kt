@@ -133,7 +133,7 @@ class IntegrationTest : FellesTestOppsett() {
         beskjedInput.get("eksternVarsling") shouldBeEqualTo false
         beskjedInput.get("link") shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         beskjedInput.get("sikkerhetsnivaa") shouldBeEqualTo 4
-        beskjedInput.get("tekst") shouldBeEqualTo "Vi mangler inntektsmeldingen fra  for sykefravær f.o.m. 1. juni 2022. Se mer informasjon."
+        beskjedInput.get("tekst") shouldBeEqualTo "Vi mangler inntektsmeldingen fra Flex AS for sykefravær f.o.m. 1. juni 2022. Se mer informasjon."
         beskjedInput.get("tidspunkt")
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
@@ -145,7 +145,7 @@ class IntegrationTest : FellesTestOppsett() {
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING"
-        opprettMelding.tekst shouldBeEqualTo "Vi mangler inntektsmeldingen fra  for sykefravær f.o.m. 1. juni 2022."
+        opprettMelding.tekst shouldBeEqualTo "Vi mangler inntektsmeldingen fra Flex AS for sykefravær f.o.m. 1. juni 2022."
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.info
