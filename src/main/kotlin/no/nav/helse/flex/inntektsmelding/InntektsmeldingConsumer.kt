@@ -17,7 +17,7 @@ class InntektsmeldingConsumer(
     @KafkaListener(
         topics = [bomloInntektsmeldingManglerTopic],
         containerFactory = "aivenKafkaListenerContainerFactory",
-        properties = ["auto.offset.reset = earliest"],
+        properties = ["auto.offset.reset = latest"],
         id = "flex-inntektsmelding-status-inntektsmelding",
         idIsGroup = false,
     )
