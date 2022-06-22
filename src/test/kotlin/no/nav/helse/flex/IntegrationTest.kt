@@ -217,8 +217,7 @@ class IntegrationTest : FellesTestOppsett() {
             StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT,
             StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT,
 
-            // TODO: Bestill mottatt inntektsmelding beskjed
-            // StatusVerdi.BRUKERNOTIFIKSJON_MOTTATT_INNTEKTSMELDING_SENDT,
+            // TODO: Bestill mottatt inntektsmelding melding på ditt sykefravær
             // StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT,
         )
     }

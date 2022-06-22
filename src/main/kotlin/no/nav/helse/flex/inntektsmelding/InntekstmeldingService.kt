@@ -123,8 +123,6 @@ class InntekstmeldingService(
 
         if (StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
             doneBeskjed(inntektsmelding, dbId)
-
-            // TODO: Send inntektsmelding mottatt beskjed
         }
 
         if (StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
