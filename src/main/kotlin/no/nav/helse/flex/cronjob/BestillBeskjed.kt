@@ -46,7 +46,7 @@ class BestillBeskjed(
 
         val manglerBeskjed = statusRepository
             .hentAlleMedNyesteStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
-            .filter { it.opprettet.isBefore(opprettetFor) }
+            .filter { it.statusOpprettet.isBefore(opprettetFor) }
 
         manglerBeskjed.forEach {
             opprettVarsler(it)
