@@ -29,12 +29,12 @@ class BestillBeskjed(
     private val brukernotifikasjon: Brukernotifikasjon,
     private val meldingKafkaProducer: MeldingKafkaProducer,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
+    @Value("\${INNTEKTSMELDING_MANGLER_VENTETID}") private val ventetid: Long,
 ) {
 
     private val log = logger()
 
-    private fun arbeidsgiverVarsel() = OffsetDateTime.now().minusWeeks(3)
-    private fun sykmeldtVarsel() = arbeidsgiverVarsel().minusWeeks(1).toInstant()
+    private fun sykmeldtVarsel() = OffsetDateTime.now().minusDays(ventetid).toInstant()
 
     @Scheduled(initialDelay = 2, fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
     fun job() {
