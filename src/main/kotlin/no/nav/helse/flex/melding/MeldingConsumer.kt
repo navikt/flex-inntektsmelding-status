@@ -33,6 +33,8 @@ class MeldingConsumer {
     ) {
         val meldingKafkaDto: MeldingKafkaDto = objectMapper.readValue(value)
 
+        if (meldingKafkaDto.opprettMelding != null) return
+
         log.info("ditt-sykefravaer-melding: $meldingKafkaDto")
     }
 }
