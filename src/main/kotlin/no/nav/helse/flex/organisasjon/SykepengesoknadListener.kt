@@ -1,6 +1,7 @@
 package no.nav.helse.flex.organisasjon
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.helse.flex.kafka.sykepengesoknadTopic
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -14,9 +15,11 @@ class SykepengesoknadListener(
 ) {
 
     @KafkaListener(
-        topics = [FLEX_SYKEPENGESOKNAD_TOPIC],
+        topics = [sykepengesoknadTopic],
         containerFactory = "aivenKafkaListenerContainerFactory",
         properties = ["auto.offset.reset = earliest"],
+        id = "sykepengesoknad-organisasjon",
+        idIsGroup = false,
     )
     fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val soknad = cr.value().tilSykepengesoknadDTO()
@@ -26,5 +29,3 @@ class SykepengesoknadListener(
 
     fun String.tilSykepengesoknadDTO(): SykepengesoknadDTO = objectMapper.readValue(this)
 }
-
-const val FLEX_SYKEPENGESOKNAD_TOPIC = "flex.sykepengesoknad"

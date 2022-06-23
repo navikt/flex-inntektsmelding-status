@@ -25,13 +25,12 @@ class StatusRepository(
                    im.vedtak_tom,
                    im.ekstern_timestamp,
                    im.ekstern_id,
-                   status.id AS status_id,
                    status.status,
                    status.opprettet AS status_opprettet
             FROM inntektsmelding im
-            INNER JOIN inntektsmelding_status status on status.inntektsmelding_id = im.id
+            LEFT JOIN inntektsmelding_status status on status.inntektsmelding_id = im.id
             WHERE im.id = :inntektsmelding_id
-            ORDER BY status_opprettet               
+            ORDER BY status_opprettet
             """,
             MapSqlParameterSource().addValue("inntektsmelding_id", inntektsmeldingId)
         ) { resultSet, _ ->
@@ -86,7 +85,11 @@ class StatusRepository(
     }
 
     private fun ResultSet.tilInntektsmeldingMedStatusHistorikk(): InntektsmeldingMedStatusHistorikk {
-        val statusVerdier = mutableListOf(mapInntektsmeldingStatus())
+        val statusVerdier = if (this.getString("status") != null) {
+            mutableListOf(mapInntektsmeldingStatus())
+        } else {
+            mutableListOf()
+        }
 
         val inntektsmelding = InntektsmeldingMedStatusHistorikk(
             id = getString("id"),
@@ -98,7 +101,7 @@ class StatusRepository(
             vedtakTom = getDate("vedtak_tom").toLocalDate(),
             eksternTimestamp = getTimestamp("ekstern_timestamp").toInstant(),
             eksternId = getString("ekstern_id"),
-            statusHistorikk = statusVerdier
+            statusHistorikk = statusVerdier,
         )
 
         while (next()) {
@@ -108,12 +111,7 @@ class StatusRepository(
         return inntektsmelding
     }
 
-    private fun ResultSet.mapInntektsmeldingStatus() =
-        InntektsmeldingStatus(
-            id = getString("id"),
-            status = StatusVerdi.valueOf(getString("status")),
-            opprettet = getTimestamp("opprettet").toInstant(),
-        )
+    private fun ResultSet.mapInntektsmeldingStatus() = StatusVerdi.valueOf(getString("status"))
 }
 
 data class InntektsmeldingMedStatus(
@@ -140,11 +138,5 @@ data class InntektsmeldingMedStatusHistorikk(
     val vedtakTom: LocalDate,
     val eksternTimestamp: Instant,
     val eksternId: String,
-    val statusHistorikk: List<InntektsmeldingStatus>
-)
-
-data class InntektsmeldingStatus(
-    val id: String,
-    val opprettet: Instant,
-    val status: StatusVerdi,
+    val statusHistorikk: List<StatusVerdi>,
 )

@@ -3,8 +3,8 @@ package no.nav.helse.flex.melding
 import java.time.Instant
 
 data class MeldingKafkaDto(
-    val opprettMelding: OpprettMelding?,
-    val lukkMelding: LukkMelding?,
+    val opprettMelding: OpprettMelding? = null,
+    val lukkMelding: LukkMelding? = null,
     val fnr: String,
 )
 data class LukkMelding(
@@ -24,5 +24,5 @@ data class OpprettMelding(
     val variant: Variant,
     val lukkbar: Boolean,
     val meldingType: String,
-    val synligFremTil: Instant?,
+    val synligFremTil: Instant? = null,
 )

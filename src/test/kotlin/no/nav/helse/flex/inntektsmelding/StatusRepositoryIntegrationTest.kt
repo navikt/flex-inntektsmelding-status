@@ -23,11 +23,11 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
         lagInntektsmeldingMedStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
         val andreId = lagInntektsmeldingMedStatus(
             StatusVerdi.MANGLER_INNTEKTSMELDING,
-            StatusVerdi.BRUKERNOTIFIKSJON_LUKKET
+            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT
         )
 
         val inntektsmeldinger = statusRepository.hentAlleMedNyesteStatus(
-            StatusVerdi.BRUKERNOTIFIKSJON_LUKKET
+            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT
         )
 
         inntektsmeldinger shouldHaveSize 1
@@ -35,16 +35,16 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
     }
 
     @Test
-    fun `Hent alle inntektsmeldigner med to forskjellige angitte statuser`() {
+    fun `Hent alle inntektsmeldinger med to forskjellige angitte statuser`() {
         val forsteId = lagInntektsmeldingMedStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
         val andreId = lagInntektsmeldingMedStatus(
             StatusVerdi.MANGLER_INNTEKTSMELDING,
-            StatusVerdi.BRUKERNOTIFIKSJON_LUKKET
+            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT
         )
 
         val inntektsmeldinger = statusRepository.hentAlleMedNyesteStatus(
             StatusVerdi.MANGLER_INNTEKTSMELDING,
-            StatusVerdi.BRUKERNOTIFIKSJON_LUKKET
+            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT
         )
 
         inntektsmeldinger shouldHaveSize 2
@@ -53,19 +53,28 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
     }
 
     @Test
+    fun `Hent inntektsmelding med statushistorikk før første status er lagret`() {
+        val inntektsmeldingId = lagInntektsmeldingMedStatus()
+
+        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingId)
+        inntektsmelding!!.id `should be equal to` inntektsmeldingId
+        inntektsmelding.statusHistorikk.size `should be equal to` 0
+    }
+
+    @Test
     fun `Hent inntektsmelding med statushistorikk`() {
         val inntektsmeldingId = lagInntektsmeldingMedStatus(
             StatusVerdi.MANGLER_INNTEKTSMELDING,
-            StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT,
-            StatusVerdi.BRUKERNOTIFIKSJON_SENDT
+            StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
+            StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT,
         )
 
         val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingId)
         inntektsmelding!!.id `should be equal to` inntektsmeldingId
         inntektsmelding.statusHistorikk.size `should be equal to` 3
-        inntektsmelding.statusHistorikk.first().status `should be` StatusVerdi.MANGLER_INNTEKTSMELDING
-        inntektsmelding.statusHistorikk.drop(1).first().status `should be equal to` StatusVerdi.BRUKERNOTIFIKSJON_DONE_SENDT
-        inntektsmelding.statusHistorikk.drop(2).first().status `should be equal to` StatusVerdi.BRUKERNOTIFIKSJON_SENDT
+        inntektsmelding.statusHistorikk.first() `should be` StatusVerdi.MANGLER_INNTEKTSMELDING
+        inntektsmelding.statusHistorikk.drop(1).first() `should be equal to` StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT
+        inntektsmelding.statusHistorikk.drop(2).first() `should be equal to` StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT
     }
 
     private fun lagInntektsmeldingMedStatus(vararg statuser: StatusVerdi): String {

@@ -53,5 +53,5 @@ spec:
   env:
   {{#each env}}
      - name: {{@key}}
-       value: {{this}}
+       value: "{{this}}"
   {{/each}}

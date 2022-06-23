@@ -17,7 +17,7 @@ class MeldingConsumer {
     @KafkaListener(
         topics = [dittSykefravaerMeldingTopic],
         containerFactory = "aivenKafkaListenerContainerFactory",
-        properties = ["auto.offset.reset = earliest"],
+        properties = ["auto.offset.reset = latest"],
         id = "ditt-sykefravaer-melding",
         idIsGroup = false,
     )
@@ -33,6 +33,8 @@ class MeldingConsumer {
     ) {
         val meldingKafkaDto: MeldingKafkaDto = objectMapper.readValue(value)
 
-        log.info("ditt-sykefravaer-melding: $meldingKafkaDto")
+        if (meldingKafkaDto.opprettMelding != null) return
+
+        log.info("ditt-sykefravaer-melding: ${meldingKafkaDto.copy(fnr = "***********")}")
     }
 }
