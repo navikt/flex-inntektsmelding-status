@@ -17,7 +17,6 @@ class SykepengesoknadListener(
     @KafkaListener(
         topics = [sykepengesoknadTopic],
         containerFactory = "aivenKafkaListenerContainerFactory",
-        properties = ["auto.offset.reset = earliest"],
         id = "sykepengesoknad-organisasjon",
         idIsGroup = false,
     )
