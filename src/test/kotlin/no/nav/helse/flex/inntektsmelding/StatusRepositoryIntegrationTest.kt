@@ -23,11 +23,11 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
         lagInntektsmeldingMedStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
         val andreId = lagInntektsmeldingMedStatus(
             StatusVerdi.MANGLER_INNTEKTSMELDING,
-            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_LUKKET
+            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT
         )
 
         val inntektsmeldinger = statusRepository.hentAlleMedNyesteStatus(
-            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_LUKKET
+            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT
         )
 
         inntektsmeldinger shouldHaveSize 1
@@ -39,12 +39,12 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
         val forsteId = lagInntektsmeldingMedStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
         val andreId = lagInntektsmeldingMedStatus(
             StatusVerdi.MANGLER_INNTEKTSMELDING,
-            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_LUKKET
+            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT
         )
 
         val inntektsmeldinger = statusRepository.hentAlleMedNyesteStatus(
             StatusVerdi.MANGLER_INNTEKTSMELDING,
-            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_LUKKET
+            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT
         )
 
         inntektsmeldinger shouldHaveSize 2
