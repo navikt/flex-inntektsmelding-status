@@ -2,6 +2,7 @@ KAFKA_TRUSTSTORE_PATH: ""
 KAFKA_CREDSTORE_PASSWORD: ""
 KAFKA_KEYSTORE_PATH: ""
 KAFKA_SECURITY_PROTOCOL: "PLAINTEXT"
+NAIS_CLUSTER_NAME: test
 
 INNTEKTSMELDING_MANGLER_URL: https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding
 INNTEKTSMELDING_MANGLER_VENTETID: 0
@@ -21,4 +22,3 @@ aiven-kafka:
   auto-offset-reset: latest
 
 logging.config: "classpath:logback-test.xml"
-nais.cluster: test
