@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
 @Component
-class InntekstmeldingService(
+class InntektsmeldingService(
     private val inntektsmeldingRepository: InntektsmeldingRepository,
     private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
     private val statusRepository: StatusRepository,

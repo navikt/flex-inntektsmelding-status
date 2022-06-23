@@ -1,8 +1,8 @@
 package no.nav.helse.flex.testdata
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.helse.flex.inntektsmelding.InntekstmeldingService
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingKafkaDto
+import no.nav.helse.flex.inntektsmelding.InntektsmeldingService
 import no.nav.helse.flex.kafka.inntektsmeldingstatusTestdataTopic
 import no.nav.helse.flex.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 @Component
 @Profile("testdata")
 class InntektsmeldingConsumerTestdata(
-    private val inntekstmeldingService: InntekstmeldingService
+    private val inntektsmeldingService: InntektsmeldingService
 ) {
     @KafkaListener(
         topics = [inntektsmeldingstatusTestdataTopic],
@@ -26,7 +26,7 @@ class InntektsmeldingConsumerTestdata(
     fun listenToTest(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val kafkaDto: InntektsmeldingKafkaDto = objectMapper.readValue(cr.value())
 
-        inntekstmeldingService.prosesserKafkaMelding(kafkaDto)
+        inntektsmeldingService.prosesserKafkaMelding(kafkaDto)
 
         acknowledgment.acknowledge()
     }

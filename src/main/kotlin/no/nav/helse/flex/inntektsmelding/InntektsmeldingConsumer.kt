@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 @Profile("bomlo")
 class InntektsmeldingConsumer(
-    private val inntekstmeldingService: InntekstmeldingService
+    private val inntektsmeldingService: InntektsmeldingService
 ) {
     @KafkaListener(
         topics = [bomloInntektsmeldingManglerTopic],
@@ -24,7 +24,7 @@ class InntektsmeldingConsumer(
     fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val kafkaDto: InntektsmeldingKafkaDto = objectMapper.readValue(cr.value())
 
-        inntekstmeldingService.prosesserKafkaMelding(kafkaDto)
+        inntektsmeldingService.prosesserKafkaMelding(kafkaDto)
 
         acknowledgment.acknowledge()
     }
