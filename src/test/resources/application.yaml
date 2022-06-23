@@ -21,3 +21,4 @@ aiven-kafka:
   auto-offset-reset: latest
 
 logging.config: "classpath:logback-test.xml"
+nais.cluster: test

@@ -35,6 +35,6 @@ class MeldingConsumer {
 
         if (meldingKafkaDto.opprettMelding != null) return
 
-        log.info("ditt-sykefravaer-melding: $meldingKafkaDto")
+        log.info("ditt-sykefravaer-melding: ${meldingKafkaDto.copy(fnr = "***********")}")
     }
 }

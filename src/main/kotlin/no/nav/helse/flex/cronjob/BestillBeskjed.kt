@@ -12,6 +12,7 @@ import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
+import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.norskDateFormat
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
@@ -28,6 +29,7 @@ class BestillBeskjed(
     private val lockRepository: LockRepository,
     private val brukernotifikasjon: Brukernotifikasjon,
     private val meldingKafkaProducer: MeldingKafkaProducer,
+    private val env: EnvironmentToggles,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
     @Value("\${INNTEKTSMELDING_MANGLER_VENTETID}") private val ventetid: Long,
 ) {
@@ -38,6 +40,11 @@ class BestillBeskjed(
 
     @Scheduled(initialDelay = 2, fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
     fun job() {
+        if (env.isProduction()) {
+            log.info("Bestiller ikke beskjed og melding i prod")
+            return
+        }
+
         jobMedParameter(opprettetFor = sykmeldtVarsel())
     }
 
