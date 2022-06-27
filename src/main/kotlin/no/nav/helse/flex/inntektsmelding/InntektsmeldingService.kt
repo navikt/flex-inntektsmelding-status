@@ -56,7 +56,7 @@ class InntektsmeldingService(
                 InntektsmeldingDbRecord(
                     fnr = kafkaDto.sykmeldt,
                     orgNr = kafkaDto.arbeidsgiver,
-                    orgNavn = organisasjonRepository.findByOrgnummer(kafkaDto.arbeidsgiver)!!.navn,
+                    orgNavn = organisasjonRepository.findByOrgnummer(kafkaDto.arbeidsgiver)?.navn ?: throw RuntimeException("Finner ikke orgnummer ${kafkaDto.arbeidsgiver}"),
                     opprettet = Instant.now(),
                     vedtakFom = kafkaDto.vedtaksperiode.fom,
                     vedtakTom = kafkaDto.vedtaksperiode.tom,

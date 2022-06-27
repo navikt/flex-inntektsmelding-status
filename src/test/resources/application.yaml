@@ -19,6 +19,6 @@ spring:
       maximum-pool-size: 3
 
 aiven-kafka:
-  auto-offset-reset: latest
+  auto-offset-reset: earliest
 
 logging.config: "classpath:logback-test.xml"
