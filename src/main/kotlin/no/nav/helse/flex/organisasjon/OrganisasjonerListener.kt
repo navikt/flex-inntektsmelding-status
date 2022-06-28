@@ -44,7 +44,7 @@ class OrganisasjonerListener(
             )
         } else {
             if (eksisterende.navn != orgnavn) {
-                log.warn("En eksisterende organisasjon $orgnummer er lagret med navnet ${eksisterende.navn} som ikke stemmer med siste navn hentet i fra sykepengesoknad-backend $organisasjonRepository oppdatert av $soknadId")
+                log.warn("En eksisterende organisasjon $orgnummer er lagret med navnet ${eksisterende.navn} som ikke stemmer med siste navn hentet i fra sykepengesoknad-backend $orgnavn oppdatert av $soknadId")
             }
         }
 
