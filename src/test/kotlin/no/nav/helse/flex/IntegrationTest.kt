@@ -212,7 +212,26 @@ class IntegrationTest : FellesTestOppsett() {
 
     @Test
     @Order(5)
-    fun `Vi har bestilt nytt ditt nav beskjed og ditt sykefravær melding`() {
+    fun `Vi bestiller ditt sykefravær melding om mottatt inntektsmelding`() {
+        val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
+        meldingCR.key() shouldBeEqualTo eksternId
+
+        val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
+        melding.fnr shouldBeEqualTo fnr
+        melding.lukkMelding.shouldBeNull()
+
+        val opprettMelding = melding.opprettMelding.shouldNotBeNull()
+        opprettMelding.meldingType shouldBeEqualTo "MOTTATT_INNTEKTSMELDING"
+        opprettMelding.tekst shouldBeEqualTo "Vi har mottatt inntektsmeldingen fra Flex AS for sykefravær f.o.m 1. juni 2022."
+        opprettMelding.lenke shouldBeEqualTo ""
+        opprettMelding.lukkbar shouldBeEqualTo true
+        opprettMelding.variant shouldBeEqualTo Variant.success
+        opprettMelding.synligFremTil.shouldBeNull()
+    }
+
+    @Test
+    @Order(6)
+    fun `Status historikken er riktig`() {
         val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
         val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
 
@@ -227,8 +246,7 @@ class IntegrationTest : FellesTestOppsett() {
             StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT,
             StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT,
 
-            // TODO: Bestill mottatt inntektsmelding melding på ditt sykefravær
-            // StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT,
+            StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT,
         )
     }
 }
