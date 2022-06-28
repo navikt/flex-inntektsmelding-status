@@ -18,6 +18,7 @@ class OrganisasjonerListener(
     @KafkaListener(
         topics = ["flex.organisasjoner"],
         containerFactory = "aivenKafkaListenerContainerFactory",
+        properties = ["auto.offset.reset = earliest"],
         id = "sykepengesoknad-organisasjon-komplett",
         idIsGroup = false,
     )
