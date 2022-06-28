@@ -52,7 +52,7 @@ class IntegrationTest : FellesTestOppsett() {
             fnr = fnr,
             id = eksternId,
             type = SoknadstypeDTO.ARBEIDSTAKERE,
-            status = SoknadsstatusDTO.SENDT,
+            status = SoknadsstatusDTO.NY,
             fom = fom,
             tom = tom,
             arbeidssituasjon = ArbeidssituasjonDTO.ARBEIDSTAKER,
