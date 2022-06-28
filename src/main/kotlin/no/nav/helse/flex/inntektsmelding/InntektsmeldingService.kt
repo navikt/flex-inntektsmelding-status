@@ -6,7 +6,10 @@ import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.LukkMelding
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
+import no.nav.helse.flex.melding.OpprettMelding
+import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
+import no.nav.helse.flex.util.norskDateFormat
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -122,8 +125,7 @@ class InntektsmeldingService(
 
         if (StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
             doneMelding(inntektsmelding, dbId)
-
-            // TODO: Send inntektsmelding mottatt melding
+            bestillMeldingMottattInntektsmelding(inntektsmelding)
         }
     }
 
@@ -224,5 +226,33 @@ class InntektsmeldingService(
                 status = StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT
             )
         )
+    }
+
+    private fun bestillMeldingMottattInntektsmelding(inntektsmeldingMedStatus: InntektsmeldingMedStatusHistorikk) {
+        meldingKafkaProducer.produserMelding(
+            meldingUuid = inntektsmeldingMedStatus.eksternId,
+            meldingKafkaDto = MeldingKafkaDto(
+                fnr = inntektsmeldingMedStatus.fnr,
+                opprettMelding = OpprettMelding(
+                    tekst = "Vi har mottatt inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefravær f.o.m ${inntektsmeldingMedStatus.vedtakFom.format(
+                        norskDateFormat
+                    )}.",
+                    lenke = "", // TODO: Skal denne bare være blank?
+                    variant = Variant.success,
+                    lukkbar = true,
+                    meldingType = "MOTTATT_INNTEKTSMELDING",
+                ),
+            )
+        )
+
+        inntektsmeldingStatusRepository.save(
+            InntektsmeldingStatusDbRecord(
+                inntektsmeldingId = inntektsmeldingMedStatus.id,
+                opprettet = Instant.now(),
+                status = StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT,
+            )
+        )
+
+        log.info("Bestilte melding for mottatt inntektsmelding ${inntektsmeldingMedStatus.eksternId}")
     }
 }
