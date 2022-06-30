@@ -15,8 +15,10 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.net.URL
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 
 @Component
 class Brukernotifikasjon(
@@ -31,6 +33,7 @@ class Brukernotifikasjon(
         eksternId: String,
         orgNavn: String,
         fom: LocalDate,
+        synligFremTil: Instant,
     ) {
         beskjedKafkaProducer.send(
             ProducerRecord(
@@ -45,12 +48,15 @@ class Brukernotifikasjon(
                 BeskjedInputBuilder()
                     .withTidspunkt(LocalDateTime.now())
                     .withTekst(
-                        "Vi mangler inntektsmeldingen fra $orgNavn for sykefravær f.o.m. ${fom.format(
+                        "Vi mangler inntektsmeldingen fra $orgNavn for sykefravær f.o.m. ${
+                        fom.format(
                             norskDateFormat
-                        )}. Se mer informasjon."
+                        )
+                        }."
                     )
                     .withLink(URL(inntektsmeldingManglerUrl))
                     .withSikkerhetsnivaa(4)
+                    .withSynligFremTil(synligFremTil.atOffset(UTC).toLocalDateTime())
                     .withEksternVarsling(false)
                     .build()
             )
