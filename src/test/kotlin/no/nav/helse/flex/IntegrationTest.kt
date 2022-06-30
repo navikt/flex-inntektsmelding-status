@@ -15,6 +15,8 @@ import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
 import no.nav.helse.flex.sykepengesoknad.kafka.SoknadstypeDTO
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
 import no.nav.helse.flex.util.osloZone
+import org.amshove.kluent.shouldBeAfter
+import org.amshove.kluent.shouldBeBefore
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeNull
 import org.amshove.kluent.shouldHaveSize
@@ -28,6 +30,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
 import org.springframework.beans.factory.annotation.Autowired
 import org.testcontainers.shaded.org.awaitility.Awaitility.await
+import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
@@ -133,8 +136,12 @@ class IntegrationTest : FellesTestOppsett() {
         beskjedInput.get("eksternVarsling") shouldBeEqualTo false
         beskjedInput.get("link") shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         beskjedInput.get("sikkerhetsnivaa") shouldBeEqualTo 4
-        beskjedInput.get("tekst") shouldBeEqualTo "Vi mangler inntektsmeldingen fra Flex AS for sykefravær f.o.m. 1. juni 2022. Se mer informasjon."
+        beskjedInput.get("tekst") shouldBeEqualTo "Vi mangler inntektsmeldingen fra Flex AS for sykefravær f.o.m. 1. juni 2022."
         beskjedInput.get("tidspunkt")
+
+        val synligFremTil = Instant.ofEpochMilli(beskjedInput.get("synligFremTil") as Long)
+        synligFremTil.shouldBeAfter(OffsetDateTime.now().plusMinutes(19).toInstant())
+        synligFremTil.shouldBeBefore(OffsetDateTime.now().plusMinutes(21).toInstant())
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
         meldingCR.key() shouldBeEqualTo eksternId
@@ -149,7 +156,10 @@ class IntegrationTest : FellesTestOppsett() {
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.info
-        opprettMelding.synligFremTil.shouldBeNull()
+        opprettMelding.synligFremTil.shouldNotBeNull()
+
+        opprettMelding.synligFremTil!!.shouldBeAfter(OffsetDateTime.now().plusMinutes(19).toInstant())
+        opprettMelding.synligFremTil!!.shouldBeBefore(OffsetDateTime.now().plusMinutes(21).toInstant())
     }
 
     @Test

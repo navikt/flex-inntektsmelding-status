@@ -93,6 +93,7 @@ class BestillBeskjed(
             eksternId = inntektsmeldingMedStatus.eksternId,
             orgNavn = inntektsmeldingMedStatus.orgNavn,
             fom = inntektsmeldingMedStatus.vedtakFom,
+            synligFremTil = synligFremTil(),
         )
 
         inntektsmeldingStatusRepository.save(
@@ -104,16 +105,28 @@ class BestillBeskjed(
         )
     }
 
+    private fun synligFremTil(): Instant {
+        if (env.isProduction()) {
+            return OffsetDateTime.now().plusMonths(4).toInstant()
+        }
+        return OffsetDateTime.now().plusMinutes(20).toInstant()
+    }
+
     private fun bestillMelding(inntektsmeldingMedStatus: InntektsmeldingMedStatus) {
         meldingKafkaProducer.produserMelding(
             meldingUuid = inntektsmeldingMedStatus.eksternId,
             meldingKafkaDto = MeldingKafkaDto(
                 fnr = inntektsmeldingMedStatus.fnr,
                 opprettMelding = OpprettMelding(
-                    tekst = "Vi mangler inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefravær f.o.m. ${inntektsmeldingMedStatus.vedtakFom.format(norskDateFormat)}.",
+                    tekst = "Vi mangler inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefravær f.o.m. ${
+                    inntektsmeldingMedStatus.vedtakFom.format(
+                        norskDateFormat
+                    )
+                    }.",
                     lenke = inntektsmeldingManglerUrl,
                     variant = Variant.info,
                     lukkbar = false,
+                    synligFremTil = synligFremTil(),
                     meldingType = "MANGLENDE_INNTEKTSMELDING",
                 ),
             )
