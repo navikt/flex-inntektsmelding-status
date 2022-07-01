@@ -72,7 +72,7 @@ class BestillBeskjed(
 
         val medAlleStatuser = statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingMedStatus.id)!!
 
-        if (StatusVerdi.MANGLER_INNTEKTSMELDING !in medAlleStatuser.statusHistorikk) {
+        if (medAlleStatuser.statusHistorikk.none { it.status == StatusVerdi.MANGLER_INNTEKTSMELDING }) {
             log.warn("Inntektsmelding med ekstern id ${medAlleStatuser.eksternId} har ikke status MANGLER_INNTEKTSMELDING, dette skal ikke skje")
             return
         }
@@ -88,20 +88,21 @@ class BestillBeskjed(
     }
 
     private fun bestillBeskjed(inntektsmeldingMedStatus: InntektsmeldingMedStatus) {
-        brukernotifikasjon.beskjedManglerInntektsmelding(
-            fnr = inntektsmeldingMedStatus.fnr,
-            eksternId = inntektsmeldingMedStatus.eksternId,
-            orgNavn = inntektsmeldingMedStatus.orgNavn,
-            fom = inntektsmeldingMedStatus.vedtakFom,
-            synligFremTil = synligFremTil(),
-        )
-
-        inntektsmeldingStatusRepository.save(
+        val bestillingId = inntektsmeldingStatusRepository.save(
             InntektsmeldingStatusDbRecord(
                 inntektsmeldingId = inntektsmeldingMedStatus.id,
                 opprettet = Instant.now(),
                 status = StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
             )
+        ).id!!
+
+        brukernotifikasjon.beskjedManglerInntektsmelding(
+            fnr = inntektsmeldingMedStatus.fnr,
+            eksternId = inntektsmeldingMedStatus.eksternId,
+            bestillingId = bestillingId,
+            orgNavn = inntektsmeldingMedStatus.orgNavn,
+            fom = inntektsmeldingMedStatus.vedtakFom,
+            synligFremTil = synligFremTil(),
         )
     }
 
@@ -113,8 +114,16 @@ class BestillBeskjed(
     }
 
     private fun bestillMelding(inntektsmeldingMedStatus: InntektsmeldingMedStatus) {
+        val bestillingId = inntektsmeldingStatusRepository.save(
+            InntektsmeldingStatusDbRecord(
+                inntektsmeldingId = inntektsmeldingMedStatus.id,
+                opprettet = Instant.now(),
+                status = StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT,
+            )
+        ).id!!
+
         meldingKafkaProducer.produserMelding(
-            meldingUuid = inntektsmeldingMedStatus.eksternId,
+            meldingUuid = bestillingId,
             meldingKafkaDto = MeldingKafkaDto(
                 fnr = inntektsmeldingMedStatus.fnr,
                 opprettMelding = OpprettMelding(
@@ -129,14 +138,6 @@ class BestillBeskjed(
                     synligFremTil = synligFremTil(),
                     meldingType = "MANGLENDE_INNTEKTSMELDING",
                 ),
-            )
-        )
-
-        inntektsmeldingStatusRepository.save(
-            InntektsmeldingStatusDbRecord(
-                inntektsmeldingId = inntektsmeldingMedStatus.id,
-                opprettet = Instant.now(),
-                status = StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT,
             )
         )
 
