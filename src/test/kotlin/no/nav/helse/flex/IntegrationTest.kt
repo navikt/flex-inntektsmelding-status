@@ -48,6 +48,31 @@ class IntegrationTest : FellesTestOppsett() {
     private final val fom = LocalDate.of(2022, 6, 1)
     private final val tom = LocalDate.of(2022, 6, 30)
 
+    val manglerBeskjedBestillingId: String by lazy {
+        val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
+        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
+        inntektsmelding
+            .statusHistorikk
+            .first { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }
+            .id
+    }
+    val manglerMeldingBestillingId: String by lazy {
+        val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
+        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
+        inntektsmelding
+            .statusHistorikk
+            .first { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }
+            .id
+    }
+    val mottatMeldingBestillingId: String by lazy {
+        val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
+        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
+        inntektsmelding
+            .statusHistorikk
+            .first { it.status == StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT }
+            .id
+    }
+
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
@@ -115,7 +140,7 @@ class IntegrationTest : FellesTestOppsett() {
         inntektsmelding.vedtakTom shouldBeEqualTo tom
 
         inntektsmelding.statusHistorikk shouldHaveSize 1
-        inntektsmelding.statusHistorikk.first() shouldBeEqualTo StatusVerdi.MANGLER_INNTEKTSMELDING
+        inntektsmelding.statusHistorikk.first().status shouldBeEqualTo StatusVerdi.MANGLER_INNTEKTSMELDING
     }
 
     @Test
@@ -129,8 +154,8 @@ class IntegrationTest : FellesTestOppsett() {
         nokkelInput.get("appnavn") shouldBeEqualTo "flex-inntektsmelding-status"
         nokkelInput.get("namespace") shouldBeEqualTo "flex"
         nokkelInput.get("fodselsnummer") shouldBeEqualTo fnr
-        nokkelInput.get("eventId") shouldBeEqualTo eksternId
-        nokkelInput.get("grupperingsId") shouldBeEqualTo eksternId
+        nokkelInput.get("eventId") shouldBeEqualTo manglerBeskjedBestillingId
+        nokkelInput.get("grupperingsId") shouldBeEqualTo manglerBeskjedBestillingId
 
         val beskjedInput = beskjedCR.value()
         beskjedInput.get("eksternVarsling") shouldBeEqualTo false
@@ -144,7 +169,7 @@ class IntegrationTest : FellesTestOppsett() {
         synligFremTil.shouldBeBefore(OffsetDateTime.now().plusMinutes(21).toInstant())
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
-        meldingCR.key() shouldBeEqualTo eksternId
+        meldingCR.key() shouldBeEqualTo manglerMeldingBestillingId
 
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
         melding.fnr shouldBeEqualTo fnr
@@ -187,7 +212,7 @@ class IntegrationTest : FellesTestOppsett() {
         val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
 
         await().atMost(5, TimeUnit.SECONDS).until {
-            statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)?.statusHistorikk?.contains(StatusVerdi.HAR_INNTEKTSMELDING)
+            statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)?.statusHistorikk?.any { it.status == StatusVerdi.HAR_INNTEKTSMELDING }
         }
     }
 
@@ -198,15 +223,12 @@ class IntegrationTest : FellesTestOppsett() {
             .ventPåRecords(1)
             .first()
             .key()
+        doneBrukernotifikasjon.get("grupperingsId") shouldBeEqualTo manglerBeskjedBestillingId
 
-        doneBrukernotifikasjon.get("grupperingsId") shouldBeEqualTo eksternId
+        val cr = meldingKafkaConsumer.ventPåRecords(1).first()
+        val doneDittSykefravaer: MeldingKafkaDto = cr.value().let { objectMapper.readValue(it) }
 
-        val doneDittSykefravaer: MeldingKafkaDto = meldingKafkaConsumer
-            .ventPåRecords(1)
-            .first()
-            .value()
-            .let { objectMapper.readValue(it) }
-
+        cr.key() shouldBeEqualTo manglerMeldingBestillingId
         doneDittSykefravaer.lukkMelding.shouldNotBeNull()
     }
 
@@ -214,7 +236,7 @@ class IntegrationTest : FellesTestOppsett() {
     @Order(5)
     fun `Vi bestiller ditt sykefravær melding om mottatt inntektsmelding`() {
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
-        meldingCR.key() shouldBeEqualTo eksternId
+        meldingCR.key() shouldBeEqualTo mottatMeldingBestillingId
 
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
         melding.fnr shouldBeEqualTo fnr
@@ -235,7 +257,7 @@ class IntegrationTest : FellesTestOppsett() {
         val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
         val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
 
-        inntektsmelding.statusHistorikk shouldBeEqualTo listOf(
+        inntektsmelding.statusHistorikk.map { it.status } shouldBeEqualTo listOf(
             StatusVerdi.MANGLER_INNTEKTSMELDING,
 
             StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
