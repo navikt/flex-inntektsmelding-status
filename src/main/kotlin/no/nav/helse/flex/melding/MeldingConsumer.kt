@@ -34,6 +34,6 @@ class MeldingConsumer {
 
         if (meldingKafkaDto.opprettMelding != null) return
 
-        log.info("ditt-sykefravaer-melding: ${meldingKafkaDto.copy(fnr = "***********")}")
+        log.info("Ditt sykefravær melding lukket for bestilling id $key")
     }
 }

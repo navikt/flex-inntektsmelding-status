@@ -86,7 +86,5 @@ class Brukernotifikasjon(
                     .build()
             )
         ).get()
-
-        log.info("Inntektsmelding $eksternId har mottatt inntektsmelding, donet brukernotifikasjonen")
     }
 }
