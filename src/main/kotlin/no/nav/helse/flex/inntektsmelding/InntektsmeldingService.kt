@@ -254,7 +254,7 @@ class InntektsmeldingService(
                     tekst = "Vi har mottatt inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefravær f.o.m ${inntektsmeldingMedStatus.vedtakFom.format(
                         norskDateFormat
                     )}.",
-                    lenke = "", // TODO: Skal denne bare være blank?
+                    lenke = "",
                     variant = Variant.success,
                     lukkbar = true,
                     meldingType = "MOTTATT_INNTEKTSMELDING",
