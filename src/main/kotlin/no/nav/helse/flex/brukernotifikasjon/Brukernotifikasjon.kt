@@ -31,6 +31,7 @@ class Brukernotifikasjon(
     fun beskjedManglerInntektsmelding(
         fnr: String,
         eksternId: String,
+        bestillingId: String,
         orgNavn: String,
         fom: LocalDate,
         synligFremTil: Instant,
@@ -42,8 +43,8 @@ class Brukernotifikasjon(
                     .withAppnavn("flex-inntektsmelding-status")
                     .withNamespace("flex")
                     .withFodselsnummer(fnr)
-                    .withEventId(eksternId)
-                    .withGrupperingsId(eksternId)
+                    .withEventId(bestillingId)
+                    .withGrupperingsId(bestillingId)
                     .build(),
                 BeskjedInputBuilder()
                     .withTidspunkt(LocalDateTime.now())
@@ -68,6 +69,7 @@ class Brukernotifikasjon(
     fun sendDonemelding(
         fnr: String,
         eksternId: String,
+        bestillingId: String,
     ) {
         doneKafkaProducer.send(
             ProducerRecord(
@@ -76,15 +78,13 @@ class Brukernotifikasjon(
                     .withAppnavn("flex-inntektsmelding-status")
                     .withNamespace("flex")
                     .withFodselsnummer(fnr)
-                    .withEventId(eksternId)
-                    .withGrupperingsId(eksternId)
+                    .withEventId(bestillingId)
+                    .withGrupperingsId(bestillingId)
                     .build(),
                 DoneInputBuilder()
                     .withTidspunkt(LocalDateTime.now())
                     .build()
             )
         ).get()
-
-        log.info("Inntektsmelding $eksternId har mottatt inntektsmelding, donet brukernotifikasjonen")
     }
 }

@@ -25,6 +25,7 @@ class StatusRepository(
                    im.vedtak_tom,
                    im.ekstern_timestamp,
                    im.ekstern_id,
+                   status.id AS status_id,
                    status.status,
                    status.opprettet AS status_opprettet
             FROM inntektsmelding im
@@ -111,7 +112,10 @@ class StatusRepository(
         return inntektsmelding
     }
 
-    private fun ResultSet.mapInntektsmeldingStatus() = StatusVerdi.valueOf(getString("status"))
+    private fun ResultSet.mapInntektsmeldingStatus() = StatusHistorikk(
+        id = getString("status_id"),
+        status = StatusVerdi.valueOf(getString("status")),
+    )
 }
 
 data class InntektsmeldingMedStatus(
@@ -138,5 +142,15 @@ data class InntektsmeldingMedStatusHistorikk(
     val vedtakTom: LocalDate,
     val eksternTimestamp: Instant,
     val eksternId: String,
-    val statusHistorikk: List<StatusVerdi>,
+    val statusHistorikk: List<StatusHistorikk>,
+) {
+    fun manglerBeskjedSendt() = statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }
+    fun manglerMeldingSendt() = statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }
+    fun manglerBeskjedDonet() = statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }
+    fun manglerMeldingDonet() = statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }
+}
+
+data class StatusHistorikk(
+    val id: String,
+    val status: StatusVerdi,
 )

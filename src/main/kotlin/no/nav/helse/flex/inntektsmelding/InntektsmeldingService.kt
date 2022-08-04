@@ -6,7 +6,10 @@ import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.LukkMelding
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
+import no.nav.helse.flex.melding.OpprettMelding
+import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
+import no.nav.helse.flex.util.norskDateFormat
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -77,7 +80,7 @@ class InntektsmeldingService(
         inntektsmelding: InntektsmeldingMedStatusHistorikk
     ) {
         if (inntektsmelding.statusHistorikk.isNotEmpty()) {
-            if (inntektsmelding.statusHistorikk.size == 1 && inntektsmelding.statusHistorikk.first() == StatusVerdi.MANGLER_INNTEKTSMELDING) {
+            if (inntektsmelding.statusHistorikk.size == 1 && inntektsmelding.statusHistorikk.first().status == StatusVerdi.MANGLER_INNTEKTSMELDING) {
                 log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede status for MANGLER_INNTEKTSMELDING, lagrer ikke dublikat")
                 return
             }
@@ -116,14 +119,13 @@ class InntektsmeldingService(
 
         log.info("Inntektsmelding ${inntektsmelding.eksternId} har mottatt manglende inntektsmelding")
 
-        if (StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
+        if (inntektsmelding.manglerBeskjedSendt()) {
             doneBeskjed(inntektsmelding, dbId)
         }
 
-        if (StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
+        if (inntektsmelding.manglerMeldingSendt()) {
             doneMelding(inntektsmelding, dbId)
-
-            // TODO: Send inntektsmelding mottatt melding
+            bestillMeldingMottattInntektsmelding(inntektsmelding)
         }
     }
 
@@ -142,11 +144,11 @@ class InntektsmeldingService(
 
         log.info("Inntektsmelding ${inntektsmelding.eksternId} trenger ikke inntektsmelding")
 
-        if (StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
+        if (inntektsmelding.manglerBeskjedSendt()) {
             doneBeskjed(inntektsmelding, dbId)
         }
 
-        if (StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
+        if (inntektsmelding.manglerMeldingSendt()) {
             doneMelding(inntektsmelding, dbId)
         }
     }
@@ -166,11 +168,11 @@ class InntektsmeldingService(
 
         log.info("Inntektsmelding ${inntektsmelding.eksternId} behandles utenfor spleis")
 
-        if (StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
+        if (inntektsmelding.manglerBeskjedSendt()) {
             doneBeskjed(inntektsmelding, dbId)
         }
 
-        if (StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT in inntektsmelding.statusHistorikk) {
+        if (inntektsmelding.manglerMeldingSendt()) {
             doneMelding(inntektsmelding, dbId)
         }
     }
@@ -179,14 +181,17 @@ class InntektsmeldingService(
         inntektsmelding: InntektsmeldingMedStatusHistorikk,
         dbId: String,
     ) {
-        if (StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT in inntektsmelding.statusHistorikk) {
+        if (inntektsmelding.manglerBeskjedDonet()) {
             log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede donet brukernotifikasjon beskjed")
             return
         }
 
+        val bestillingId = inntektsmelding.statusHistorikk.first { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }.id
+
         brukernotifikasjon.sendDonemelding(
             fnr = inntektsmelding.fnr,
             eksternId = inntektsmelding.eksternId,
+            bestillingId = bestillingId,
         )
 
         inntektsmeldingStatusRepository.save(
@@ -196,19 +201,23 @@ class InntektsmeldingService(
                 status = StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT
             )
         )
+
+        log.info("Donet brukernotifikasjon beskjed om manglende inntektsmelding ${inntektsmelding.eksternId}")
     }
 
     private fun doneMelding(
         inntektsmelding: InntektsmeldingMedStatusHistorikk,
         dbId: String,
     ) {
-        if (StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT in inntektsmelding.statusHistorikk) {
+        if (inntektsmelding.manglerMeldingDonet()) {
             log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede donet ditt sykefravær melding")
             return
         }
 
+        val bestillingId = inntektsmelding.statusHistorikk.first { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }.id
+
         meldingKafkaProducer.produserMelding(
-            meldingUuid = inntektsmelding.eksternId,
+            meldingUuid = bestillingId,
             meldingKafkaDto = MeldingKafkaDto(
                 fnr = inntektsmelding.fnr,
                 lukkMelding = LukkMelding(
@@ -224,5 +233,35 @@ class InntektsmeldingService(
                 status = StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT
             )
         )
+
+        log.info("Donet ditt sykefravær melding om manglende inntektsmelding ${inntektsmelding.eksternId}")
+    }
+
+    private fun bestillMeldingMottattInntektsmelding(inntektsmeldingMedStatus: InntektsmeldingMedStatusHistorikk) {
+        val bestillingId = inntektsmeldingStatusRepository.save(
+            InntektsmeldingStatusDbRecord(
+                inntektsmeldingId = inntektsmeldingMedStatus.id,
+                opprettet = Instant.now(),
+                status = StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT,
+            )
+        ).id!!
+
+        meldingKafkaProducer.produserMelding(
+            meldingUuid = bestillingId,
+            meldingKafkaDto = MeldingKafkaDto(
+                fnr = inntektsmeldingMedStatus.fnr,
+                opprettMelding = OpprettMelding(
+                    tekst = "Vi har mottatt inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefravær f.o.m ${inntektsmeldingMedStatus.vedtakFom.format(
+                        norskDateFormat
+                    )}.",
+                    lenke = "",
+                    variant = Variant.success,
+                    lukkbar = true,
+                    meldingType = "MOTTATT_INNTEKTSMELDING",
+                ),
+            )
+        )
+
+        log.info("Bestilte melding for mottatt inntektsmelding ${inntektsmeldingMedStatus.eksternId}")
     }
 }
