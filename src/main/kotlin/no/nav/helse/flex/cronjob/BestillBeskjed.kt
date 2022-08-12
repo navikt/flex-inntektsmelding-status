@@ -67,8 +67,7 @@ class BestillBeskjed(
 
     @Transactional
     fun opprettVarsler(inntektsmeldingMedStatus: InntektsmeldingMedStatus) {
-        // TODO: test lock
-        // lockRepository.settAdvisoryTransactionLock(inntektsmeldingMedStatus.fnr.toLong())
+        lockRepository.settAdvisoryTransactionLock(inntektsmeldingMedStatus.fnr.toLong())
 
         val medAlleStatuser = statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingMedStatus.id)!!
 
