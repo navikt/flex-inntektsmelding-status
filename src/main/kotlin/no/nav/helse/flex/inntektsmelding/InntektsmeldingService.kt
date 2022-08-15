@@ -30,8 +30,7 @@ class InntektsmeldingService(
     fun prosesserKafkaMelding(kafkaDto: InntektsmeldingKafkaDto) {
         val eksternId = kafkaDto.vedtaksperiode.id
 
-        // TODO: test med lock
-        // lockRepository.settAdvisoryTransactionLock(kafkaDto.fnr)
+        lockRepository.settAdvisoryTransactionLock(kafkaDto.sykmeldt.toLong())
 
         val dbId = lagreInntektsmeldingHvisDenIkkeFinnesAllerede(kafkaDto, eksternId)
         val inntektsmeldingMedStatusHistorikk = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!

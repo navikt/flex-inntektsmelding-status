@@ -10,7 +10,7 @@ class LockRepository(
     private val jdbcTemplate: JdbcTemplate,
 ) {
 
-    @Transactional(propagation = Propagation.MANDATORY) // Denne må kanskje være Propagation.REQUIRED
+    @Transactional(propagation = Propagation.REQUIRED)
     fun settAdvisoryTransactionLock(key: Long) {
         jdbcTemplate.execute("SELECT pg_advisory_xact_lock($key)")
     }
