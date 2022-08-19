@@ -6,5 +6,4 @@ jobs:
     uses: navikt/flex-github-actions-workflows/.github/workflows/spring-boot.yml@master
     with:
       app: flex-inntektsmelding-status
-    secrets:
-      NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+    secrets: inherit
