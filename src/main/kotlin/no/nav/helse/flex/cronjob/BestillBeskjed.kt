@@ -43,11 +43,6 @@ class BestillBeskjed(
 
     @Scheduled(initialDelay = 2, fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
     fun job() {
-        if (env.isProduction()) {
-            log.info("Bestiller ikke beskjed og melding i prod")
-            return
-        }
-
         jobMedParameter(opprettetFor = sykmeldtVarsel())
     }
 
@@ -58,6 +53,7 @@ class BestillBeskjed(
             .hentAlleMedNyesteStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
             .filter { it.statusOpprettet.isBefore(opprettetFor) }
             .sortedBy { it.vedtakFom }
+            .take(2)
 
         manglerBeskjed.forEach {
             if (opprettVarsler(it)) {
