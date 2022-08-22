@@ -1,6 +1,7 @@
 package no.nav.helse.flex.melding
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusDbRecord
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
@@ -19,6 +20,7 @@ import java.time.Instant
 class MeldingConsumer(
     private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
     private val inntektsmeldingRepository: InntektsmeldingRepository,
+    private val registry: MeterRegistry
 ) {
 
     val log = logger()
@@ -43,10 +45,11 @@ class MeldingConsumer(
 
         if (meldingKafkaDto.lukkMelding == null) return
 
-        val melding = inntektsmeldingStatusRepository.findByIdOrNull(key)!!
+        val melding = inntektsmeldingStatusRepository.findByIdOrNull(key) ?: return
         val eksternId = inntektsmeldingRepository.findByIdOrNull(melding.inntektsmeldingId)!!.eksternId
 
         if (melding.status == StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT) {
+            registry.counter("ditt_sykefravaer_lukk_melding_mottatt").increment()
             inntektsmeldingStatusRepository.save(
                 InntektsmeldingStatusDbRecord(
                     inntektsmeldingId = melding.inntektsmeldingId,
