@@ -259,12 +259,12 @@ class InntektsmeldingService(
             meldingKafkaDto = MeldingKafkaDto(
                 fnr = inntektsmeldingMedStatus.fnr,
                 opprettMelding = OpprettMelding(
-                    tekst = "Vi har mottatt inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefravær f.o.m ${
+                    tekst = "Vi har mottatt inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefraværet som startet ${
                     inntektsmeldingMedStatus.vedtakFom.format(
                         norskDateFormat
                     )
                     }.",
-                    lenke = "",
+                    lenke = null,
                     variant = Variant.success,
                     lukkbar = true,
                     meldingType = "MOTTATT_INNTEKTSMELDING",
