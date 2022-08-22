@@ -1,5 +1,7 @@
 package no.nav.helse.flex.inntektsmelding
 
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import no.nav.helse.flex.brukernotifikasjon.Brukernotifikasjon
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.logger
@@ -23,11 +25,15 @@ class InntektsmeldingService(
     private val meldingKafkaProducer: MeldingKafkaProducer,
     private val organisasjonRepository: OrganisasjonRepository,
     private val lockRepository: LockRepository,
+    private val registry: MeterRegistry
+
 ) {
     val log = logger()
 
     @Transactional
     fun prosesserKafkaMelding(kafkaDto: InntektsmeldingKafkaDto) {
+        registry.counter("inntektsmelding_status_mottatt", Tags.of("status", kafkaDto.status.toString())).increment()
+
         val eksternId = kafkaDto.vedtaksperiode.id
 
         lockRepository.settAdvisoryTransactionLock(kafkaDto.sykmeldt.toLong())
@@ -58,7 +64,8 @@ class InntektsmeldingService(
                 InntektsmeldingDbRecord(
                     fnr = kafkaDto.sykmeldt,
                     orgNr = kafkaDto.arbeidsgiver,
-                    orgNavn = organisasjonRepository.findByOrgnummer(kafkaDto.arbeidsgiver)?.navn ?: throw RuntimeException("Finner ikke orgnummer ${kafkaDto.arbeidsgiver}"),
+                    orgNavn = organisasjonRepository.findByOrgnummer(kafkaDto.arbeidsgiver)?.navn
+                        ?: throw RuntimeException("Finner ikke orgnummer ${kafkaDto.arbeidsgiver}"),
                     opprettet = Instant.now(),
                     vedtakFom = kafkaDto.vedtaksperiode.fom,
                     vedtakTom = kafkaDto.vedtaksperiode.tom,
@@ -185,7 +192,8 @@ class InntektsmeldingService(
             return
         }
 
-        val bestillingId = inntektsmelding.statusHistorikk.first { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }.id
+        val bestillingId =
+            inntektsmelding.statusHistorikk.first { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }.id
 
         brukernotifikasjon.sendDonemelding(
             fnr = inntektsmelding.fnr,
@@ -213,7 +221,8 @@ class InntektsmeldingService(
             return
         }
 
-        val bestillingId = inntektsmelding.statusHistorikk.first { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }.id
+        val bestillingId =
+            inntektsmelding.statusHistorikk.first { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }.id
 
         meldingKafkaProducer.produserMelding(
             meldingUuid = bestillingId,
@@ -250,9 +259,11 @@ class InntektsmeldingService(
             meldingKafkaDto = MeldingKafkaDto(
                 fnr = inntektsmeldingMedStatus.fnr,
                 opprettMelding = OpprettMelding(
-                    tekst = "Vi har mottatt inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefravær f.o.m ${inntektsmeldingMedStatus.vedtakFom.format(
+                    tekst = "Vi har mottatt inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefravær f.o.m ${
+                    inntektsmeldingMedStatus.vedtakFom.format(
                         norskDateFormat
-                    )}.",
+                    )
+                    }.",
                     lenke = "",
                     variant = Variant.success,
                     lukkbar = true,

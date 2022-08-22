@@ -1,5 +1,6 @@
 package no.nav.helse.flex.brukernotifikasjon
 
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.brukernotifikasjon.schemas.builders.BeskjedInputBuilder
 import no.nav.brukernotifikasjon.schemas.builders.DoneInputBuilder
 import no.nav.brukernotifikasjon.schemas.builders.NokkelInputBuilder
@@ -25,6 +26,7 @@ class Brukernotifikasjon(
     private val beskjedKafkaProducer: Producer<NokkelInput, BeskjedInput>,
     private val doneKafkaProducer: Producer<NokkelInput, DoneInput>,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
+    private val registry: MeterRegistry
 ) {
     val log = logger()
 
@@ -36,6 +38,9 @@ class Brukernotifikasjon(
         fom: LocalDate,
         synligFremTil: Instant,
     ) {
+
+        registry.counter("bruekrnotifikasjon_mangler_inntektsmelding_beskjed_sendt").increment()
+
         beskjedKafkaProducer.send(
             ProducerRecord(
                 brukernotifikasjonBeskjedTopic,
@@ -71,6 +76,8 @@ class Brukernotifikasjon(
         eksternId: String,
         bestillingId: String,
     ) {
+        registry.counter("bruekrnotifikasjon_done_sendt").increment()
+
         doneKafkaProducer.send(
             ProducerRecord(
                 brukernotifikasjonDoneTopic,
