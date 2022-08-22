@@ -54,7 +54,7 @@ class Brukernotifikasjon(
                 BeskjedInputBuilder()
                     .withTidspunkt(LocalDateTime.now())
                     .withTekst(
-                        "Vi mangler inntektsmeldingen fra $orgNavn for sykefravær f.o.m. ${
+                        "Vi mangler inntektsmeldingen fra $orgNavn for sykefraværet som startet ${
                         fom.format(
                             norskDateFormat
                         )
