@@ -44,6 +44,7 @@ class IntegrationTest : FellesTestOppsett() {
 
     private final val fnr = "12345678901"
     private final val eksternId = UUID.randomUUID().toString()
+    private final val eksternId2 = UUID.randomUUID().toString()
     private final val orgNr = "123456547"
     private final val fom = LocalDate.of(2022, 6, 1)
     private final val tom = LocalDate.of(2022, 6, 30)
@@ -102,7 +103,7 @@ class IntegrationTest : FellesTestOppsett() {
 
     @Test
     @Order(1)
-    fun `Vi får beskjed at det mangler en inntektsmelding`() {
+    fun `Vi får beskjed at det mangler en inntektsmelding for to perioder butt i butt`() {
         kafkaProducer.send(
             ProducerRecord(
                 bomloInntektsmeldingManglerTopic,
@@ -121,9 +122,28 @@ class IntegrationTest : FellesTestOppsett() {
                 ).serialisertTilString()
             )
         ).get()
-
+        kafkaProducer.send(
+            ProducerRecord(
+                bomloInntektsmeldingManglerTopic,
+                fnr,
+                InntektsmeldingKafkaDto(
+                    id = UUID.randomUUID().toString(),
+                    status = Status.MANGLER_INNTEKTSMELDING,
+                    sykmeldt = fnr,
+                    arbeidsgiver = orgNr,
+                    vedtaksperiode = Vedtaksperiode(
+                        id = eksternId2,
+                        fom = tom.plusDays(1),
+                        tom = tom.plusDays(5),
+                    ),
+                    tidspunkt = OffsetDateTime.now(),
+                ).serialisertTilString()
+            )
+        ).get()
         await().atMost(5, TimeUnit.SECONDS).until {
-            inntektsmeldingRepository.existsByEksternId(eksternId)
+            inntektsmeldingRepository.existsByEksternId(eksternId) && inntektsmeldingRepository.existsByEksternId(
+                eksternId2
+            )
         }
 
         val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
@@ -208,11 +228,33 @@ class IntegrationTest : FellesTestOppsett() {
                 ).serialisertTilString()
             )
         ).get()
-
+        kafkaProducer.send(
+            ProducerRecord(
+                bomloInntektsmeldingManglerTopic,
+                fnr,
+                InntektsmeldingKafkaDto(
+                    id = UUID.randomUUID().toString(),
+                    status = Status.HAR_INNTEKTSMELDING,
+                    sykmeldt = fnr,
+                    arbeidsgiver = orgNr,
+                    vedtaksperiode = Vedtaksperiode(
+                        id = eksternId2,
+                        fom = tom.plusDays(1),
+                        tom = tom.plusDays(5),
+                    ),
+                    tidspunkt = OffsetDateTime.now(),
+                ).serialisertTilString()
+            )
+        ).get()
         val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
 
         await().atMost(5, TimeUnit.SECONDS).until {
             statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)?.statusHistorikk?.any { it.status == StatusVerdi.HAR_INNTEKTSMELDING }
+        }
+        val dbId2 = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId2)!!.id!!
+
+        await().atMost(5, TimeUnit.SECONDS).until {
+            statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId2)?.statusHistorikk?.any { it.status == StatusVerdi.HAR_INNTEKTSMELDING }
         }
     }
 
@@ -269,6 +311,15 @@ class IntegrationTest : FellesTestOppsett() {
             StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT,
 
             StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT,
+        )
+
+        val dbIdPeriode2 = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId2)!!.id!!
+        val inntektsmelding2 = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbIdPeriode2)!!
+
+        inntektsmelding2.statusHistorikk.map { it.status } shouldBeEqualTo listOf(
+            StatusVerdi.MANGLER_INNTEKTSMELDING,
+            StatusVerdi.HAR_PERIODE_RETT_FOER,
+            StatusVerdi.HAR_INNTEKTSMELDING,
         )
     }
 }
