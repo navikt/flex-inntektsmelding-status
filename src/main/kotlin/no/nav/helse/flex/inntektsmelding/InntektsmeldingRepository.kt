@@ -11,6 +11,7 @@ import java.time.LocalDate
 interface InntektsmeldingRepository : CrudRepository<InntektsmeldingDbRecord, String> {
     fun existsByEksternId(eksternId: String): Boolean
     fun findInntektsmeldingDbRecordByEksternId(eksternId: String): InntektsmeldingDbRecord?
+    fun findByFnrAndOrgNr(fnr: String, orgNr: String): List<InntektsmeldingDbRecord>
 }
 
 @Table("inntektsmelding")

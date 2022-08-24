@@ -3,6 +3,7 @@ package no.nav.helse.flex.cronjob
 import no.nav.helse.flex.brukernotifikasjon.Brukernotifikasjon
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingMedStatus
+import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusDbRecord
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
 import no.nav.helse.flex.inntektsmelding.StatusRepository
@@ -13,6 +14,7 @@ import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.util.EnvironmentToggles
+import no.nav.helse.flex.util.erRettFør
 import no.nav.helse.flex.util.norskDateFormat
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
@@ -28,6 +30,7 @@ class BestillBeskjed(
     private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
     private val lockRepository: LockRepository,
     private val brukernotifikasjon: Brukernotifikasjon,
+    private val inntektsmeldingRepository: InntektsmeldingRepository,
     private val meldingKafkaProducer: MeldingKafkaProducer,
     private val env: EnvironmentToggles,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
@@ -54,10 +57,12 @@ class BestillBeskjed(
         val manglerBeskjed = statusRepository
             .hentAlleMedNyesteStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
             .filter { it.statusOpprettet.isBefore(opprettetFor) }
+            .sortedBy { it.vedtakFom }
 
         manglerBeskjed.forEach {
-            opprettVarsler(it)
-            beskjederBestilt++
+            if (opprettVarsler(it)) {
+                beskjederBestilt++
+            }
         }
 
         if (beskjederBestilt > 0) {
@@ -66,24 +71,40 @@ class BestillBeskjed(
     }
 
     @Transactional
-    fun opprettVarsler(inntektsmeldingMedStatus: InntektsmeldingMedStatus) {
+    fun opprettVarsler(inntektsmeldingMedStatus: InntektsmeldingMedStatus): Boolean {
         lockRepository.settAdvisoryTransactionLock(inntektsmeldingMedStatus.fnr.toLong())
+
+        val vedtaksperioder = inntektsmeldingRepository.findByFnrAndOrgNr(
+            fnr = inntektsmeldingMedStatus.fnr,
+            orgNr = inntektsmeldingMedStatus.orgNr
+        )
+        if (vedtaksperioder.any { it.vedtakTom.erRettFør(inntektsmeldingMedStatus.vedtakFom) }) {
+            inntektsmeldingStatusRepository.save(
+                InntektsmeldingStatusDbRecord(
+                    inntektsmeldingId = inntektsmeldingMedStatus.id,
+                    opprettet = Instant.now(),
+                    status = StatusVerdi.HAR_PERIODE_RETT_FOER,
+                )
+            )
+            return false
+        }
 
         val medAlleStatuser = statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingMedStatus.id)!!
 
         if (medAlleStatuser.statusHistorikk.none { it.status == StatusVerdi.MANGLER_INNTEKTSMELDING }) {
             log.warn("Inntektsmelding med ekstern id ${medAlleStatuser.eksternId} har ikke status MANGLER_INNTEKTSMELDING, dette skal ikke skje")
-            return
+            return false
         }
 
         if (medAlleStatuser.statusHistorikk.size > 1) {
             log.warn("Inntektsmelding med ekstern id ${medAlleStatuser.eksternId} kan ikke bestille beskjed med disse statusene ${medAlleStatuser.statusHistorikk}")
-            return
+            return false
         }
 
         bestillBeskjed(inntektsmeldingMedStatus)
 
         bestillMelding(inntektsmeldingMedStatus)
+        return true
     }
 
     private fun bestillBeskjed(inntektsmeldingMedStatus: InntektsmeldingMedStatus) {
