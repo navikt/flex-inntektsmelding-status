@@ -3,11 +3,11 @@ package no.nav.helse.flex.cronjob
 import no.nav.helse.flex.brukernotifikasjon.Brukernotifikasjon
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingMedStatus
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusDbRecord
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
 import no.nav.helse.flex.inntektsmelding.StatusRepository
 import no.nav.helse.flex.inntektsmelding.StatusVerdi
+import no.nav.helse.flex.inntektsmelding.overlapper
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
@@ -15,12 +15,14 @@ import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.erRettFør
+import no.nav.helse.flex.util.finnSykefraværStart
 import no.nav.helse.flex.util.norskDateFormat
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 
@@ -30,7 +32,6 @@ class BestillBeskjed(
     private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
     private val lockRepository: LockRepository,
     private val brukernotifikasjon: Brukernotifikasjon,
-    private val inntektsmeldingRepository: InntektsmeldingRepository,
     private val meldingKafkaProducer: MeldingKafkaProducer,
     private val env: EnvironmentToggles,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
@@ -57,7 +58,7 @@ class BestillBeskjed(
         val manglerBeskjed = statusRepository
             .hentAlleMedNyesteStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
             .filter { it.statusOpprettet.isBefore(opprettetFor) }
-            .sortedBy { it.vedtakFom }
+            .sortedByDescending { it.vedtakFom }
 
         manglerBeskjed.forEach {
             if (opprettVarsler(it)) {
@@ -74,11 +75,20 @@ class BestillBeskjed(
     fun opprettVarsler(inntektsmeldingMedStatus: InntektsmeldingMedStatus): Boolean {
         lockRepository.settAdvisoryTransactionLock(inntektsmeldingMedStatus.fnr.toLong())
 
-        val vedtaksperioder = inntektsmeldingRepository.findByFnrAndOrgNr(
+        val vedtaksperioder = statusRepository.hentAlleForPerson(
             fnr = inntektsmeldingMedStatus.fnr,
             orgNr = inntektsmeldingMedStatus.orgNr
         )
-        if (vedtaksperioder.any { it.vedtakTom.erRettFør(inntektsmeldingMedStatus.vedtakFom) }) {
+        if (vedtaksperioder.overlapper()) {
+            log.error("Fant overlappende perioder for id ${inntektsmeldingMedStatus.id}. Vet ikke hva jeg skal gjøre. Hopper over denne")
+            return false
+        }
+
+        val harManglendeImPeriodeRettForan = vedtaksperioder
+            .filter { it.status == StatusVerdi.MANGLER_INNTEKTSMELDING }
+            .any { it.vedtakTom.erRettFør(inntektsmeldingMedStatus.vedtakFom) }
+
+        if (harManglendeImPeriodeRettForan) {
             inntektsmeldingStatusRepository.save(
                 InntektsmeldingStatusDbRecord(
                     inntektsmeldingId = inntektsmeldingMedStatus.id,
@@ -101,13 +111,15 @@ class BestillBeskjed(
             return false
         }
 
-        bestillBeskjed(inntektsmeldingMedStatus)
+        val fom = vedtaksperioder.finnSykefraværStart(inntektsmeldingMedStatus.vedtakFom)
 
-        bestillMelding(inntektsmeldingMedStatus)
+        bestillBeskjed(inntektsmeldingMedStatus, fom)
+
+        bestillMelding(inntektsmeldingMedStatus, fom)
         return true
     }
 
-    private fun bestillBeskjed(inntektsmeldingMedStatus: InntektsmeldingMedStatus) {
+    private fun bestillBeskjed(inntektsmeldingMedStatus: InntektsmeldingMedStatus, fom: LocalDate) {
         val bestillingId = inntektsmeldingStatusRepository.save(
             InntektsmeldingStatusDbRecord(
                 inntektsmeldingId = inntektsmeldingMedStatus.id,
@@ -121,7 +133,7 @@ class BestillBeskjed(
             eksternId = inntektsmeldingMedStatus.eksternId,
             bestillingId = bestillingId,
             orgNavn = inntektsmeldingMedStatus.orgNavn,
-            fom = inntektsmeldingMedStatus.vedtakFom,
+            fom = fom,
             synligFremTil = synligFremTil(),
         )
     }
@@ -133,7 +145,7 @@ class BestillBeskjed(
         return OffsetDateTime.now().plusMinutes(20).toInstant()
     }
 
-    private fun bestillMelding(inntektsmeldingMedStatus: InntektsmeldingMedStatus) {
+    private fun bestillMelding(inntektsmeldingMedStatus: InntektsmeldingMedStatus, fom: LocalDate) {
         val bestillingId = inntektsmeldingStatusRepository.save(
             InntektsmeldingStatusDbRecord(
                 inntektsmeldingId = inntektsmeldingMedStatus.id,
@@ -148,7 +160,7 @@ class BestillBeskjed(
                 fnr = inntektsmeldingMedStatus.fnr,
                 opprettMelding = OpprettMelding(
                     tekst = "Vi mangler inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefraværet som startet ${
-                    inntektsmeldingMedStatus.vedtakFom.format(
+                    fom.format(
                         norskDateFormat
                     )
                     }.",

@@ -11,6 +11,7 @@ import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
+import no.nav.helse.flex.util.finnSykefraværStart
 import no.nav.helse.flex.util.norskDateFormat
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -254,13 +255,19 @@ class InntektsmeldingService(
             )
         ).id!!
 
+        val vedtaksperioder = statusRepository.hentAlleForPerson(
+            fnr = inntektsmeldingMedStatus.fnr,
+            orgNr = inntektsmeldingMedStatus.orgNr
+        )
+        val fom = vedtaksperioder.finnSykefraværStart(inntektsmeldingMedStatus.vedtakFom)
+
         meldingKafkaProducer.produserMelding(
             meldingUuid = bestillingId,
             meldingKafkaDto = MeldingKafkaDto(
                 fnr = inntektsmeldingMedStatus.fnr,
                 opprettMelding = OpprettMelding(
                     tekst = "Vi har mottatt inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefraværet som startet ${
-                    inntektsmeldingMedStatus.vedtakFom.format(
+                    fom.format(
                         norskDateFormat
                     )
                     }.",
