@@ -43,6 +43,7 @@ class IntegrationTest : FellesTestOppsett() {
     lateinit var kafkaProducer: KafkaProducer<String, String>
 
     private final val fnr = "12345678901"
+    private final val eksternIdAG = UUID.randomUUID().toString()
     private final val eksternId = UUID.randomUUID().toString()
     private final val eksternId2 = UUID.randomUUID().toString()
     private final val orgNr = "123456547"
@@ -103,7 +104,25 @@ class IntegrationTest : FellesTestOppsett() {
 
     @Test
     @Order(1)
-    fun `Vi får beskjed at det mangler en inntektsmelding for to perioder butt i butt`() {
+    fun `Vi får beskjed at det mangler en inntektsmelding for tre perioder butt i butt, første periode er innenfor ag`() {
+        kafkaProducer.send(
+            ProducerRecord(
+                bomloInntektsmeldingManglerTopic,
+                fnr,
+                InntektsmeldingKafkaDto(
+                    id = UUID.randomUUID().toString(),
+                    status = Status.TRENGER_IKKE_INNTEKTSMELDING,
+                    sykmeldt = fnr,
+                    arbeidsgiver = orgNr,
+                    vedtaksperiode = Vedtaksperiode(
+                        id = eksternIdAG,
+                        fom = fom.minusDays(16),
+                        tom = fom.minusDays(1),
+                    ),
+                    tidspunkt = OffsetDateTime.now(),
+                ).serialisertTilString()
+            )
+        ).get()
         kafkaProducer.send(
             ProducerRecord(
                 bomloInntektsmeldingManglerTopic,
@@ -181,7 +200,7 @@ class IntegrationTest : FellesTestOppsett() {
         beskjedInput.get("eksternVarsling") shouldBeEqualTo false
         beskjedInput.get("link") shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         beskjedInput.get("sikkerhetsnivaa") shouldBeEqualTo 4
-        beskjedInput.get("tekst") shouldBeEqualTo "Vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 1. juni 2022."
+        beskjedInput.get("tekst") shouldBeEqualTo "Vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
         beskjedInput.get("tidspunkt")
 
         val synligFremTil = Instant.ofEpochMilli(beskjedInput.get("synligFremTil") as Long)
@@ -197,7 +216,7 @@ class IntegrationTest : FellesTestOppsett() {
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING"
-        opprettMelding.tekst shouldBeEqualTo "Vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 1. juni 2022."
+        opprettMelding.tekst shouldBeEqualTo "Vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.info
@@ -286,7 +305,7 @@ class IntegrationTest : FellesTestOppsett() {
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "MOTTATT_INNTEKTSMELDING"
-        opprettMelding.tekst shouldBeEqualTo "Vi har mottatt inntektsmeldingen fra Flex AS for sykefraværet som startet 1. juni 2022."
+        opprettMelding.tekst shouldBeEqualTo "Vi har mottatt inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
         opprettMelding.lenke.shouldBeNull()
         opprettMelding.lukkbar shouldBeEqualTo true
         opprettMelding.variant shouldBeEqualTo Variant.success

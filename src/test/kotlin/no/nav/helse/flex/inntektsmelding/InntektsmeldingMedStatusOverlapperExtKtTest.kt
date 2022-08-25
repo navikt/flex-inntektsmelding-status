@@ -1,0 +1,60 @@
+package no.nav.helse.flex.inntektsmelding
+
+import org.amshove.kluent.`should be false`
+import org.amshove.kluent.`should be true`
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import java.time.Instant
+import java.time.LocalDate
+import java.util.UUID
+
+internal class InntektsmeldingMedStatusOverlapperExtKtTest {
+    val fom = LocalDate.now()
+    val tom = fom.plusDays(2)
+    val base = InntektsmeldingMedStatus(
+        id = UUID.randomUUID().toString(),
+        fnr = "123",
+        orgNr = "sdf",
+        orgNavn = "sdgsdfs",
+        vedtakFom = fom,
+        vedtakTom = tom,
+        eksternTimestamp = Instant.now(),
+        eksternId = "321423",
+        status = StatusVerdi.MANGLER_INNTEKTSMELDING,
+        statusOpprettet = Instant.now(),
+        opprettet = Instant.now()
+    )
+
+    @Test
+    fun `tom liste overlapper ikke`() {
+        emptyList<InntektsmeldingMedStatus>().overlapper().`should be false`()
+    }
+
+    @Test
+    fun `en i liste overlapper ikke`() {
+        listOf(base).overlapper().`should be false`()
+    }
+
+    @Test
+    fun `duplikat i liste overlapper ikke`() {
+        listOf(base, base).overlapper().`should be false`()
+    }
+
+    @Test
+    fun `to som ikke overlapper`() {
+        val neste = base.copy(
+            vedtakFom = tom.plusDays(1),
+            vedtakTom = tom.plusDays(3)
+        )
+        listOf(base, neste).overlapper().`should be false`()
+    }
+
+    @Test
+    fun `to som overlapper`() {
+        val neste = base.copy(
+            vedtakFom = tom,
+            vedtakTom = tom.plusDays(3)
+        )
+        listOf(base, neste).overlapper().`should be true`()
+    }
+}

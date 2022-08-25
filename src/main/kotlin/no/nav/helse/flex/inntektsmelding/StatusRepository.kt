@@ -69,6 +69,39 @@ class StatusRepository(
         }
     }
 
+    fun hentAlleForPerson(fnr: String, orgNr: String): List<InntektsmeldingMedStatus> {
+        return namedParameterJdbcTemplate.query(
+            """
+            SELECT im.id,
+                   im.fnr,
+                   im.org_nr,
+                   im.org_navn,
+                   im.opprettet,
+                   im.vedtak_fom,
+                   im.vedtak_tom,
+                   im.ekstern_timestamp,
+                   im.ekstern_id,
+                   status.status,
+                   status.opprettet AS status_opprettet
+            FROM inntektsmelding_status status
+                     INNER JOIN (SELECT inntektsmelding_id, max(opprettet) AS opprettet
+                                 FROM inntektsmelding_status
+                                 GROUP BY inntektsmelding_id) max_status
+                                ON status.inntektsmelding_id = max_status.inntektsmelding_id
+                                    AND status.opprettet = max_status.opprettet
+                     INNER JOIN inntektsmelding im ON im.id = status.inntektsmelding_id
+            WHERE im.fnr = :fnr
+            AND im.org_nr = :orgNr
+            ORDER BY opprettet
+            """,
+            MapSqlParameterSource()
+                .addValue("fnr", fnr)
+                .addValue("orgNr", orgNr)
+        ) { resultSet, _ ->
+            resultSet.tilInntektsmelding()
+        }
+    }
+
     private fun ResultSet.tilInntektsmelding(): InntektsmeldingMedStatus {
         return InntektsmeldingMedStatus(
             id = getString("id"),
