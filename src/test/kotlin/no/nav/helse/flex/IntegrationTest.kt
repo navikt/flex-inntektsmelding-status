@@ -309,7 +309,9 @@ class IntegrationTest : FellesTestOppsett() {
         opprettMelding.lenke.shouldBeNull()
         opprettMelding.lukkbar shouldBeEqualTo true
         opprettMelding.variant shouldBeEqualTo Variant.success
-        opprettMelding.synligFremTil.shouldBeNull()
+        opprettMelding.synligFremTil.shouldNotBeNull()
+        opprettMelding.synligFremTil!!.shouldBeAfter(OffsetDateTime.now().plusDays(13).toInstant())
+        opprettMelding.synligFremTil!!.shouldBeBefore(OffsetDateTime.now().plusDays(15).toInstant())
     }
 
     @Test

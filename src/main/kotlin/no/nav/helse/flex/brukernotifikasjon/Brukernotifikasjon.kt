@@ -39,7 +39,7 @@ class Brukernotifikasjon(
         synligFremTil: Instant,
     ) {
 
-        registry.counter("bruekrnotifikasjon_mangler_inntektsmelding_beskjed_sendt").increment()
+        registry.counter("brukernotifikasjon_mangler_inntektsmelding_beskjed_sendt").increment()
 
         beskjedKafkaProducer.send(
             ProducerRecord(
@@ -76,7 +76,7 @@ class Brukernotifikasjon(
         eksternId: String,
         bestillingId: String,
     ) {
-        registry.counter("bruekrnotifikasjon_done_sendt").increment()
+        registry.counter("brukernotifikasjon_done_sendt").increment()
 
         doneKafkaProducer.send(
             ProducerRecord(
