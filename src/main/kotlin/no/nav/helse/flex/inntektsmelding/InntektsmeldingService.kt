@@ -16,6 +16,7 @@ import no.nav.helse.flex.util.norskDateFormat
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import java.time.OffsetDateTime
 
 @Component
 class InntektsmeldingService(
@@ -274,6 +275,7 @@ class InntektsmeldingService(
                     lenke = null,
                     variant = Variant.success,
                     lukkbar = true,
+                    synligFremTil = OffsetDateTime.now().plusWeeks(2).toInstant(),
                     meldingType = "MOTTATT_INNTEKTSMELDING",
                 ),
             )
