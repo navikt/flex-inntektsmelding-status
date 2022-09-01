@@ -159,7 +159,7 @@ class BestillBeskjed(
             meldingKafkaDto = MeldingKafkaDto(
                 fnr = inntektsmeldingMedStatus.fnr,
                 opprettMelding = OpprettMelding(
-                    tekst = "Vi mangler inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefraværet som startet ${
+                    tekst = "Vi mangler opplysninger om inntekten din fra ${inntektsmeldingMedStatus.orgNavn} for sykefraværet som startet ${
                     fom.format(
                         norskDateFormat
                     )

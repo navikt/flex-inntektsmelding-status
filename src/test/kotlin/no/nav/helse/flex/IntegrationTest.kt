@@ -200,7 +200,7 @@ class IntegrationTest : FellesTestOppsett() {
         beskjedInput.get("eksternVarsling") shouldBeEqualTo false
         beskjedInput.get("link") shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         beskjedInput.get("sikkerhetsnivaa") shouldBeEqualTo 4
-        beskjedInput.get("tekst") shouldBeEqualTo "Vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
+        beskjedInput.get("tekst") shouldBeEqualTo "Vi mangler opplysninger om inntekten din fra Flex AS for sykefraværet som startet 16. mai 2022."
         beskjedInput.get("tidspunkt")
 
         val synligFremTil = Instant.ofEpochMilli(beskjedInput.get("synligFremTil") as Long)
@@ -216,7 +216,7 @@ class IntegrationTest : FellesTestOppsett() {
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING"
-        opprettMelding.tekst shouldBeEqualTo "Vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
+        opprettMelding.tekst shouldBeEqualTo "Vi mangler opplysninger om inntekten din fra Flex AS for sykefraværet som startet 16. mai 2022."
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.info
@@ -305,7 +305,7 @@ class IntegrationTest : FellesTestOppsett() {
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "MOTTATT_INNTEKTSMELDING"
-        opprettMelding.tekst shouldBeEqualTo "Vi har mottatt inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
+        opprettMelding.tekst shouldBeEqualTo "Vi har mottatt opplysninger om inntekten din fra Flex AS for sykefraværet som startet 16. mai 2022."
         opprettMelding.lenke.shouldBeNull()
         opprettMelding.lukkbar shouldBeEqualTo true
         opprettMelding.variant shouldBeEqualTo Variant.success
