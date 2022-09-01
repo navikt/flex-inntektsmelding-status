@@ -44,6 +44,10 @@ class BestillBeskjed(
 
     @Scheduled(initialDelay = 2, fixedDelay = 2, timeUnit = TimeUnit.MINUTES)
     fun job() {
+        if (env.isProduction()) {
+            log.info("Bestiller ikke beskjed og melding i prod")
+            return
+        }
         jobMedParameter(opprettetFor = sykmeldtVarsel())
     }
 
