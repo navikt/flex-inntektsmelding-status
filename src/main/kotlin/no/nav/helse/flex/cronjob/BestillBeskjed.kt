@@ -42,13 +42,8 @@ class BestillBeskjed(
 
     private fun sykmeldtVarsel() = OffsetDateTime.now().minusDays(ventetid).toInstant()
 
-    @Scheduled(initialDelay = 2, fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 2, fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
     fun job() {
-        if (env.isProduction()) {
-            log.info("Bestiller ikke beskjed og melding i prod")
-            return
-        }
-
         jobMedParameter(opprettetFor = sykmeldtVarsel())
     }
 
@@ -59,6 +54,7 @@ class BestillBeskjed(
             .hentAlleMedNyesteStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
             .filter { it.statusOpprettet.isBefore(opprettetFor) }
             .sortedByDescending { it.vedtakFom }
+            .take(100)
 
         manglerBeskjed.forEach {
             if (opprettVarsler(it)) {
