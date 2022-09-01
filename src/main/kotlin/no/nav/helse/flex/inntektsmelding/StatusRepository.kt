@@ -86,12 +86,13 @@ class StatusRepository(
             FROM inntektsmelding_status status
                      INNER JOIN (SELECT inntektsmelding_id, max(opprettet) AS opprettet
                                  FROM inntektsmelding_status
+                                 WHERE inntektsmelding_id IN (SELECT id FROM inntektsmelding
+                                                             WHERE fnr = :fnr
+                                                             AND org_nr = :orgNr)
                                  GROUP BY inntektsmelding_id) max_status
                                 ON status.inntektsmelding_id = max_status.inntektsmelding_id
                                     AND status.opprettet = max_status.opprettet
                      INNER JOIN inntektsmelding im ON im.id = status.inntektsmelding_id
-            WHERE im.fnr = :fnr
-            AND im.org_nr = :orgNr
             ORDER BY opprettet
             """,
             MapSqlParameterSource()
@@ -177,10 +178,17 @@ data class InntektsmeldingMedStatusHistorikk(
     val eksternId: String,
     val statusHistorikk: List<StatusHistorikk>,
 ) {
-    fun manglerBeskjedSendt() = statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }
-    fun manglerMeldingSendt() = statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }
-    fun manglerBeskjedDonet() = statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }
-    fun manglerMeldingDonet() = statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }
+    fun manglerBeskjedSendt() =
+        statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }
+
+    fun manglerMeldingSendt() =
+        statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }
+
+    fun manglerBeskjedDonet() =
+        statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }
+
+    fun manglerMeldingDonet() =
+        statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }
 }
 
 data class StatusHistorikk(
