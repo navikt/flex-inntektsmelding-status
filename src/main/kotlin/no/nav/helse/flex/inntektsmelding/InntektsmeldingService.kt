@@ -38,6 +38,11 @@ class InntektsmeldingService(
 
         val eksternId = kafkaDto.vedtaksperiode.id
 
+        if (eksternId == "fe297ce5-23b3-4042-966b-82449d8b0521" && kafkaDto.status == Status.MANGLER_INNTEKTSMELDING) {
+            log.info("Behandler ikke inntektsmelding med eksternId: $eksternId og status MANGLER_INNTEKTSMELDING siden den er sendt feil.")
+            return
+        }
+
         lockRepository.settAdvisoryTransactionLock(kafkaDto.sykmeldt.toLong())
 
         val dbId = lagreInntektsmeldingHvisDenIkkeFinnesAllerede(kafkaDto, eksternId)
@@ -51,6 +56,7 @@ class InntektsmeldingService(
                 dbId,
                 inntektsmeldingMedStatusHistorikk
             )
+
             Status.BEHANDLES_UTENFOR_SPLEIS -> behandlesUtenforSpleis(kafkaDto, dbId, inntektsmeldingMedStatusHistorikk)
         }
     }
