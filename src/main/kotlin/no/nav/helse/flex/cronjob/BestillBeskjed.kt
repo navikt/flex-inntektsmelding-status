@@ -7,6 +7,7 @@ import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusDbRecord
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
 import no.nav.helse.flex.inntektsmelding.StatusRepository
 import no.nav.helse.flex.inntektsmelding.StatusVerdi
+import no.nav.helse.flex.inntektsmelding.manglendeInntektsmeldingOverlapperBehandlesUtaforSpleis
 import no.nav.helse.flex.inntektsmelding.overlapper
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.MeldingKafkaDto
@@ -76,7 +77,11 @@ class BestillBeskjed(
             orgNr = inntektsmeldingMedStatus.orgNr
         )
         if (vedtaksperioder.overlapper()) {
-            log.warn("Fant overlappende perioder for id ${inntektsmeldingMedStatus.id}. Vet ikke hva jeg skal gjøre. Hopper over denne")
+            log.warn("Fant overlappende perioder for id ${inntektsmeldingMedStatus.id}. Vet ikke hva jeg skal gjøre. Hopper over denne ")
+            return false
+        }
+        if (vedtaksperioder.manglendeInntektsmeldingOverlapperBehandlesUtaforSpleis()) {
+            log.warn("Fant overlappende perioder med mangler im og behandles utafor spleis for id ${inntektsmeldingMedStatus.id}. Vet ikke hva jeg skal gjøre. Hopper over denne")
             return false
         }
 

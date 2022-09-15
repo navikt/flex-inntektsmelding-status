@@ -57,4 +57,26 @@ internal class InntektsmeldingMedStatusOverlapperExtKtTest {
         )
         listOf(base, neste).overlapper().`should be true`()
     }
+
+    @Test
+    fun `ignorerer at vi overlapper med behandling utafor spleis`() {
+        val neste = base.copy(
+            vedtakFom = tom,
+            vedtakTom = tom.plusDays(3),
+            status = StatusVerdi.BEHANDLES_UTENFOR_SPLEIS,
+
+        )
+        listOf(base, neste).overlapper().`should be false`()
+    }
+
+    @Test
+    fun `tester behandles utafor overlapper mangler inntektsmelding`() {
+        val neste = base.copy(
+            vedtakFom = tom,
+            vedtakTom = tom.plusDays(3),
+            status = StatusVerdi.BEHANDLES_UTENFOR_SPLEIS,
+
+        )
+        listOf(base, neste).manglendeInntektsmeldingOverlapperBehandlesUtaforSpleis().`should be true`()
+    }
 }
