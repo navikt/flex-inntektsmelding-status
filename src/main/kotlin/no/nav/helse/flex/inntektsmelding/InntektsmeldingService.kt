@@ -91,9 +91,11 @@ class InntektsmeldingService(
             if (inntektsmelding.statusHistorikk.size == 1 && inntektsmelding.statusHistorikk.first().status == StatusVerdi.MANGLER_INNTEKTSMELDING) {
                 log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede status for MANGLER_INNTEKTSMELDING, lagrer ikke dublikat")
                 return
+            } else if (inntektsmelding.statusHistorikk.size == 1 && inntektsmelding.statusHistorikk.first().status == StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING) {
+                log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede status for TRENGER_IKKE_INNTEKTSMELDING, lagrer MANGLER_INNTEKTSMELDING out of order")
+            } else {
+                throw RuntimeException("Inntektsmelding ${inntektsmelding.eksternId} med status MANGLER_INNTEKTSMELDING har allerede disse statusene ${inntektsmelding.statusHistorikk}")
             }
-
-            throw RuntimeException("Inntektsmelding ${inntektsmelding.eksternId} med status MANGLER_INNTEKTSMELDING har allerede disse statusene ${inntektsmelding.statusHistorikk}")
         }
 
         inntektsmeldingStatusRepository.save(
