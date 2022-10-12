@@ -3,6 +3,6 @@ environment: prod
 replicas_min: 1
 replicas_max: 1
 env:
-  SPRING_PROFILES_ACTIVE: default, bomlo
+  SPRING_PROFILES_ACTIVE: default
   INNTEKTSMELDING_MANGLER_URL: https://www.nav.no/syk/sykefravaer/inntektsmelding
   INNTEKTSMELDING_MANGLER_VENTETID: 28

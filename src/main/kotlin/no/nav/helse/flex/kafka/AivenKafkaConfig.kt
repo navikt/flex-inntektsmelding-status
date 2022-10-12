@@ -37,6 +37,6 @@ class AivenKafkaConfig(
 const val dittSykefravaerMeldingTopic = "flex." + "ditt-sykefravaer-melding"
 const val brukernotifikasjonDoneTopic = "min-side." + "aapen-brukernotifikasjon-done-v1"
 const val brukernotifikasjonBeskjedTopic = "min-side." + "aapen-brukernotifikasjon-beskjed-v1"
-const val bomloInntektsmeldingManglerTopic = "tbd." + "inntektsmeldingstatus"
+const val inntektsmeldingstatusTopic = "tbd." + "inntektsmeldingstatus"
 const val inntektsmeldingstatusTestdataTopic = "flex." + "inntektsmeldingstatus-testdata"
 const val sykepengesoknadTopic = "flex" + ".sykepengesoknad"

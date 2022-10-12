@@ -21,7 +21,7 @@ class InntektsmeldingStatusListener(
     @KafkaListener(
         topics = [inntektsmeldingstatusTopic],
         containerFactory = "aivenKafkaListenerContainerFactory",
-        id = "flex-inntektsmelding-status-inntektsmelding",
+        id = "flex-inntektsmelding-status-inntektsmelding-duplikathandtering",
         idIsGroup = false,
         groupId = "duplikathandtering-dryrun"
     )
