@@ -5,7 +5,7 @@ import no.nav.helse.flex.inntektsmelding.InntektsmeldingKafkaDto
 import no.nav.helse.flex.inntektsmelding.Status
 import no.nav.helse.flex.inntektsmelding.StatusVerdi
 import no.nav.helse.flex.inntektsmelding.Vedtaksperiode
-import no.nav.helse.flex.kafka.bomloInntektsmeldingManglerTopic
+import no.nav.helse.flex.kafka.inntektsmeldingstatusTopic
 import no.nav.helse.flex.kafka.sykepengesoknadTopic
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.Variant
@@ -107,7 +107,7 @@ class IntegrationTest : FellesTestOppsett() {
     fun `Vi får beskjed at det mangler en inntektsmelding for tre perioder butt i butt, første periode er innenfor ag`() {
         kafkaProducer.send(
             ProducerRecord(
-                bomloInntektsmeldingManglerTopic,
+                inntektsmeldingstatusTopic,
                 fnr,
                 InntektsmeldingKafkaDto(
                     id = UUID.randomUUID().toString(),
@@ -125,7 +125,7 @@ class IntegrationTest : FellesTestOppsett() {
         ).get()
         kafkaProducer.send(
             ProducerRecord(
-                bomloInntektsmeldingManglerTopic,
+                inntektsmeldingstatusTopic,
                 fnr,
                 InntektsmeldingKafkaDto(
                     id = UUID.randomUUID().toString(),
@@ -143,7 +143,7 @@ class IntegrationTest : FellesTestOppsett() {
         ).get()
         kafkaProducer.send(
             ProducerRecord(
-                bomloInntektsmeldingManglerTopic,
+                inntektsmeldingstatusTopic,
                 fnr,
                 InntektsmeldingKafkaDto(
                     id = UUID.randomUUID().toString(),
@@ -231,7 +231,7 @@ class IntegrationTest : FellesTestOppsett() {
     fun `Vi mottar inntektsmeldingen`() {
         kafkaProducer.send(
             ProducerRecord(
-                bomloInntektsmeldingManglerTopic,
+                inntektsmeldingstatusTopic,
                 fnr,
                 InntektsmeldingKafkaDto(
                     id = UUID.randomUUID().toString(),
@@ -249,7 +249,7 @@ class IntegrationTest : FellesTestOppsett() {
         ).get()
         kafkaProducer.send(
             ProducerRecord(
-                bomloInntektsmeldingManglerTopic,
+                inntektsmeldingstatusTopic,
                 fnr,
                 InntektsmeldingKafkaDto(
                     id = UUID.randomUUID().toString(),
