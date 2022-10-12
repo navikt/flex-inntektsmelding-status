@@ -23,7 +23,8 @@ class InntektsmeldingStatusListener(
         containerFactory = "aivenKafkaListenerContainerFactory",
         id = "flex-inntektsmelding-status-inntektsmelding-duplikathandtering",
         idIsGroup = false,
-        groupId = "duplikathandtering-dryrun"
+        groupId = "duplikathandtering-dryrun",
+        properties = ["auto.offset.reset = latest"]
     )
     fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val kafkaDto: InntektsmeldingKafkaDto = objectMapper.readValue(cr.value())
