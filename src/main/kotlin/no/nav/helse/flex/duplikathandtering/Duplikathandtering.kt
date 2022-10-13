@@ -3,6 +3,7 @@ package no.nav.helse.flex.duplikathandtering
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingKafkaDto
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingMedStatus
 import no.nav.helse.flex.inntektsmelding.StatusRepository
+import no.nav.helse.flex.inntektsmelding.StatusVerdi
 import no.nav.helse.flex.inntektsmelding.tilStatusVerdi
 import no.nav.helse.flex.logger
 import org.springframework.stereotype.Component
@@ -19,6 +20,11 @@ class Duplikathandtering(
     @Transactional
     fun prosesserKafkaMelding(kafkaDto: InntektsmeldingKafkaDto) {
         val alleForPerson = statusRepository.hentAlleForPerson(fnr = kafkaDto.sykmeldt, orgNr = kafkaDto.arbeidsgiver)
+
+        if (kafkaDto.status.tilStatusVerdi() == StatusVerdi.BEHANDLES_UTENFOR_SPLEIS) {
+            // Disse kan ha duplikater
+            return
+        }
 
         fun InntektsmeldingMedStatus.erLikMedFeilEksternId(): Boolean {
             val erEldre = eksternTimestamp.isBefore(kafkaDto.tidspunkt.toInstant())
