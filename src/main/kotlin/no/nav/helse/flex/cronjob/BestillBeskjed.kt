@@ -77,11 +77,11 @@ class BestillBeskjed(
             orgNr = inntektsmeldingMedStatus.orgNr
         )
         if (vedtaksperioder.overlapper()) {
-            log.warn("Fant overlappende perioder for id ${inntektsmeldingMedStatus.id}. Vet ikke hva jeg skal gjøre. Hopper over denne ")
+            log.info("Fant overlappende perioder for id ${inntektsmeldingMedStatus.id}. Vet ikke hva jeg skal gjøre. Hopper over denne ")
             return false
         }
         if (vedtaksperioder.manglendeInntektsmeldingOverlapperBehandlesUtaforSpleis()) {
-            log.warn("Fant overlappende perioder med mangler im og behandles utafor spleis for id ${inntektsmeldingMedStatus.id}. Vet ikke hva jeg skal gjøre. Hopper over denne")
+            log.info("Fant overlappende perioder med mangler im og behandles utafor spleis for id ${inntektsmeldingMedStatus.id}. Vet ikke hva jeg skal gjøre. Hopper over denne")
             return false
         }
 
