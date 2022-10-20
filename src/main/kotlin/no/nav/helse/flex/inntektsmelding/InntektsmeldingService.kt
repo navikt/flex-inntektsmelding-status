@@ -51,6 +51,7 @@ class InntektsmeldingService(
                 dbId,
                 inntektsmeldingMedStatusHistorikk
             )
+
             Status.BEHANDLES_UTENFOR_SPLEIS -> behandlesUtenforSpleis(kafkaDto, dbId, inntektsmeldingMedStatusHistorikk)
         }
     }
@@ -88,13 +89,19 @@ class InntektsmeldingService(
         inntektsmelding: InntektsmeldingMedStatusHistorikk
     ) {
         if (inntektsmelding.statusHistorikk.isNotEmpty()) {
-            if (inntektsmelding.statusHistorikk.size == 1 && inntektsmelding.statusHistorikk.first().status == StatusVerdi.MANGLER_INNTEKTSMELDING) {
-                log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede status for MANGLER_INNTEKTSMELDING, lagrer ikke dublikat")
-                return
-            } else if (inntektsmelding.statusHistorikk.size == 1 && inntektsmelding.statusHistorikk.first().status == StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING) {
-                log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede status for TRENGER_IKKE_INNTEKTSMELDING, lagrer MANGLER_INNTEKTSMELDING out of order")
-            } else {
-                throw RuntimeException("Inntektsmelding ${inntektsmelding.eksternId} med status MANGLER_INNTEKTSMELDING har allerede disse statusene ${inntektsmelding.statusHistorikk}")
+            when (inntektsmelding.harNyesteStatus()) {
+                StatusVerdi.MANGLER_INNTEKTSMELDING -> {
+                    log.info("Inntektsmelding ${inntektsmelding.eksternId} har status for MANGLER_INNTEKTSMELDING, så lagrer ikke duplikat.")
+                    return
+                }
+
+                StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING -> {
+                    log.info("Inntektsmelding ${inntektsmelding.eksternId} har status TRENGER_IKKE_INNTEKTSMELDING, men lagrer MANGLER_INNTEKTSMELDING på nytt.")
+                }
+
+                else -> {
+                    throw RuntimeException("Kan ikke lagre status MANGLER_INNTEKTSMELDING siden inntektsmelding ${inntektsmelding.eksternId} allerede har følgende statuser: ${inntektsmelding.statusHistorikk}.")
+                }
             }
         }
 
@@ -108,6 +115,8 @@ class InntektsmeldingService(
 
         log.info("Inntektsmelding ${inntektsmelding.eksternId} mangler inntektsmelding")
     }
+
+    private fun InntektsmeldingMedStatusHistorikk.harNyesteStatus() = statusHistorikk.reversed().first().status
 
     private fun harInntektsmelding(
         kafkaDto: InntektsmeldingKafkaDto,

@@ -29,7 +29,7 @@ class StatusRepository(
                    status.status,
                    status.opprettet AS status_opprettet
             FROM inntektsmelding im
-            LEFT JOIN inntektsmelding_status status on status.inntektsmelding_id = im.id
+            LEFT JOIN inntektsmelding_status status ON status.inntektsmelding_id = im.id
             WHERE im.id = :inntektsmelding_id
             ORDER BY status_opprettet
             """,
