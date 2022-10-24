@@ -5,10 +5,11 @@ import no.nav.helse.flex.organisasjon.Organisasjon
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldHaveSize
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.MethodOrderer
-import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Instant
 import java.time.LocalDate
@@ -21,11 +22,14 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
     @Autowired
     private lateinit var inntektsmeldingService: InntektsmeldingService
 
+    val eksternId = "vedtak-id"
+    val orgnummer = "org-nr"
+
     private fun kafkaDto() = InntektsmeldingKafkaDto(
         id = UUID.randomUUID().toString(),
         status = Status.TRENGER_IKKE_INNTEKTSMELDING,
         sykmeldt = "10293847561",
-        arbeidsgiver = org,
+        arbeidsgiver = orgnummer,
         vedtaksperiode = Vedtaksperiode(
             id = eksternId,
             fom = LocalDate.now().minusDays(5),
@@ -34,17 +38,11 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
         tidspunkt = OffsetDateTime.now(),
     )
 
-    val eksternId = "vedtak-id"
-    val org = "56473829"
-    val inntektsmeldingDbId: String by lazy {
-        inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
-    }
-
     @BeforeAll
     fun beforeAll() {
         organisasjonRepository.save(
             Organisasjon(
-                orgnummer = org,
+                orgnummer = orgnummer,
                 navn = "org",
                 opprettet = Instant.now(),
                 oppdatert = Instant.now(),
@@ -53,89 +51,75 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
         )
     }
 
+    @BeforeEach
+    fun setUp() {
+        slettFraDatabase()
+    }
+
     @Test
-    @Order(1)
-    fun `Mottar først TRENGER_IKKE_INNTEKTSMELDING`() {
-        inntektsmeldingService.prosesserKafkaMelding(
-            kafkaDto().copy(status = Status.TRENGER_IKKE_INNTEKTSMELDING)
-        )
+    fun `Lagrer ikke duplikat MANGLER_INNTEKTSMELDING`() {
+        inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
+        inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
 
         val statusHistorikk =
-            statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbId)!!.statusHistorikk
+            statusRepository.hentInntektsmeldingMedStatusHistorikk(finnInntektsmeldingId())!!.statusHistorikk
 
         statusHistorikk.shouldHaveSize(1)
-        statusHistorikk.last().status.shouldBeEqualTo(StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING)
-    }
-
-    @Test
-    @Order(2)
-    fun `Mottar deretter MANGLER_INNTEKTSMELDING`() {
-        inntektsmeldingService.prosesserKafkaMelding(
-            kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING)
-        )
-
-        val statusHistorikk =
-            statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbId)!!.statusHistorikk
-
-        statusHistorikk.shouldHaveSize(2)
         statusHistorikk.last().status.shouldBeEqualTo(StatusVerdi.MANGLER_INNTEKTSMELDING)
-
-        statusRepository.hentAlleMedNyesteStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
-            .first()
-            .id.shouldBeEqualTo(inntektsmeldingDbId)
     }
 
     @Test
-    @Order(3)
-    fun `Mottar MANGLER_INNTEKTSMELDING en gang til men lagrer ikke duplikat`() {
-        inntektsmeldingService.prosesserKafkaMelding(
-            kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING)
-        )
+    fun `Lagrer MANGLER_INNTEKTSMELDING selv om TRENGER_IKKE_INNTEKTSMELDING er siste av flere statuser`() {
+        inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
+        inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.TRENGER_IKKE_INNTEKTSMELDING))
+        inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
 
         val statusHistorikk =
-            statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbId)!!.statusHistorikk
-
-        statusHistorikk.shouldHaveSize(2)
-        statusHistorikk.last().status.shouldBeEqualTo(StatusVerdi.MANGLER_INNTEKTSMELDING)
-
-        statusRepository.hentAlleMedNyesteStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
-            .first()
-            .id.shouldBeEqualTo(inntektsmeldingDbId)
-    }
-
-    @Test
-    @Order(4)
-    fun `Mottar TRENGER_IKKE_INNTEKTSMELDING en gang til og lagrer ny status`() {
-        inntektsmeldingService.prosesserKafkaMelding(
-            kafkaDto().copy(status = Status.TRENGER_IKKE_INNTEKTSMELDING)
-        )
-
-        val statusHistorikk =
-            statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbId)!!.statusHistorikk
+            statusRepository.hentInntektsmeldingMedStatusHistorikk(finnInntektsmeldingId())!!.statusHistorikk
 
         statusHistorikk.shouldHaveSize(3)
-        statusHistorikk.last().status.shouldBeEqualTo(StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING)
-
-        statusRepository.hentAlleMedNyesteStatus(StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING)
-            .first()
-            .id.shouldBeEqualTo(inntektsmeldingDbId)
+        statusHistorikk.last().status.shouldBeEqualTo(StatusVerdi.MANGLER_INNTEKTSMELDING)
     }
 
     @Test
-    @Order(5)
-    fun `Mottar MANGLER_INNTEKTSMELDING en gang til og lagrer ny status`() {
-        inntektsmeldingService.prosesserKafkaMelding(
-            kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING)
-        )
+    fun `Lagrer MANGLER_INNTEKTSMELDING selv om HAR_INNTEKTSMELDING er siste av flere statuser`() {
+        inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
+        inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.HAR_INNTEKTSMELDING))
+        inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
 
         val statusHistorikk =
-            statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbId)!!.statusHistorikk
+            statusRepository.hentInntektsmeldingMedStatusHistorikk(finnInntektsmeldingId())!!.statusHistorikk
 
-        statusHistorikk.shouldHaveSize(4)
+        statusHistorikk.shouldHaveSize(3)
         statusHistorikk.last().status.shouldBeEqualTo(StatusVerdi.MANGLER_INNTEKTSMELDING)
+    }
 
-        statusRepository.hentAlleMedNyesteStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
-            .first()
-            .id.shouldBeEqualTo(inntektsmeldingDbId)
+    @Test
+    fun `Feiler ved mottak av MANGLER_INNTEKTSMELDING når siste status er feil`() {
+        inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
+
+        StatusVerdi.values().filter {
+            it !in listOf(
+                StatusVerdi.MANGLER_INNTEKTSMELDING,
+                StatusVerdi.HAR_INNTEKTSMELDING,
+                StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING,
+            )
+        }.forEach {
+            inntektsmeldingStatusRepository.save(
+                InntektsmeldingStatusDbRecord(
+                    inntektsmeldingId = finnInntektsmeldingId(),
+                    opprettet = Instant.now(),
+                    status = it,
+                )
+            )
+
+            assertThrows<RuntimeException> {
+                inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
+            }
+        }
+    }
+
+    private fun finnInntektsmeldingId(): String {
+        return inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
     }
 }
