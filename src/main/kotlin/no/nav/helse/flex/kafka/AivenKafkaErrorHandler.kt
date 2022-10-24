@@ -27,8 +27,14 @@ class AivenKafkaErrorHandler : DefaultErrorHandler(
     ) {
 
         records.forEach { record ->
+            val key = if (record.key().erFnr()) {
+                "***"
+            } else {
+                record.key()
+            }
+
             log.error(
-                "Feil i prossesseringen av record med offset: ${record.offset()}, key: ${record.key()} på topic ${record.topic()}",
+                "Feil i prossesseringen av record med offset: ${record.offset()}, key: $key på topic ${record.topic()}",
                 thrownException
             )
         }
@@ -47,8 +53,14 @@ class AivenKafkaErrorHandler : DefaultErrorHandler(
         invokeListener: Runnable
     ) {
         data.forEach { record ->
+            val key = if (record.key().erFnr()) {
+                "***"
+            } else {
+                record.key()
+            }
+
             log.error(
-                "Feil i prossesseringen av record med offset: ${record.offset()}, key: ${record.key()} på topic ${record.topic()}",
+                "Feil i prossesseringen av record med offset: ${record.offset()}, key: $key på topic ${record.topic()}",
                 thrownException
             )
         }
@@ -57,4 +69,6 @@ class AivenKafkaErrorHandler : DefaultErrorHandler(
         }
         super.handleBatch(thrownException, data, consumer, container, invokeListener)
     }
+
+    private fun Any.erFnr() = this.toString().length == 11
 }
