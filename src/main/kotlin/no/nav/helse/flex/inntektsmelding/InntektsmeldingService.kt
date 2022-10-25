@@ -91,16 +91,32 @@ class InntektsmeldingService(
         if (inntektsmelding.statusHistorikk.isNotEmpty()) {
             when (inntektsmelding.harNyesteStatus()) {
                 StatusVerdi.MANGLER_INNTEKTSMELDING -> {
-                    log.info("Inntektsmelding ${inntektsmelding.eksternId} har status for MANGLER_INNTEKTSMELDING, så lagrer ikke duplikat.")
+                    log.info(
+                        "Lagrer ikke status MANGLER_INNTEKTSMELDING for inntektsmelding ${inntektsmelding.eksternId} " +
+                            "siden den allerede har status MANGLER_INNTEKTSMELDING."
+                    )
                     return
                 }
 
                 StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING -> {
-                    log.info("Inntektsmelding ${inntektsmelding.eksternId} har status TRENGER_IKKE_INNTEKTSMELDING, men lagrer MANGLER_INNTEKTSMELDING på nytt.")
+                    log.info(
+                        "Lagrer status MANGLER_INNTEKTSMELDING for inntektsmelding ${inntektsmelding.eksternId} " +
+                            "selv om den allerede har status TRENGER_IKKE_INNTEKTSMELDING."
+                    )
+                }
+
+                StatusVerdi.HAR_INNTEKTSMELDING -> {
+                    log.info(
+                        "Lagrer status MANGLER_INNTEKTSMELDING for inntektsmelding ${inntektsmelding.eksternId} " +
+                            "selv om den allerede har status HAR_INNTEKTSMELDING."
+                    )
                 }
 
                 else -> {
-                    throw RuntimeException("Kan ikke lagre status MANGLER_INNTEKTSMELDING siden inntektsmelding ${inntektsmelding.eksternId} allerede har følgende statuser: ${inntektsmelding.statusHistorikk}.")
+                    throw RuntimeException(
+                        "Kan ikke lagre status MANGLER_INNTEKTSMELDING siden inntektsmelding " +
+                            "${inntektsmelding.eksternId} allerede har følgende statuser: ${inntektsmelding.statusHistorikk}."
+                    )
                 }
             }
         }
@@ -278,11 +294,8 @@ class InntektsmeldingService(
             meldingKafkaDto = MeldingKafkaDto(
                 fnr = inntektsmeldingMedStatus.fnr,
                 opprettMelding = OpprettMelding(
-                    tekst = "Vi har mottatt inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefraværet som startet ${
-                    fom.format(
-                        norskDateFormat
-                    )
-                    }.",
+                    tekst = "Vi har mottatt inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefraværet" +
+                        " som startet ${fom.format(norskDateFormat)}.",
                     lenke = null,
                     variant = Variant.success,
                     lukkbar = true,
