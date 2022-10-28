@@ -89,35 +89,17 @@ class InntektsmeldingService(
         inntektsmelding: InntektsmeldingMedStatusHistorikk
     ) {
         if (inntektsmelding.statusHistorikk.isNotEmpty()) {
-            when (inntektsmelding.harNyesteStatus()) {
-                StatusVerdi.MANGLER_INNTEKTSMELDING -> {
-                    log.info(
-                        "Lagrer ikke status MANGLER_INNTEKTSMELDING for inntektsmelding ${inntektsmelding.eksternId} " +
-                            "siden den allerede har status MANGLER_INNTEKTSMELDING."
-                    )
-                    return
-                }
-
-                StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING -> {
-                    log.info(
-                        "Lagrer status MANGLER_INNTEKTSMELDING for inntektsmelding ${inntektsmelding.eksternId} " +
-                            "selv om den allerede har status TRENGER_IKKE_INNTEKTSMELDING."
-                    )
-                }
-
-                StatusVerdi.HAR_INNTEKTSMELDING -> {
-                    log.info(
-                        "Lagrer status MANGLER_INNTEKTSMELDING for inntektsmelding ${inntektsmelding.eksternId} " +
-                            "selv om den allerede har status HAR_INNTEKTSMELDING."
-                    )
-                }
-
-                else -> {
-                    throw RuntimeException(
-                        "Kan ikke lagre status MANGLER_INNTEKTSMELDING siden inntektsmelding " +
-                            "${inntektsmelding.eksternId} allerede har følgende statuser: ${inntektsmelding.statusHistorikk}."
-                    )
-                }
+            if (inntektsmelding.sisteStatus() == StatusVerdi.MANGLER_INNTEKTSMELDING) {
+                log.info(
+                    "Lagrer ikke status MANGLER_INNTEKTSMELDING for inntektsmelding ${inntektsmelding.eksternId} " +
+                        "siden den allerede har siste status MANGLER_INNTEKTSMELDING."
+                )
+                return
+            } else {
+                log.info(
+                    "Lagrer status MANGLER_INNTEKTSMELDING for inntektsmelding ${inntektsmelding.eksternId}, som " +
+                        "har siste status er ${inntektsmelding.sisteStatus()} "
+                )
             }
         }
 
@@ -132,7 +114,7 @@ class InntektsmeldingService(
         log.info("Inntektsmelding ${inntektsmelding.eksternId} mangler inntektsmelding")
     }
 
-    private fun InntektsmeldingMedStatusHistorikk.harNyesteStatus() = statusHistorikk.reversed().first().status
+    private fun InntektsmeldingMedStatusHistorikk.sisteStatus() = statusHistorikk.reversed().first().status
 
     private fun harInntektsmelding(
         kafkaDto: InntektsmeldingKafkaDto,
