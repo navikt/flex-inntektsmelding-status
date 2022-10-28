@@ -41,7 +41,7 @@ class BestillBeskjed(
 
     private val log = logger()
 
-    private fun sykmeldtVarsel() = OffsetDateTime.now().minusDays(ventetid).toInstant()
+    private fun sykmeldtVarsel() = OffsetDateTime.now().minusMinutes(1).toInstant()
 
     @Scheduled(initialDelay = 2, fixedDelay = 2, timeUnit = TimeUnit.MINUTES)
     fun job() {
