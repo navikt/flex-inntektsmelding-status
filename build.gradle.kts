@@ -37,7 +37,7 @@ val logstashLogbackEncoderVersion = "7.2"
 val kluentVersion = "1.72"
 val brukernotifikasjonAvroVersion = "2.5.2"
 val confluentVersion = "7.2.2"
-val sykepengesoknadKafkaVersion = "2022.02.10-16.07-0892e94a"
+val sykepengesoknadKafkaVersion = "2022.10.28-10.24-aa0eced7"
 
 dependencies {
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
