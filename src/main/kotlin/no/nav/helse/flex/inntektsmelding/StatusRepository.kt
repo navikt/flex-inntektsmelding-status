@@ -189,6 +189,22 @@ data class InntektsmeldingMedStatusHistorikk(
 
     fun manglerMeldingDonet() =
         statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }
+
+    fun alleBrukernotifikasjonerErDonet(): Boolean {
+        val brukernotifikasjoner = statusHistorikk.filter {
+            it.status in listOf(
+                StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
+                StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT
+            )
+        }
+
+        if (brukernotifikasjoner.isEmpty()) {
+            return true
+        }
+
+        return brukernotifikasjoner.size % 2 == 0 &&
+            brukernotifikasjoner.last().status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT
+    }
 }
 
 data class StatusHistorikk(
