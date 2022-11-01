@@ -100,15 +100,15 @@ class BestillBeskjed(
             return false
         }
 
-        val medAlleStatuser = statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingMedStatus.id)!!
+        val inntektsmeldingMedStatusHistorikk =
+            statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingMedStatus.id)!!
 
-        if (medAlleStatuser.statusHistorikk.none { it.status == StatusVerdi.MANGLER_INNTEKTSMELDING }) {
-            log.warn("Inntektsmelding med ekstern id ${medAlleStatuser.eksternId} har ikke status MANGLER_INNTEKTSMELDING, dette skal ikke skje")
-            return false
-        }
-
-        if (medAlleStatuser.statusHistorikk.size > 1) {
-            log.warn("Inntektsmelding med ekstern id ${medAlleStatuser.eksternId} kan ikke bestille beskjed med disse statusene ${medAlleStatuser.statusHistorikk}")
+        if (!inntektsmeldingMedStatusHistorikk.alleBrukernotifikasjonerErDonet()) {
+            log.warn(
+                "Bestiller ikke beskjed for inntektsmelding med eksternId ${inntektsmeldingMedStatusHistorikk.eksternId} og " +
+                    "statuser ${inntektsmeldingMedStatusHistorikk.statusHistorikk} siden det ikke er sendt Done-melding " +
+                    "for tidligere bestilte meldinger."
+            )
             return false
         }
 

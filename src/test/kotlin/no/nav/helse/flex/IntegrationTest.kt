@@ -104,7 +104,7 @@ class IntegrationTest : FellesTestOppsett() {
 
     @Test
     @Order(1)
-    fun `Vi får beskjed at det mangler en inntektsmelding for tre perioder butt i butt, første periode er innenfor ag`() {
+    fun `Vi får beskjed at det mangler en inntektsmelding for tre perioder butt i butt, første periode er innenfor AG`() {
         kafkaProducer.send(
             ProducerRecord(
                 inntektsmeldingstatusTopic,
@@ -184,7 +184,7 @@ class IntegrationTest : FellesTestOppsett() {
 
     @Test
     @Order(2)
-    fun `Vi bestiller beskjed på ditt nav og melding på ditt sykefravær`() {
+    fun `Vi bestiller beskjed på Ditt NAV og melding på Ditt Sykefravær`() {
         bestillBeskjed.jobMedParameter(opprettetFor = OffsetDateTime.now(osloZone).toInstant())
 
         val beskjedCR = beskjedKafkaConsumer.ventPåRecords(1).first()
@@ -295,7 +295,7 @@ class IntegrationTest : FellesTestOppsett() {
 
     @Test
     @Order(5)
-    fun `Vi bestiller ditt sykefravær melding om mottatt inntektsmelding`() {
+    fun `Vi bestiller melding om mottatt inntektsmelding på Ditt Sykefravær`() {
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
         meldingCR.key() shouldBeEqualTo mottatMeldingBestillingId
 
