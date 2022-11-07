@@ -36,7 +36,7 @@ val testContainersVersion = "1.17.5"
 val logstashLogbackEncoderVersion = "7.2"
 val kluentVersion = "1.72"
 val brukernotifikasjonAvroVersion = "2.5.2"
-val confluentVersion = "7.2.2"
+val confluentVersion = "7.3.0"
 val sykepengesoknadKafkaVersion = "2022.10.28-10.24-aa0eced7"
 
 dependencies {
