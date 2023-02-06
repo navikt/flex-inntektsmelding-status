@@ -144,11 +144,11 @@ class InntektsmeldingService(
 
         log.info("Inntektsmelding ${inntektsmelding.eksternId} har mottatt manglende inntektsmelding")
 
-        if (inntektsmelding.manglerBeskjedSendt()) {
+        if (inntektsmelding.harBeskjedSendt()) {
             doneBeskjed(inntektsmelding, dbId)
         }
 
-        if (inntektsmelding.manglerMeldingSendt()) {
+        if (inntektsmelding.harMeldingSendt()) {
             doneMelding(inntektsmelding, dbId)
             bestillMeldingMottattInntektsmelding(inntektsmelding)
         }
@@ -169,11 +169,11 @@ class InntektsmeldingService(
 
         log.info("Inntektsmelding ${inntektsmelding.eksternId} trenger ikke inntektsmelding")
 
-        if (inntektsmelding.manglerBeskjedSendt()) {
+        if (inntektsmelding.harBeskjedSendt()) {
             doneBeskjed(inntektsmelding, dbId)
         }
 
-        if (inntektsmelding.manglerMeldingSendt()) {
+        if (inntektsmelding.harMeldingSendt()) {
             doneMelding(inntektsmelding, dbId)
         }
     }
@@ -193,11 +193,11 @@ class InntektsmeldingService(
 
         log.info("Inntektsmelding ${inntektsmelding.eksternId} behandles utenfor spleis")
 
-        if (inntektsmelding.manglerBeskjedSendt()) {
+        if (inntektsmelding.harBeskjedSendt()) {
             doneBeskjed(inntektsmelding, dbId)
         }
 
-        if (inntektsmelding.manglerMeldingSendt()) {
+        if (inntektsmelding.harMeldingSendt()) {
             doneMelding(inntektsmelding, dbId)
         }
     }
@@ -206,7 +206,7 @@ class InntektsmeldingService(
         inntektsmelding: InntektsmeldingMedStatusHistorikk,
         dbId: String,
     ) {
-        if (inntektsmelding.manglerBeskjedDonet()) {
+        if (inntektsmelding.harBeskjedDonet()) {
             log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede donet brukernotifikasjon beskjed")
             return
         }
@@ -235,7 +235,7 @@ class InntektsmeldingService(
         inntektsmelding: InntektsmeldingMedStatusHistorikk,
         dbId: String,
     ) {
-        if (inntektsmelding.manglerMeldingDonet()) {
+        if (inntektsmelding.harMeldingDonet()) {
             log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede donet ditt sykefravær melding")
             return
         }
