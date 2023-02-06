@@ -95,12 +95,20 @@ class InntektsmeldingService(
                         "siden den allerede har siste status MANGLER_INNTEKTSMELDING."
                 )
                 return
-            } else {
-                log.info(
-                    "Lagrer status MANGLER_INNTEKTSMELDING for inntektsmelding ${inntektsmelding.eksternId}, som " +
-                        "har siste status er ${inntektsmelding.sisteStatus()} "
-                )
             }
+
+            if (inntektsmelding.sisteStatus() in listOf(StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT, StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT)) {
+                log.info(
+                    "Lagrer ikke status MANGLER_INNTEKTSMELDING for inntektsmelding ${inntektsmelding.eksternId} " +
+                        "siden den allerede har siste status ${inntektsmelding.sisteStatus()}."
+                )
+                return
+            }
+
+            log.info(
+                "Lagrer status MANGLER_INNTEKTSMELDING for inntektsmelding ${inntektsmelding.eksternId}, som " +
+                    "har siste status er ${inntektsmelding.sisteStatus()} "
+            )
         }
 
         inntektsmeldingStatusRepository.save(

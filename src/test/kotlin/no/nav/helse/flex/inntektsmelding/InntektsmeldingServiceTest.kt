@@ -83,7 +83,13 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
 
         var antallMeldinger = 1
 
-        StatusVerdi.values().filter { it != StatusVerdi.MANGLER_INNTEKTSMELDING }.forEach {
+        StatusVerdi.values().filter {
+            it !in listOf(
+                StatusVerdi.MANGLER_INNTEKTSMELDING,
+                StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT,
+                StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT
+            )
+        }.forEach {
 
             inntektsmeldingStatusRepository.save(
                 InntektsmeldingStatusDbRecord(
