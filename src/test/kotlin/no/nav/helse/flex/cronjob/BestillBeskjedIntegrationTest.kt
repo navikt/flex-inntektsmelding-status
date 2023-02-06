@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
 import org.springframework.beans.factory.annotation.Autowired
 import org.testcontainers.shaded.org.awaitility.Awaitility
-import java.time.Duration
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
@@ -93,13 +92,12 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
             )
         ).get()
 
-        val inntektsmeldingDbRecord = Awaitility.await().atMost(5, TimeUnit.SECONDS).until(
-            { finnInntektsmeldingId(eksternId) },
-            { it != null }
-        )
+        Awaitility.await().atMost(5, TimeUnit.SECONDS)
+            .until { finnInntektsmeldingId(eksternId) != null }
 
-        val inntektsmelding =
-            statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord!!.id!!)
+        val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
+        val inntektsmelding = statusRepository
+            .hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)
 
         inntektsmelding!!.fnr shouldBeEqualTo fnr
         inntektsmelding.statusHistorikk shouldHaveSize 1
@@ -114,7 +112,7 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
         beskjedKafkaConsumer.ventPåRecords(1)
         meldingKafkaConsumer.ventPåRecords(1)
 
-        val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)
+        val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
 
         val inntektsmelding =
             statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!
@@ -128,7 +126,7 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
 
     @Test
     @Order(3)
-    fun `Vi mottar MANGLER_INNTEKTSMELDING på nytt`() {
+    fun `Vi mottar MANGLER_INNTEKTSMELDING på nytt og lagrer den ikke ned i db`() {
         kafkaProducer.send(
             ProducerRecord(
                 inntektsmeldingstatusTopic,
@@ -148,34 +146,18 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
             )
         ).get()
 
-        val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)
+        val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
 
-        val statusHistorikk = Awaitility.await().atMost(2, TimeUnit.SECONDS).until(
+        val statusHistorikk = Awaitility.await().during(2, TimeUnit.SECONDS).until(
             { statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
-            { historikk -> historikk.last().status == StatusVerdi.MANGLER_INNTEKTSMELDING }
+            { historikk -> historikk.last().status != StatusVerdi.MANGLER_INNTEKTSMELDING }
         )
 
-        statusHistorikk shouldHaveSize 4
+        statusHistorikk shouldHaveSize 3
     }
 
     @Test
     @Order(4)
-    fun `Vi bestiller ikke beskjed eller sender ikke melding siden tidligere meldinger ikke er Donet`() {
-        bestillBeskjed.jobMedParameter(opprettetFor = OffsetDateTime.now(osloZone).toInstant())
-
-        beskjedKafkaConsumer.ventPåRecords(0, Duration.ofSeconds(1))
-        meldingKafkaConsumer.ventPåRecords(0, Duration.ofSeconds(1))
-
-        val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)
-
-        val statusHistorikk =
-            statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk
-
-        statusHistorikk shouldHaveSize 4
-    }
-
-    @Test
-    @Order(5)
     fun `Vi mottar TRENGER_IKKE_INNTEKTSMELDING og Donner beskjed på Ditt NAV og melding på Ditt Sykefravær`() {
         kafkaProducer.send(
             ProducerRecord(
@@ -199,7 +181,7 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
         doneKafkaConsumer.ventPåRecords(1)
         meldingKafkaConsumer.ventPåRecords(1)
 
-        val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)
+        val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
 
         val statusHistorikk = Awaitility.await().atMost(2, TimeUnit.SECONDS).until(
             { statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
@@ -211,11 +193,11 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
             }
         )
 
-        statusHistorikk shouldHaveSize 7
+        statusHistorikk shouldHaveSize 6
     }
 
     @Test
-    @Order(6)
+    @Order(5)
     fun `Vi mottar ny MANGLER_INNTEKTSMELDING`() {
         kafkaProducer.send(
             ProducerRecord(
@@ -236,33 +218,37 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
             )
         ).get()
 
+        val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
+
         val statusHistorikk = Awaitility.await().atMost(2, TimeUnit.SECONDS).until(
-            { statusRepository.hentInntektsmeldingMedStatusHistorikk(finnInntektsmeldingId(eksternId).id!!)!!.statusHistorikk },
+            { statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
             { historikk -> historikk.last().status == StatusVerdi.MANGLER_INNTEKTSMELDING }
         )
 
-        statusHistorikk shouldHaveSize 8
+        statusHistorikk shouldHaveSize 7
     }
 
     @Test
-    @Order(7)
+    @Order(6)
     fun `Vi bestiller ny beskjed på Ditt Nav og melding på Ditt Sykefravær siden alt er Donet`() {
         bestillBeskjed.jobMedParameter(opprettetFor = OffsetDateTime.now(osloZone).toInstant())
 
         beskjedKafkaConsumer.ventPåRecords(1).first()
         meldingKafkaConsumer.ventPåRecords(1).first()
 
-        val inntektsmelding =
-            statusRepository.hentInntektsmeldingMedStatusHistorikk(finnInntektsmeldingId(eksternId).id!!)
+        val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
+
+        val inntektsmelding = statusRepository
+            .hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)
 
         inntektsmelding!!.statusHistorikk.last().status `should be in` listOf(
             StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
             StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT
         )
 
-        inntektsmelding.statusHistorikk shouldHaveSize 10
+        inntektsmelding.statusHistorikk shouldHaveSize 9
     }
 
     private fun finnInntektsmeldingId(eksternId: String) =
-        inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!
+        inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)
 }

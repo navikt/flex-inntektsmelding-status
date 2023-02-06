@@ -64,7 +64,7 @@ class BestillBeskjed(
         }
 
         if (beskjederBestilt > 0) {
-            log.info("Behandlet $beskjederBestilt antall inntektsmeldinger som mangler etter 4 måneder")
+            log.info("Behandlet $beskjederBestilt antall inntektsmeldinger som mangler etter 4 uker")
         }
     }
 

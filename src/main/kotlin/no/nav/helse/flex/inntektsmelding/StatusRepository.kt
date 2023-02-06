@@ -178,16 +178,16 @@ data class InntektsmeldingMedStatusHistorikk(
     val eksternId: String,
     val statusHistorikk: List<StatusHistorikk>,
 ) {
-    fun manglerBeskjedSendt() =
+    fun harBeskjedSendt() =
         statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }
 
-    fun manglerMeldingSendt() =
+    fun harMeldingSendt() =
         statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }
 
-    fun manglerBeskjedDonet() =
+    fun harBeskjedDonet() =
         statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }
 
-    fun manglerMeldingDonet() =
+    fun harMeldingDonet() =
         statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }
 
     fun alleBrukernotifikasjonerErDonet(): Boolean {
