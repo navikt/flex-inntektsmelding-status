@@ -29,8 +29,6 @@ class FjernDobbeltLagretStatusTest : FellesTestOppsett() {
     fun `sletter alle duplikat manglerinntektsmeldingstatus`() {
         val inntektsmelding = inntektsmelding.copy(
             statusHistorikk = listOf(
-                StatusHistorikk("id", StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING),
-                StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING),
                 StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT),
                 StatusHistorikk("id", StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT),
                 StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING),
@@ -65,7 +63,6 @@ class FjernDobbeltLagretStatusTest : FellesTestOppsett() {
         statusRepository.hentInntektsmeldingMedStatusHistorikk(id)!!.statusHistorikk.map {
             it.status
         } `should be equal to` listOf(
-            StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING,
             StatusVerdi.MANGLER_INNTEKTSMELDING,
             StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
             StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT,
