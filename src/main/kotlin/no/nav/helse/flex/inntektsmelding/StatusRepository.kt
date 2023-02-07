@@ -103,6 +103,15 @@ class StatusRepository(
         }
     }
 
+    fun slettduplikatStatus(inntektsmeldingId: String) {
+        namedParameterJdbcTemplate.update(
+            """
+            DELETE FROM inntektsmelding_status WHERE id = :id
+        """,
+            MapSqlParameterSource().addValue("id", inntektsmeldingId)
+        )
+    }
+
     private fun ResultSet.tilInntektsmelding(): InntektsmeldingMedStatus {
         return InntektsmeldingMedStatus(
             id = getString("id"),
