@@ -3,7 +3,6 @@ package no.nav.helse.flex.cronjob
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.inntektsmelding.*
 import org.amshove.kluent.`should be equal to`
-import org.apache.kafka.clients.producer.KafkaProducer
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Instant
