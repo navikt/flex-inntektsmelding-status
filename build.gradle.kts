@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.7.5"
+    id("org.springframework.boot") version "3.0.2"
     id("io.spring.dependency-management") version "1.1.0"
     id("org.jlleitschuh.gradle.ktlint") version "11.1.0"
     kotlin("jvm") version "1.8.10"
@@ -18,11 +18,8 @@ val githubPassword: String by project
 
 repositories {
     mavenCentral()
-
     maven(url = "https://packages.confluent.io/maven/")
-
     maven(url = "https://jitpack.io")
-
     maven {
         url = uri("https://maven.pkg.github.com/navikt/maven-release")
         credentials {
@@ -37,31 +34,30 @@ val logstashLogbackEncoderVersion = "7.2"
 val kluentVersion = "1.72"
 val brukernotifikasjonAvroVersion = "2.5.2"
 val confluentVersion = "7.3.1"
-val sykepengesoknadKafkaVersion = "2022.10.28-10.24-aa0eced7"
+val sykepengesoknadKafkaVersion = "2022.12.21-07.53-20bd43a2"
 
 dependencies {
-    implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
-    implementation("com.github.navikt:brukernotifikasjon-schemas:$brukernotifikasjonAvroVersion")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.springframework.kafka:spring-kafka")
-    implementation("org.springframework.boot:spring-boot-starter")
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
+    implementation(kotlin("stdlib"))
+    implementation(kotlin("reflect"))
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-logging")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
-    implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
+    implementation("org.springframework.kafka:spring-kafka")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.postgresql:postgresql")
     implementation("org.flywaydb:flyway-core")
     implementation("io.micrometer:micrometer-registry-prometheus")
+    implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
+    implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
+    implementation("com.github.navikt:brukernotifikasjon-schemas:$brukernotifikasjonAvroVersion")
     implementation("no.nav.helse.flex:sykepengesoknad-kafka:$sykepengesoknadKafkaVersion")
 
+    testImplementation(platform("org.testcontainers:testcontainers-bom:$testContainersVersion"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.testcontainers:kafka:$testContainersVersion")
-    testImplementation("org.testcontainers:postgresql:$testContainersVersion")
-    testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
+    testImplementation("org.testcontainers:kafka")
+    testImplementation("org.testcontainers:postgresql")
     testImplementation("org.awaitility:awaitility")
     testImplementation("org.amshove.kluent:kluent:$kluentVersion")
 }
