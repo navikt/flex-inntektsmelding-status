@@ -26,9 +26,8 @@ class FjernDobbeltLagretStatus(
 
         sisteStatusManglerInntektsmelding.forEach { inntektsmeldingMedStatusHistorikk ->
             val statusVerdier = inntektsmeldingMedStatusHistorikk.statusHistorikk.map { it.status }
-            if (statusVerdier == listOf(
-                    StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING,
-                    StatusVerdi.MANGLER_INNTEKTSMELDING,
+            val sisteTreStatuser = statusVerdier.takeLast(3)
+            if (sisteTreStatuser == listOf(
                     StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
                     StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT,
                     StatusVerdi.MANGLER_INNTEKTSMELDING,
