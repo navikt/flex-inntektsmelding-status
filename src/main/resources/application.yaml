@@ -29,6 +29,7 @@ management:
   health:
     livenessstate.enabled: true
     readinessState.enabled: true
-  metrics.export.prometheus.enabled: true
+  prometheus.metrics.export.enabled: true
 
 logging.config: "classpath:logback.xml"
+
