@@ -46,7 +46,7 @@ class KafkaTestConfig(
             ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG to "true",
             ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to "1",
             ProducerConfig.MAX_BLOCK_MS_CONFIG to "15000",
-            ProducerConfig.RETRIES_CONFIG to "100000",
+            ProducerConfig.RETRIES_CONFIG to "100000"
         ) + commonConfig()
     }
 
@@ -63,7 +63,7 @@ class KafkaTestConfig(
             ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to KafkaAvroSerializer::class.java,
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to KafkaAvroSerializer::class.java,
             AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to "http://whatever.nav",
-            SaslConfigs.SASL_MECHANISM to "PLAIN",
+            SaslConfigs.SASL_MECHANISM to "PLAIN"
         ) + producerConfig()
     }
 
@@ -71,7 +71,7 @@ class KafkaTestConfig(
         val config = mapOf(
             AbstractKafkaSchemaSerDeConfig.AUTO_REGISTER_SCHEMAS to false,
             KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
-            KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to "http://ikke.i.bruk.nav",
+            KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to "http://ikke.i.bruk.nav"
         )
         return KafkaAvroDeserializer(mockSchemaRegistryClient(), config)
     }
@@ -105,7 +105,7 @@ class KafkaTestConfig(
     fun meldingProducer() = KafkaProducer<String, String>(
         producerConfig() + listOf(
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java
         )
     )
 

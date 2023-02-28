@@ -29,7 +29,7 @@ class MeldingConsumer(
         topics = [dittSykefravaerMeldingTopic],
         containerFactory = "aivenKafkaListenerContainerFactory",
         id = "ditt-sykefravaer-melding",
-        idIsGroup = false,
+        idIsGroup = false
     )
     fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         prosesserKafkaMelding(cr.key(), cr.value())
@@ -39,7 +39,7 @@ class MeldingConsumer(
 
     fun prosesserKafkaMelding(
         key: String,
-        value: String,
+        value: String
     ) {
         val meldingKafkaDto: MeldingKafkaDto = objectMapper.readValue(value)
 
@@ -54,7 +54,7 @@ class MeldingConsumer(
                 InntektsmeldingStatusDbRecord(
                     inntektsmeldingId = melding.inntektsmeldingId,
                     opprettet = Instant.now(),
-                    status = StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_LUKKET,
+                    status = StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_LUKKET
                 )
             )
 

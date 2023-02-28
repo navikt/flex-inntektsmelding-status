@@ -21,7 +21,7 @@ class InntektsmeldingConsumerTestdata(
         containerFactory = "aivenKafkaListenerContainerFactory",
         properties = ["auto.offset.reset = earliest"],
         id = "flex-inntektsmelding-status-inntektsmelding-testdata",
-        idIsGroup = false,
+        idIsGroup = false
     )
     fun listenToTest(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val kafkaDto: InntektsmeldingKafkaDto = objectMapper.readValue(cr.value())
