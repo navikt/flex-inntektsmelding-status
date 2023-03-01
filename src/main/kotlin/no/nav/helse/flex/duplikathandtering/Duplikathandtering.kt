@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 class Duplikathandtering(
 
-    private val statusRepository: StatusRepository,
+    private val statusRepository: StatusRepository
 
 ) {
     val log = logger()

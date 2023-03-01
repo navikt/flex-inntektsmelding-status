@@ -66,7 +66,7 @@ internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
         val inntektsmeldingId = lagInntektsmeldingMedStatus(
             StatusVerdi.MANGLER_INNTEKTSMELDING,
             StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
-            StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT,
+            StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT
         )
 
         val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingId)
