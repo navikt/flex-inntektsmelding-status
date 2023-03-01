@@ -18,7 +18,7 @@ class SykepengesoknadListener(
         topics = [sykepengesoknadTopic],
         containerFactory = "aivenKafkaListenerContainerFactory",
         id = "sykepengesoknad-organisasjon",
-        idIsGroup = false
+        idIsGroup = false,
     )
     fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val soknad = cr.value().tilSykepengesoknadDTO()

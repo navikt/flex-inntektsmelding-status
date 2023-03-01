@@ -36,8 +36,9 @@ class Brukernotifikasjon(
         bestillingId: String,
         orgNavn: String,
         fom: LocalDate,
-        synligFremTil: Instant
+        synligFremTil: Instant,
     ) {
+
         registry.counter("brukernotifikasjon_mangler_inntektsmelding_beskjed_sendt").increment()
 
         beskjedKafkaProducer.send(
@@ -73,7 +74,7 @@ class Brukernotifikasjon(
     fun sendDonemelding(
         fnr: String,
         eksternId: String,
-        bestillingId: String
+        bestillingId: String,
     ) {
         registry.counter("brukernotifikasjon_done_sendt").increment()
 

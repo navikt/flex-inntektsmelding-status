@@ -204,7 +204,7 @@ class InntektsmeldingService(
 
     private fun doneBeskjed(
         inntektsmelding: InntektsmeldingMedStatusHistorikk,
-        dbId: String
+        dbId: String,
     ) {
         if (inntektsmelding.harBeskjedDonet()) {
             log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede donet brukernotifikasjon beskjed")
@@ -217,7 +217,7 @@ class InntektsmeldingService(
         brukernotifikasjon.sendDonemelding(
             fnr = inntektsmelding.fnr,
             eksternId = inntektsmelding.eksternId,
-            bestillingId = bestillingId
+            bestillingId = bestillingId,
         )
 
         inntektsmeldingStatusRepository.save(
@@ -233,7 +233,7 @@ class InntektsmeldingService(
 
     private fun doneMelding(
         inntektsmelding: InntektsmeldingMedStatusHistorikk,
-        dbId: String
+        dbId: String,
     ) {
         if (inntektsmelding.harMeldingDonet()) {
             log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede donet ditt sykefravær melding")
@@ -248,8 +248,8 @@ class InntektsmeldingService(
             meldingKafkaDto = MeldingKafkaDto(
                 fnr = inntektsmelding.fnr,
                 lukkMelding = LukkMelding(
-                    timestamp = Instant.now()
-                )
+                    timestamp = Instant.now(),
+                ),
             )
         )
 
@@ -269,7 +269,7 @@ class InntektsmeldingService(
             InntektsmeldingStatusDbRecord(
                 inntektsmeldingId = inntektsmeldingMedStatus.id,
                 opprettet = Instant.now(),
-                status = StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT
+                status = StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT,
             )
         ).id!!
 
@@ -287,11 +287,11 @@ class InntektsmeldingService(
                     tekst = "Vi har mottatt inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefraværet" +
                         " som startet ${fom.format(norskDateFormat)}.",
                     lenke = null,
-                    variant = Variant.SUCCESS,
+                    variant = Variant.success,
                     lukkbar = true,
                     synligFremTil = OffsetDateTime.now().plusWeeks(2).toInstant(),
-                    meldingType = "MOTTATT_INNTEKTSMELDING"
-                )
+                    meldingType = "MOTTATT_INNTEKTSMELDING",
+                ),
             )
         )
 

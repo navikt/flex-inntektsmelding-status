@@ -17,7 +17,7 @@ data class InntektsmeldingStatusDbRecord(
     val id: String? = null,
     val inntektsmeldingId: String,
     val opprettet: Instant,
-    val status: StatusVerdi
+    val status: StatusVerdi,
 )
 
 enum class StatusVerdi {
@@ -32,5 +32,5 @@ enum class StatusVerdi {
     DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT,
     DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT,
     DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_LUKKET,
-    DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_DONE_SENDT
+    DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_DONE_SENDT,
 }

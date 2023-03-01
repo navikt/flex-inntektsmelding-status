@@ -16,7 +16,7 @@ class InntektsmeldingConsumer(
         topics = [inntektsmeldingstatusTopic],
         containerFactory = "aivenKafkaListenerContainerFactory",
         id = "flex-inntektsmelding-status-inntektsmelding",
-        idIsGroup = false
+        idIsGroup = false,
     )
     fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val kafkaDto: InntektsmeldingKafkaDto = objectMapper.readValue(cr.value())

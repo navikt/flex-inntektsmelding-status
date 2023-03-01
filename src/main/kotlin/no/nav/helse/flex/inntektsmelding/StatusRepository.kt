@@ -136,7 +136,7 @@ class StatusRepository(
             vedtakTom = getDate("vedtak_tom").toLocalDate(),
             eksternTimestamp = getTimestamp("ekstern_timestamp").toInstant(),
             eksternId = getString("ekstern_id"),
-            statusHistorikk = statusVerdier
+            statusHistorikk = statusVerdier,
         )
 
         while (next()) {
@@ -148,7 +148,7 @@ class StatusRepository(
 
     private fun ResultSet.mapInntektsmeldingStatus() = StatusHistorikk(
         id = getString("status_id"),
-        status = StatusVerdi.valueOf(getString("status"))
+        status = StatusVerdi.valueOf(getString("status")),
     )
 }
 
@@ -163,7 +163,7 @@ data class InntektsmeldingMedStatus(
     val eksternTimestamp: Instant,
     val eksternId: String,
     val status: StatusVerdi,
-    val statusOpprettet: Instant
+    val statusOpprettet: Instant,
 )
 
 data class InntektsmeldingMedStatusHistorikk(
@@ -176,7 +176,7 @@ data class InntektsmeldingMedStatusHistorikk(
     val vedtakTom: LocalDate,
     val eksternTimestamp: Instant,
     val eksternId: String,
-    val statusHistorikk: List<StatusHistorikk>
+    val statusHistorikk: List<StatusHistorikk>,
 ) {
     fun harBeskjedSendt() =
         statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }
@@ -209,5 +209,5 @@ data class InntektsmeldingMedStatusHistorikk(
 
 data class StatusHistorikk(
     val id: String,
-    val status: StatusVerdi
+    val status: StatusVerdi,
 )

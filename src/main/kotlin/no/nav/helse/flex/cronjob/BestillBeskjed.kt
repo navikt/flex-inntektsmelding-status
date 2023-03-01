@@ -36,7 +36,7 @@ class BestillBeskjed(
     private val meldingKafkaProducer: MeldingKafkaProducer,
     private val env: EnvironmentToggles,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
-    @Value("\${INNTEKTSMELDING_MANGLER_VENTETID}") private val ventetid: Long
+    @Value("\${INNTEKTSMELDING_MANGLER_VENTETID}") private val ventetid: Long,
 ) {
 
     private val log = logger()
@@ -94,7 +94,7 @@ class BestillBeskjed(
                 InntektsmeldingStatusDbRecord(
                     inntektsmeldingId = inntektsmeldingMedStatus.id,
                     opprettet = Instant.now(),
-                    status = StatusVerdi.HAR_PERIODE_RETT_FOER
+                    status = StatusVerdi.HAR_PERIODE_RETT_FOER,
                 )
             )
             return false
@@ -125,7 +125,7 @@ class BestillBeskjed(
             InntektsmeldingStatusDbRecord(
                 inntektsmeldingId = inntektsmeldingMedStatus.id,
                 opprettet = Instant.now(),
-                status = StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT
+                status = StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
             )
         ).id!!
 
@@ -135,7 +135,7 @@ class BestillBeskjed(
             bestillingId = bestillingId,
             orgNavn = inntektsmeldingMedStatus.orgNavn,
             fom = fom,
-            synligFremTil = synligFremTil()
+            synligFremTil = synligFremTil(),
         )
     }
 
@@ -151,7 +151,7 @@ class BestillBeskjed(
             InntektsmeldingStatusDbRecord(
                 inntektsmeldingId = inntektsmeldingMedStatus.id,
                 opprettet = Instant.now(),
-                status = StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT
+                status = StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT,
             )
         ).id!!
 
@@ -166,11 +166,11 @@ class BestillBeskjed(
                     )
                     }.",
                     lenke = inntektsmeldingManglerUrl,
-                    variant = Variant.INFO,
+                    variant = Variant.info,
                     lukkbar = false,
                     synligFremTil = synligFremTil(),
-                    meldingType = "MANGLENDE_INNTEKTSMELDING"
-                )
+                    meldingType = "MANGLENDE_INNTEKTSMELDING",
+                ),
             )
         )
 

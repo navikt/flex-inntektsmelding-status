@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Repository
 class LockRepository(
-    private val jdbcTemplate: JdbcTemplate
+    private val jdbcTemplate: JdbcTemplate,
 ) {
 
     @Transactional(propagation = Propagation.REQUIRED)

@@ -25,6 +25,7 @@ class AivenKafkaErrorHandler : DefaultErrorHandler(
         consumer: Consumer<*, *>,
         container: MessageListenerContainer
     ) {
+
         records.forEach { record ->
             val key = if (record.key().erFnr()) {
                 "***"

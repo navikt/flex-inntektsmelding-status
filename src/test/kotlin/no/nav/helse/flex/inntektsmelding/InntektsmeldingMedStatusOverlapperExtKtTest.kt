@@ -63,7 +63,7 @@ internal class InntektsmeldingMedStatusOverlapperExtKtTest {
         val neste = base.copy(
             vedtakFom = tom,
             vedtakTom = tom.plusDays(3),
-            status = StatusVerdi.BEHANDLES_UTENFOR_SPLEIS
+            status = StatusVerdi.BEHANDLES_UTENFOR_SPLEIS,
 
         )
         listOf(base, neste).overlapper().`should be false`()
@@ -74,7 +74,7 @@ internal class InntektsmeldingMedStatusOverlapperExtKtTest {
         val neste = base.copy(
             vedtakFom = tom,
             vedtakTom = tom.plusDays(3),
-            status = StatusVerdi.BEHANDLES_UTENFOR_SPLEIS
+            status = StatusVerdi.BEHANDLES_UTENFOR_SPLEIS,
 
         )
         listOf(base, neste).manglendeInntektsmeldingOverlapperBehandlesUtaforSpleis().`should be true`()

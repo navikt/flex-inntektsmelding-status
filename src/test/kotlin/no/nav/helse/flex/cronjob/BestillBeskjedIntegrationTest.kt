@@ -85,9 +85,9 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
                     vedtaksperiode = Vedtaksperiode(
                         id = eksternId,
                         fom = fom.minusDays(16),
-                        tom = fom.minusDays(1)
+                        tom = fom.minusDays(1),
                     ),
-                    tidspunkt = OffsetDateTime.now()
+                    tidspunkt = OffsetDateTime.now(),
                 ).serialisertTilString()
             )
         ).get()
@@ -139,9 +139,9 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
                     vedtaksperiode = Vedtaksperiode(
                         id = eksternId,
                         fom = fom.minusDays(16),
-                        tom = fom.minusDays(1)
+                        tom = fom.minusDays(1),
                     ),
-                    tidspunkt = OffsetDateTime.now()
+                    tidspunkt = OffsetDateTime.now(),
                 ).serialisertTilString()
             )
         ).get()
@@ -171,9 +171,9 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
                     vedtaksperiode = Vedtaksperiode(
                         id = eksternId,
                         fom = fom.minusDays(16),
-                        tom = fom.minusDays(1)
+                        tom = fom.minusDays(1),
                     ),
-                    tidspunkt = OffsetDateTime.now()
+                    tidspunkt = OffsetDateTime.now(),
                 ).serialisertTilString()
             )
         ).get()
@@ -211,9 +211,9 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
                     vedtaksperiode = Vedtaksperiode(
                         id = eksternId,
                         fom = fom.minusDays(16),
-                        tom = fom.minusDays(1)
+                        tom = fom.minusDays(1),
                     ),
-                    tidspunkt = OffsetDateTime.now()
+                    tidspunkt = OffsetDateTime.now(),
                 ).serialisertTilString()
             )
         ).get()

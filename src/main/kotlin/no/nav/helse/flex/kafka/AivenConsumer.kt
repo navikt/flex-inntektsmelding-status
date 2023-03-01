@@ -12,7 +12,7 @@ import org.springframework.kafka.listener.ContainerProperties
 @Configuration
 class AivenConsumer(
     @Value("\${aiven-kafka.auto-offset-reset}") private val kafkaAutoOffsetReset: String,
-    private val aivenKafkaConfig: AivenKafkaConfig
+    private val aivenKafkaConfig: AivenKafkaConfig,
 ) {
 
     private fun simpleConsumerConfig() = mapOf(
@@ -21,7 +21,7 @@ class AivenConsumer(
         ConsumerConfig.GROUP_ID_CONFIG to "flex-inntektsmelding-status",
         ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to kafkaAutoOffsetReset,
         ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
-        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 1
+        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 1,
     ) + aivenKafkaConfig.commonConfig()
 
     @Bean

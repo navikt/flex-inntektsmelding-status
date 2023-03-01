@@ -117,9 +117,9 @@ class IntegrationTest : FellesTestOppsett() {
                     vedtaksperiode = Vedtaksperiode(
                         id = eksternIdAG,
                         fom = fom.minusDays(16),
-                        tom = fom.minusDays(1)
+                        tom = fom.minusDays(1),
                     ),
-                    tidspunkt = OffsetDateTime.now()
+                    tidspunkt = OffsetDateTime.now(),
                 ).serialisertTilString()
             )
         ).get()
@@ -135,9 +135,9 @@ class IntegrationTest : FellesTestOppsett() {
                     vedtaksperiode = Vedtaksperiode(
                         id = eksternId,
                         fom = fom,
-                        tom = tom
+                        tom = tom,
                     ),
-                    tidspunkt = OffsetDateTime.now()
+                    tidspunkt = OffsetDateTime.now(),
                 ).serialisertTilString()
             )
         ).get()
@@ -153,9 +153,9 @@ class IntegrationTest : FellesTestOppsett() {
                     vedtaksperiode = Vedtaksperiode(
                         id = eksternId2,
                         fom = tom.plusDays(1),
-                        tom = tom.plusDays(5)
+                        tom = tom.plusDays(5),
                     ),
-                    tidspunkt = OffsetDateTime.now()
+                    tidspunkt = OffsetDateTime.now(),
                 ).serialisertTilString()
             )
         ).get()
@@ -219,7 +219,7 @@ class IntegrationTest : FellesTestOppsett() {
         opprettMelding.tekst shouldBeEqualTo "Vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false
-        opprettMelding.variant shouldBeEqualTo Variant.INFO
+        opprettMelding.variant shouldBeEqualTo Variant.info
         opprettMelding.synligFremTil.shouldNotBeNull()
 
         opprettMelding.synligFremTil!!.shouldBeAfter(OffsetDateTime.now().plusMinutes(19).toInstant())
@@ -241,9 +241,9 @@ class IntegrationTest : FellesTestOppsett() {
                     vedtaksperiode = Vedtaksperiode(
                         id = eksternId,
                         fom = fom,
-                        tom = tom
+                        tom = tom,
                     ),
-                    tidspunkt = OffsetDateTime.now()
+                    tidspunkt = OffsetDateTime.now(),
                 ).serialisertTilString()
             )
         ).get()
@@ -259,9 +259,9 @@ class IntegrationTest : FellesTestOppsett() {
                     vedtaksperiode = Vedtaksperiode(
                         id = eksternId2,
                         fom = tom.plusDays(1),
-                        tom = tom.plusDays(5)
+                        tom = tom.plusDays(5),
                     ),
-                    tidspunkt = OffsetDateTime.now()
+                    tidspunkt = OffsetDateTime.now(),
                 ).serialisertTilString()
             )
         ).get()
@@ -308,7 +308,7 @@ class IntegrationTest : FellesTestOppsett() {
         opprettMelding.tekst shouldBeEqualTo "Vi har mottatt inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
         opprettMelding.lenke.shouldBeNull()
         opprettMelding.lukkbar shouldBeEqualTo true
-        opprettMelding.variant shouldBeEqualTo Variant.SUCCESS
+        opprettMelding.variant shouldBeEqualTo Variant.success
         opprettMelding.synligFremTil.shouldNotBeNull()
         opprettMelding.synligFremTil!!.shouldBeAfter(OffsetDateTime.now().plusDays(13).toInstant())
         opprettMelding.synligFremTil!!.shouldBeBefore(OffsetDateTime.now().plusDays(15).toInstant())
@@ -331,7 +331,7 @@ class IntegrationTest : FellesTestOppsett() {
             StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT,
             StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT,
 
-            StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT
+            StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT,
         )
 
         val dbIdPeriode2 = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId2)!!.id!!
@@ -340,7 +340,7 @@ class IntegrationTest : FellesTestOppsett() {
         inntektsmelding2.statusHistorikk.map { it.status } shouldBeEqualTo listOf(
             StatusVerdi.MANGLER_INNTEKTSMELDING,
             StatusVerdi.HAR_PERIODE_RETT_FOER,
-            StatusVerdi.HAR_INNTEKTSMELDING
+            StatusVerdi.HAR_INNTEKTSMELDING,
         )
     }
 }

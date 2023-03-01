@@ -35,9 +35,9 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
         vedtaksperiode = Vedtaksperiode(
             id = eksternId,
             fom = LocalDate.now().minusDays(5),
-            tom = LocalDate.now()
+            tom = LocalDate.now(),
         ),
-        tidspunkt = OffsetDateTime.now()
+        tidspunkt = OffsetDateTime.now(),
     )
 
     @BeforeAll
@@ -48,7 +48,7 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
                 navn = "org",
                 opprettet = Instant.now(),
                 oppdatert = Instant.now(),
-                oppdatertAv = "soknad"
+                oppdatertAv = "soknad",
             )
         )
     }
@@ -90,11 +90,12 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
                 StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT
             )
         }.forEach {
+
             inntektsmeldingStatusRepository.save(
                 InntektsmeldingStatusDbRecord(
                     inntektsmeldingId = finnInntektsmeldingId(),
                     opprettet = Instant.now(),
-                    status = it
+                    status = it,
                 )
             )
 
