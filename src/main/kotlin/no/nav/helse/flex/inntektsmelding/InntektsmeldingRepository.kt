@@ -24,5 +24,5 @@ data class InntektsmeldingDbRecord(
     val vedtakFom: LocalDate,
     val vedtakTom: LocalDate,
     val eksternTimestamp: Instant,
-    val eksternId: String,
+    val eksternId: String
 )
