@@ -32,8 +32,6 @@ class MeldingConsumer(
         idIsGroup = false
     )
     fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
-        log.info("Mottok melding om lukking av ditt-sykefravær-melding med key: ${cr.key()}")
-
         prosesserKafkaMelding(cr.key(), cr.value())
         acknowledgment.acknowledge()
     }
@@ -52,8 +50,6 @@ class MeldingConsumer(
         val eksternId = inntektsmeldingRepository.findByIdOrNull(melding.inntektsmeldingId)!!.eksternId
 
         if (melding.status == StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT) {
-            log.info("Melding status er DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT, oppdaterer status til " +
-                "DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_LUKKET for inntektsmelding med eksternId: $eksternId")
             registry.counter("ditt_sykefravaer_lukk_melding_mottatt").increment()
             inntektsmeldingStatusRepository.save(
                 InntektsmeldingStatusDbRecord(
