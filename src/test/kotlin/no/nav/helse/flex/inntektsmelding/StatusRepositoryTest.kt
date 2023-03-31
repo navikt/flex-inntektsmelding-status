@@ -20,7 +20,7 @@ internal class StatusRepositoryTest {
         vedtakTom = LocalDate.now(),
         eksternTimestamp = Instant.now(),
         eksternId = "eksternId",
-        statusHistorikk = emptyList(),
+        statusHistorikk = emptyList()
     )
 
     @Test
@@ -68,7 +68,7 @@ internal class StatusRepositoryTest {
                 StatusHistorikk("id", StatusVerdi.HAR_INNTEKTSMELDING),
                 StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT),
                 StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING),
-                StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT),
+                StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT)
             )
         )
 
@@ -86,7 +86,7 @@ internal class StatusRepositoryTest {
                 StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING),
                 StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT),
                 StatusHistorikk("id", StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING),
-                StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT),
+                StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT)
             )
         )
 
@@ -101,7 +101,7 @@ internal class StatusRepositoryTest {
                 StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT),
                 StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT),
                 StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT),
-                StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT),
+                StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT)
             )
         )
 

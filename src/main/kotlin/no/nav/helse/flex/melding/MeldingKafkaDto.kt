@@ -1,21 +1,30 @@
 package no.nav.helse.flex.melding
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.Instant
 
 data class MeldingKafkaDto(
     val opprettMelding: OpprettMelding? = null,
     val lukkMelding: LukkMelding? = null,
-    val fnr: String,
+    val fnr: String
 )
+
 data class LukkMelding(
-    val timestamp: Instant,
+    val timestamp: Instant
 )
 
 enum class Variant {
-    info,
-    warning,
-    success,
-    error,
+    @JsonProperty("info")
+    INFO,
+
+    @JsonProperty("warning")
+    WARNING,
+
+    @JsonProperty("success")
+    SUCCESS,
+
+    @JsonProperty("error")
+    ERROR
 }
 
 data class OpprettMelding(
@@ -24,5 +33,5 @@ data class OpprettMelding(
     val variant: Variant,
     val lukkbar: Boolean,
     val meldingType: String,
-    val synligFremTil: Instant? = null,
+    val synligFremTil: Instant? = null
 )

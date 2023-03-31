@@ -29,21 +29,22 @@ class MeldingConsumer(
         topics = [dittSykefravaerMeldingTopic],
         containerFactory = "aivenKafkaListenerContainerFactory",
         id = "ditt-sykefravaer-melding",
-        idIsGroup = false,
+        idIsGroup = false
     )
     fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         prosesserKafkaMelding(cr.key(), cr.value())
-
         acknowledgment.acknowledge()
     }
 
     fun prosesserKafkaMelding(
         key: String,
-        value: String,
+        value: String
     ) {
         val meldingKafkaDto: MeldingKafkaDto = objectMapper.readValue(value)
 
-        if (meldingKafkaDto.lukkMelding == null) return
+        if (meldingKafkaDto.lukkMelding == null) {
+            return
+        }
 
         val melding = inntektsmeldingStatusRepository.findByIdOrNull(key) ?: return
         val eksternId = inntektsmeldingRepository.findByIdOrNull(melding.inntektsmeldingId)!!.eksternId
@@ -54,11 +55,11 @@ class MeldingConsumer(
                 InntektsmeldingStatusDbRecord(
                     inntektsmeldingId = melding.inntektsmeldingId,
                     opprettet = Instant.now(),
-                    status = StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_LUKKET,
+                    status = StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_LUKKET
                 )
             )
 
-            log.info("Lukket ditt sykefravær melding om mottatt inntektsmelding $eksternId")
+            log.info("Lukket ditt-sykefravær-melding om mottatt inntektsmelding med eksternId: $eksternId")
         }
     }
 }
