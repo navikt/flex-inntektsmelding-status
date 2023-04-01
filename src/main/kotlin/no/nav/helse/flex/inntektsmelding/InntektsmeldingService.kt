@@ -40,7 +40,12 @@ class InntektsmeldingService(
 
         lockRepository.settAdvisoryTransactionLock(kafkaDto.sykmeldt.toLong())
 
-        val dbId = lagreInntektsmeldingHvisDenIkkeFinnesAllerede(kafkaDto, eksternId)
+        val dbId = try {
+            lagreInntektsmeldingHvisDenIkkeFinnesAllerede(kafkaDto, eksternId)
+        } catch (e: Exception) {
+            log.info("Ack Kafka-melding fordi vi ikke klarte å lagre inntektsmelding i dev", e)
+            return
+        }
         val inntektsmeldingMedStatusHistorikk = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
 
         when (kafkaDto.status) {
@@ -97,7 +102,11 @@ class InntektsmeldingService(
                 return
             }
 
-            if (inntektsmelding.sisteStatus() in listOf(StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT, StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT)) {
+            if (inntektsmelding.sisteStatus() in listOf(
+                    StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
+                    StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT
+                )
+            ) {
                 log.info(
                     "Lagrer ikke status MANGLER_INNTEKTSMELDING for inntektsmelding ${inntektsmelding.eksternId} " +
                         "siden den allerede har siste status ${inntektsmelding.sisteStatus()}."
