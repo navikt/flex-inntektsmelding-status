@@ -1,6 +1,6 @@
 package no.nav.helse.flex
 
-import no.nav.helse.flex.cronjob.BestillBeskjed
+import no.nav.helse.flex.cronjob.BestillBeskjedJobb
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
@@ -49,7 +49,7 @@ abstract class FellesTestOppsett {
     lateinit var lockRepository: LockRepository
 
     @Autowired
-    lateinit var bestillBeskjed: BestillBeskjed
+    lateinit var bestillBeskjedJobb: BestillBeskjedJobb
 
     @Autowired
     lateinit var doneKafkaConsumer: Consumer<GenericRecord, GenericRecord>

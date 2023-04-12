@@ -2,13 +2,7 @@ package no.nav.helse.flex.cronjob
 
 import no.nav.helse.flex.brukernotifikasjon.Brukernotifikasjon
 import no.nav.helse.flex.database.LockRepository
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingMedStatus
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusDbRecord
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
-import no.nav.helse.flex.inntektsmelding.StatusRepository
-import no.nav.helse.flex.inntektsmelding.StatusVerdi
-import no.nav.helse.flex.inntektsmelding.manglendeInntektsmeldingOverlapperBehandlesUtaforSpleis
-import no.nav.helse.flex.inntektsmelding.overlapper
+import no.nav.helse.flex.inntektsmelding.*
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
@@ -19,13 +13,11 @@ import no.nav.helse.flex.util.erRettFør
 import no.nav.helse.flex.util.finnSykefraværStart
 import no.nav.helse.flex.util.norskDateFormat
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
-import java.util.concurrent.TimeUnit
 
 @Component
 class BestillBeskjed(
@@ -35,39 +27,14 @@ class BestillBeskjed(
     private val brukernotifikasjon: Brukernotifikasjon,
     private val meldingKafkaProducer: MeldingKafkaProducer,
     private val env: EnvironmentToggles,
-    @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
-    @Value("\${INNTEKTSMELDING_MANGLER_VENTETID}") private val ventetid: Long
+    @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String
 ) {
 
     private val log = logger()
 
-    private fun sykmeldtVarsel() = OffsetDateTime.now().minusDays(ventetid).toInstant()
+    private fun sykmeldtVarsel() = OffsetDateTime.now().toInstant()
 
-    @Scheduled(initialDelay = 2, fixedDelay = 30, timeUnit = TimeUnit.MINUTES)
-    fun job() {
-        jobMedParameter(opprettetFor = sykmeldtVarsel())
-    }
-
-    fun jobMedParameter(opprettetFor: Instant) {
-        var beskjederBestilt = 0
-
-        val manglerBeskjed = statusRepository
-            .hentAlleMedNyesteStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
-            .filter { it.statusOpprettet.isBefore(opprettetFor) }
-            .sortedByDescending { it.vedtakFom }
-            .take(200)
-
-        manglerBeskjed.forEach {
-            if (opprettVarsler(it)) {
-                beskjederBestilt++
-            }
-        }
-
-        if (beskjederBestilt > 0) {
-            log.info("Behandlet $beskjederBestilt antall inntektsmeldinger som mangler etter 4 uker")
-        }
-    }
-
+    // Oppretter transaksjon her for å sikret at advisory lock ikke relases før metoden har kjørt ferdig.
     @Transactional
     fun opprettVarsler(inntektsmeldingMedStatus: InntektsmeldingMedStatus): Boolean {
         lockRepository.settAdvisoryTransactionLock(inntektsmeldingMedStatus.fnr.toLong())
