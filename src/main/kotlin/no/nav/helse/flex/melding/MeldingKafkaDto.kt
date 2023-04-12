@@ -1,6 +1,5 @@
 package no.nav.helse.flex.melding
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.Instant
 
 data class MeldingKafkaDto(
@@ -14,16 +13,9 @@ data class LukkMelding(
 )
 
 enum class Variant {
-    @JsonProperty("info")
     INFO,
-
-    @JsonProperty("warning")
     WARNING,
-
-    @JsonProperty("success")
     SUCCESS,
-
-    @JsonProperty("error")
     ERROR
 }
 
