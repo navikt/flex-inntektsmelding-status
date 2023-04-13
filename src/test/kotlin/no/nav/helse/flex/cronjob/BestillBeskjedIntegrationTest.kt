@@ -8,11 +8,7 @@ import no.nav.helse.flex.inntektsmelding.Vedtaksperiode
 import no.nav.helse.flex.kafka.inntektsmeldingstatusTopic
 import no.nav.helse.flex.kafka.sykepengesoknadTopic
 import no.nav.helse.flex.serialisertTilString
-import no.nav.helse.flex.sykepengesoknad.kafka.ArbeidsgiverDTO
-import no.nav.helse.flex.sykepengesoknad.kafka.ArbeidssituasjonDTO
-import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
-import no.nav.helse.flex.sykepengesoknad.kafka.SoknadstypeDTO
-import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
+import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.util.osloZone
 import no.nav.helse.flex.ventPåRecords
 import org.amshove.kluent.`should be in`
@@ -107,7 +103,7 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
     @Test
     @Order(2)
     fun `Vi bestiller beskjed på Ditt Nav og melding på Ditt Sykefravær`() {
-        bestillBeskjed.jobMedParameter(opprettetFor = OffsetDateTime.now(osloZone).toInstant())
+        bestillBeskjedJobb.jobMedParameter(opprettetFor = OffsetDateTime.now(osloZone).toInstant())
 
         beskjedKafkaConsumer.ventPåRecords(1)
         meldingKafkaConsumer.ventPåRecords(1)
@@ -231,7 +227,7 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
     @Test
     @Order(6)
     fun `Vi bestiller ny beskjed på Ditt Nav og melding på Ditt Sykefravær siden alt er Donet`() {
-        bestillBeskjed.jobMedParameter(opprettetFor = OffsetDateTime.now(osloZone).toInstant())
+        bestillBeskjedJobb.jobMedParameter(opprettetFor = OffsetDateTime.now(osloZone).toInstant())
 
         beskjedKafkaConsumer.ventPåRecords(1).first()
         meldingKafkaConsumer.ventPåRecords(1).first()

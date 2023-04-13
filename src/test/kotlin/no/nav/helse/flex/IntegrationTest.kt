@@ -185,7 +185,7 @@ class IntegrationTest : FellesTestOppsett() {
     @Test
     @Order(2)
     fun `Vi bestiller beskjed på Ditt NAV og melding på Ditt Sykefravær`() {
-        bestillBeskjed.jobMedParameter(opprettetFor = OffsetDateTime.now(osloZone).toInstant())
+        bestillBeskjedJobb.jobMedParameter(opprettetFor = OffsetDateTime.now(osloZone).toInstant())
 
         val beskjedCR = beskjedKafkaConsumer.ventPåRecords(1).first()
 
