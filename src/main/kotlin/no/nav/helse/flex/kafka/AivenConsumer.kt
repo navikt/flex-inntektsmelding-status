@@ -21,7 +21,8 @@ class AivenConsumer(
         ConsumerConfig.GROUP_ID_CONFIG to "flex-inntektsmelding-status",
         ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to kafkaAutoOffsetReset,
         ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
-        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 1
+        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 1,
+        ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG to 600000
     ) + aivenKafkaConfig.commonConfig()
 
     @Bean
