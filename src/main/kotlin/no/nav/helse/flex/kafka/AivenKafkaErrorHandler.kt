@@ -25,22 +25,12 @@ class AivenKafkaErrorHandler : DefaultErrorHandler(
         consumer: Consumer<*, *>,
         container: MessageListenerContainer
     ) {
-        records.forEach { record ->
-            val key = if (record.key().erFnr()) {
-                "***"
-            } else {
-                record.key()
-            }
-
-            log.error(
-                "Feil i prossesseringen av record med offset: ${record.offset()}, key: $key på topic ${record.topic()}",
-                thrownException
-            )
-        }
         if (records.isEmpty()) {
             log.error("Feil i listener uten noen records", thrownException)
         }
-
+        records.forEach { record ->
+            loggFeilMedMaskerFnr(record, thrownException)
+        }
         super.handleRemaining(thrownException, records, consumer, container)
     }
 
@@ -52,21 +42,23 @@ class AivenKafkaErrorHandler : DefaultErrorHandler(
         invokeListener: Runnable
     ) {
         data.forEach { record ->
-            val key = if (record.key().erFnr()) {
-                "***"
-            } else {
-                record.key()
-            }
-
-            log.error(
-                "Feil i prossesseringen av record med offset: ${record.offset()}, key: $key på topic ${record.topic()}",
-                thrownException
-            )
+            loggFeilMedMaskerFnr(record, thrownException)
         }
         if (data.isEmpty()) {
             log.error("Feil i listener uten noen records", thrownException)
         }
         super.handleBatch(thrownException, data, consumer, container, invokeListener)
+    }
+
+    private fun loggFeilMedMaskerFnr(
+        record: ConsumerRecord<*, *>,
+        thrownException: Exception
+    ) {
+        val key = if (record.key().erFnr()) {
+            "***"
+        } else {
+            record.key()
+        }
     }
 
     private fun Any.erFnr() = this.toString().length == 11
