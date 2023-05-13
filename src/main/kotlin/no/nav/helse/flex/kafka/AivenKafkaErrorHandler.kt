@@ -27,7 +27,7 @@ class AivenKafkaErrorHandler : DefaultErrorHandler(
         container: MessageListenerContainer
     ) {
         if (records.isEmpty()) {
-            log.error("Feil i listener uten noen records", thrownException)
+            log.error("Listener mottok ikke data.", thrownException)
         }
         records.forEach { record ->
             loggFeilMedMaskerFnr(record, thrownException)
@@ -42,11 +42,11 @@ class AivenKafkaErrorHandler : DefaultErrorHandler(
         container: MessageListenerContainer,
         invokeListener: Runnable
     ) {
+        if (data.isEmpty) {
+            log.error("Listener mottok ikke data.", thrownException)
+        }
         data.forEach { record ->
             loggFeilMedMaskerFnr(record, thrownException)
-        }
-        if (data.isEmpty()) {
-            log.error("Feil i listener uten noen records", thrownException)
         }
         super.handleBatch(thrownException, data, consumer, container, invokeListener)
     }
@@ -60,6 +60,10 @@ class AivenKafkaErrorHandler : DefaultErrorHandler(
         } else {
             record.key()
         }
+        log.error(
+            "Feil i prossesseringen av record med offset: ${record.offset()}, key: $key på topic ${record.topic()}.",
+            thrownException
+        )
     }
 
     private fun Any.erFnr() = this.toString().length == 11
