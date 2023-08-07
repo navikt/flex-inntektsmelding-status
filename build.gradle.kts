@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -13,20 +14,13 @@ version = "1.0.0"
 description = "flex-inntektsmelding-status"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
-val githubUser: String by project
-val githubPassword: String by project
-
 repositories {
     mavenCentral()
+    maven {
+        url = uri("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
+    }
     maven(url = "https://packages.confluent.io/maven/")
     maven(url = "https://jitpack.io")
-    maven {
-        url = uri("https://maven.pkg.github.com/navikt/maven-release")
-        credentials {
-            username = githubUser
-            password = githubPassword
-        }
-    }
 }
 
 val testContainersVersion = "1.18.3"
@@ -78,7 +72,8 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
     useJUnitPlatform()
     testLogging {
-        events("STANDARD_OUT", "STARTED", "PASSED", "FAILED", "SKIPPED")
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        events("STARTED", "PASSED", "FAILED", "SKIPPED")
+        exceptionFormat = FULL
     }
+    failFast = true
 }
