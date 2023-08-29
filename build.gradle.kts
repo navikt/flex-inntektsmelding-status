@@ -23,7 +23,7 @@ repositories {
     maven(url = "https://jitpack.io")
 }
 
-val testContainersVersion = "1.18.3"
+val testContainersVersion = "1.19.0"
 val logstashLogbackEncoderVersion = "7.4"
 val kluentVersion = "1.73"
 val brukernotifikasjonAvroVersion = "2.5.2"
