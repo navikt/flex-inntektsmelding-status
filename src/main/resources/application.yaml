@@ -16,7 +16,7 @@ spring:
       maximum-pool-size: 5
 
 aiven-kafka:
-  auto-offset-reset: none
+  auto-offset-reset: latest
 
 management:
   endpoint:
