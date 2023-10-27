@@ -2,13 +2,12 @@ package no.nav.helse.flex.inntektsmelding
 
 import org.amshove.kluent.`should be false`
 import org.amshove.kluent.`should be true`
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
-internal class InntektsmeldingMedStatusOverlapperExtKtTest {
+class InntektsmeldingMedStatusOverlapperExtKtTest {
     val fom = LocalDate.now()
     val tom = fom.plusDays(2)
     val base = InntektsmeldingMedStatus(

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-internal class LocalDateExtTest {
+class LocalDateExtTest {
 
     @Test
     fun `er rett før`() {
