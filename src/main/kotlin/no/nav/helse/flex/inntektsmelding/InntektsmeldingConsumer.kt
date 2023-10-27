@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 @Component
 class InntektsmeldingConsumer(
     private val inntektsmeldingService: InntektsmeldingService,
-    private val environmentToggles: EnvironmentToggles,
+    private val environmentToggles: EnvironmentToggles
 ) {
     private val log = logger()
 
