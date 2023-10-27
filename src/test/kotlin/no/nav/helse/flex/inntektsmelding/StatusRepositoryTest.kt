@@ -1,14 +1,11 @@
-package no.nav.helse.flex.cronjob
+package no.nav.helse.flex.inntektsmelding
 
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingMedStatusHistorikk
-import no.nav.helse.flex.inntektsmelding.StatusHistorikk
-import no.nav.helse.flex.inntektsmelding.StatusVerdi
 import org.amshove.kluent.`should be`
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
 
-internal class StatusRepositoryTest {
+class StatusRepositoryTest {
 
     private val inntektsmelding = InntektsmeldingMedStatusHistorikk(
         id = "id",

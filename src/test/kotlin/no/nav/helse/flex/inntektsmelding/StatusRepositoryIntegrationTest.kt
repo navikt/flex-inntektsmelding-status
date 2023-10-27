@@ -11,7 +11,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.*
 
-internal class StatusRepositoryIntegrationTest : FellesTestOppsett() {
+class StatusRepositoryIntegrationTest : FellesTestOppsett() {
 
     @BeforeEach
     fun forHverTest() {
