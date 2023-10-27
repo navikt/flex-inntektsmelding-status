@@ -11,7 +11,7 @@ import org.springframework.kafka.listener.ContainerProperties
 
 @Configuration
 class AivenConsumer(
-    @Value("\${aiven-kafka.auto-offset-reset}") private val kafkaAutoOffsetReset: String,
+    @Value("\${KAFKA_AUTO_OFFSET_RESET}") private val kafkaAutoOffsetReset: String,
     private val aivenKafkaConfig: AivenKafkaConfig
 ) {
 

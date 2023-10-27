@@ -9,3 +9,4 @@ env:
   SPRING_PROFILES_ACTIVE: default, testdata
   INNTEKTSMELDING_MANGLER_URL: https://www.ekstern.dev.nav.no/syk/sykefravaer/inntektsmelding
   INNTEKTSMELDING_MANGLER_VENTETID: 0
+  KAFKA_AUTO_OFFSET_RESET: earliest
