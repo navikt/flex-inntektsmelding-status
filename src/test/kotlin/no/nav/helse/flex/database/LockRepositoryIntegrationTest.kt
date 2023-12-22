@@ -21,7 +21,6 @@ import kotlin.concurrent.thread
 private const val FORSINKELSE = 1000L
 
 class LockRepositoryIntegrationTest : FellesTestOppsett() {
-
     @Autowired
     private lateinit var transactionManager: PlatformTransactionManager
 

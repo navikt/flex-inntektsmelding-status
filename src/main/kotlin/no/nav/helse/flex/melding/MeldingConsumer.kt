@@ -6,7 +6,7 @@ import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusDbRecord
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
 import no.nav.helse.flex.inntektsmelding.StatusVerdi
-import no.nav.helse.flex.kafka.dittSykefravaerMeldingTopic
+import no.nav.helse.flex.kafka.DITT_SYKEFRAVAER_MELDING_TOPIC
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -20,25 +20,27 @@ import java.time.Instant
 class MeldingConsumer(
     private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
     private val inntektsmeldingRepository: InntektsmeldingRepository,
-    private val registry: MeterRegistry
+    private val registry: MeterRegistry,
 ) {
-
     val log = logger()
 
     @KafkaListener(
-        topics = [dittSykefravaerMeldingTopic],
+        topics = [DITT_SYKEFRAVAER_MELDING_TOPIC],
         containerFactory = "aivenKafkaListenerContainerFactory",
         id = "ditt-sykefravaer-melding",
-        idIsGroup = false
+        idIsGroup = false,
     )
-    fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+    fun listen(
+        cr: ConsumerRecord<String, String>,
+        acknowledgment: Acknowledgment,
+    ) {
         prosesserKafkaMelding(cr.key(), cr.value())
         acknowledgment.acknowledge()
     }
 
     fun prosesserKafkaMelding(
         key: String,
-        value: String
+        value: String,
     ) {
         val meldingKafkaDto: MeldingKafkaDto = objectMapper.readValue(value)
 
@@ -55,8 +57,8 @@ class MeldingConsumer(
                 InntektsmeldingStatusDbRecord(
                     inntektsmeldingId = melding.inntektsmeldingId,
                     opprettet = Instant.now(),
-                    status = StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_LUKKET
-                )
+                    status = StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_LUKKET,
+                ),
             )
 
             log.info("Lukket ditt-sykefravær-melding om mottatt inntektsmelding med eksternId: $eksternId")

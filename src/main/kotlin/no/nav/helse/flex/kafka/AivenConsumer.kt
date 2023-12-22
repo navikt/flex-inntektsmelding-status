@@ -12,22 +12,22 @@ import org.springframework.kafka.listener.ContainerProperties
 @Configuration
 class AivenConsumer(
     @Value("\${KAFKA_AUTO_OFFSET_RESET}") private val kafkaAutoOffsetReset: String,
-    private val aivenKafkaConfig: AivenKafkaConfig
+    private val aivenKafkaConfig: AivenKafkaConfig,
 ) {
-
-    private fun simpleConsumerConfig() = mapOf(
-        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-        ConsumerConfig.GROUP_ID_CONFIG to "flex-inntektsmelding-status",
-        ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to kafkaAutoOffsetReset,
-        ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
-        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 1,
-        ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG to 600000
-    ) + aivenKafkaConfig.commonConfig()
+    private fun simpleConsumerConfig() =
+        mapOf(
+            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+            ConsumerConfig.GROUP_ID_CONFIG to "flex-inntektsmelding-status",
+            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to kafkaAutoOffsetReset,
+            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
+            ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 1,
+            ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG to 600000,
+        ) + aivenKafkaConfig.commonConfig()
 
     @Bean
     fun aivenKafkaListenerContainerFactory(
-        aivenKafkaErrorHandler: AivenKafkaErrorHandler
+        aivenKafkaErrorHandler: AivenKafkaErrorHandler,
     ): ConcurrentKafkaListenerContainerFactory<String, String> {
         val consumerFactory = DefaultKafkaConsumerFactory<String, String>(simpleConsumerConfig())
 

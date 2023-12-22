@@ -10,9 +10,8 @@ import java.time.LocalDate
 
 @Repository
 class StatusRepository(
-    private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate
+    private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,
 ) {
-
     fun hentInntektsmeldingMedStatusHistorikk(inntektsmeldingId: String): InntektsmeldingMedStatusHistorikk? {
         return namedParameterJdbcTemplate.queryForObject(
             """
@@ -33,7 +32,7 @@ class StatusRepository(
             WHERE im.id = :inntektsmelding_id
             ORDER BY status_opprettet
             """,
-            MapSqlParameterSource().addValue("inntektsmelding_id", inntektsmeldingId)
+            MapSqlParameterSource().addValue("inntektsmelding_id", inntektsmeldingId),
         ) { resultSet, _ ->
             resultSet.tilInntektsmeldingMedStatusHistorikk()
         }
@@ -63,13 +62,16 @@ class StatusRepository(
             WHERE status.status IN (:harStatus)    
             ORDER BY opprettet
             """,
-            MapSqlParameterSource().addValue("harStatus", harStatus.asList(), Types.VARCHAR)
+            MapSqlParameterSource().addValue("harStatus", harStatus.asList(), Types.VARCHAR),
         ) { resultSet, _ ->
             resultSet.tilInntektsmelding()
         }
     }
 
-    fun hentAlleForPerson(fnr: String, orgNr: String): List<InntektsmeldingMedStatus> {
+    fun hentAlleForPerson(
+        fnr: String,
+        orgNr: String,
+    ): List<InntektsmeldingMedStatus> {
         return namedParameterJdbcTemplate.query(
             """
             SELECT im.id,
@@ -97,7 +99,7 @@ class StatusRepository(
             """,
             MapSqlParameterSource()
                 .addValue("fnr", fnr)
-                .addValue("orgNr", orgNr)
+                .addValue("orgNr", orgNr),
         ) { resultSet, _ ->
             resultSet.tilInntektsmelding()
         }
@@ -115,29 +117,31 @@ class StatusRepository(
             eksternTimestamp = getTimestamp("ekstern_timestamp").toInstant(),
             eksternId = getString("ekstern_id"),
             status = StatusVerdi.valueOf(getString("status")),
-            statusOpprettet = getTimestamp("status_opprettet").toInstant()
+            statusOpprettet = getTimestamp("status_opprettet").toInstant(),
         )
     }
 
     private fun ResultSet.tilInntektsmeldingMedStatusHistorikk(): InntektsmeldingMedStatusHistorikk {
-        val statusVerdier = if (this.getString("status") != null) {
-            mutableListOf(mapInntektsmeldingStatus())
-        } else {
-            mutableListOf()
-        }
+        val statusVerdier =
+            if (this.getString("status") != null) {
+                mutableListOf(mapInntektsmeldingStatus())
+            } else {
+                mutableListOf()
+            }
 
-        val inntektsmelding = InntektsmeldingMedStatusHistorikk(
-            id = getString("id"),
-            fnr = getString("fnr"),
-            orgNr = getString("org_nr"),
-            orgNavn = getString("org_navn"),
-            opprettet = getTimestamp("opprettet").toInstant(),
-            vedtakFom = getDate("vedtak_fom").toLocalDate(),
-            vedtakTom = getDate("vedtak_tom").toLocalDate(),
-            eksternTimestamp = getTimestamp("ekstern_timestamp").toInstant(),
-            eksternId = getString("ekstern_id"),
-            statusHistorikk = statusVerdier
-        )
+        val inntektsmelding =
+            InntektsmeldingMedStatusHistorikk(
+                id = getString("id"),
+                fnr = getString("fnr"),
+                orgNr = getString("org_nr"),
+                orgNavn = getString("org_navn"),
+                opprettet = getTimestamp("opprettet").toInstant(),
+                vedtakFom = getDate("vedtak_fom").toLocalDate(),
+                vedtakTom = getDate("vedtak_tom").toLocalDate(),
+                eksternTimestamp = getTimestamp("ekstern_timestamp").toInstant(),
+                eksternId = getString("ekstern_id"),
+                statusHistorikk = statusVerdier,
+            )
 
         while (next()) {
             statusVerdier.add(mapInntektsmeldingStatus())
@@ -146,10 +150,11 @@ class StatusRepository(
         return inntektsmelding
     }
 
-    private fun ResultSet.mapInntektsmeldingStatus() = StatusHistorikk(
-        id = getString("status_id"),
-        status = StatusVerdi.valueOf(getString("status"))
-    )
+    private fun ResultSet.mapInntektsmeldingStatus() =
+        StatusHistorikk(
+            id = getString("status_id"),
+            status = StatusVerdi.valueOf(getString("status")),
+        )
 }
 
 data class InntektsmeldingMedStatus(
@@ -163,7 +168,7 @@ data class InntektsmeldingMedStatus(
     val eksternTimestamp: Instant,
     val eksternId: String,
     val status: StatusVerdi,
-    val statusOpprettet: Instant
+    val statusOpprettet: Instant,
 )
 
 data class InntektsmeldingMedStatusHistorikk(
@@ -176,27 +181,25 @@ data class InntektsmeldingMedStatusHistorikk(
     val vedtakTom: LocalDate,
     val eksternTimestamp: Instant,
     val eksternId: String,
-    val statusHistorikk: List<StatusHistorikk>
+    val statusHistorikk: List<StatusHistorikk>,
 ) {
-    fun harBeskjedSendt() =
-        statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }
+    fun harBeskjedSendt() = statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }
 
-    fun harMeldingSendt() =
-        statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }
+    fun harMeldingSendt() = statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }
 
-    fun harBeskjedDonet() =
-        statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }
+    fun harBeskjedDonet() = statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }
 
-    fun harMeldingDonet() =
-        statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }
+    fun harMeldingDonet() = statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }
 
     fun alleBrukernotifikasjonerErDonet(): Boolean {
-        val brukernotifikasjoner = statusHistorikk.filter {
-            it.status in listOf(
-                StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
-                StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT
-            )
-        }
+        val brukernotifikasjoner =
+            statusHistorikk.filter {
+                it.status in
+                    listOf(
+                        StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
+                        StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT,
+                    )
+            }
 
         if (brukernotifikasjoner.isEmpty()) {
             return true
@@ -209,5 +212,5 @@ data class InntektsmeldingMedStatusHistorikk(
 
 data class StatusHistorikk(
     val id: String,
-    val status: StatusVerdi
+    val status: StatusVerdi,
 )

@@ -7,9 +7,8 @@ import org.springframework.transaction.annotation.Transactional
 
 @Repository
 class LockRepository(
-    private val jdbcTemplate: JdbcTemplate
+    private val jdbcTemplate: JdbcTemplate,
 ) {
-
     @Transactional(propagation = Propagation.REQUIRED)
     fun settAdvisoryTransactionLock(key: Long) {
         jdbcTemplate.execute("SELECT pg_advisory_xact_lock($key)")

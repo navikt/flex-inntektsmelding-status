@@ -10,19 +10,20 @@ import java.util.UUID
 class InntektsmeldingMedStatusOverlapperExtKtTest {
     val fom = LocalDate.now()
     val tom = fom.plusDays(2)
-    val base = InntektsmeldingMedStatus(
-        id = UUID.randomUUID().toString(),
-        fnr = "123",
-        orgNr = "sdf",
-        orgNavn = "sdgsdfs",
-        vedtakFom = fom,
-        vedtakTom = tom,
-        eksternTimestamp = Instant.now(),
-        eksternId = "321423",
-        status = StatusVerdi.MANGLER_INNTEKTSMELDING,
-        statusOpprettet = Instant.now(),
-        opprettet = Instant.now()
-    )
+    val base =
+        InntektsmeldingMedStatus(
+            id = UUID.randomUUID().toString(),
+            fnr = "123",
+            orgNr = "sdf",
+            orgNavn = "sdgsdfs",
+            vedtakFom = fom,
+            vedtakTom = tom,
+            eksternTimestamp = Instant.now(),
+            eksternId = "321423",
+            status = StatusVerdi.MANGLER_INNTEKTSMELDING,
+            statusOpprettet = Instant.now(),
+            opprettet = Instant.now(),
+        )
 
     @Test
     fun `tom liste overlapper ikke`() {
@@ -41,41 +42,43 @@ class InntektsmeldingMedStatusOverlapperExtKtTest {
 
     @Test
     fun `to som ikke overlapper`() {
-        val neste = base.copy(
-            vedtakFom = tom.plusDays(1),
-            vedtakTom = tom.plusDays(3)
-        )
+        val neste =
+            base.copy(
+                vedtakFom = tom.plusDays(1),
+                vedtakTom = tom.plusDays(3),
+            )
         listOf(base, neste).overlapper().`should be false`()
     }
 
     @Test
     fun `to som overlapper`() {
-        val neste = base.copy(
-            vedtakFom = tom,
-            vedtakTom = tom.plusDays(3)
-        )
+        val neste =
+            base.copy(
+                vedtakFom = tom,
+                vedtakTom = tom.plusDays(3),
+            )
         listOf(base, neste).overlapper().`should be true`()
     }
 
     @Test
     fun `ignorerer at vi overlapper med behandling utafor spleis`() {
-        val neste = base.copy(
-            vedtakFom = tom,
-            vedtakTom = tom.plusDays(3),
-            status = StatusVerdi.BEHANDLES_UTENFOR_SPLEIS
-
-        )
+        val neste =
+            base.copy(
+                vedtakFom = tom,
+                vedtakTom = tom.plusDays(3),
+                status = StatusVerdi.BEHANDLES_UTENFOR_SPLEIS,
+            )
         listOf(base, neste).overlapper().`should be false`()
     }
 
     @Test
     fun `tester behandles utafor overlapper mangler inntektsmelding`() {
-        val neste = base.copy(
-            vedtakFom = tom,
-            vedtakTom = tom.plusDays(3),
-            status = StatusVerdi.BEHANDLES_UTENFOR_SPLEIS
-
-        )
+        val neste =
+            base.copy(
+                vedtakFom = tom,
+                vedtakTom = tom.plusDays(3),
+                status = StatusVerdi.BEHANDLES_UTENFOR_SPLEIS,
+            )
         listOf(base, neste).manglendeInntektsmeldingOverlapperBehandlesUtaforSpleis().`should be true`()
     }
 }

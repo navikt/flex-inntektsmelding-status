@@ -15,7 +15,7 @@ class AivenKafkaErrorHandler : DefaultErrorHandler(
     ExponentialBackOff(1000L, 1.5).also {
         // 8 minutter, som er mindre enn max.poll.interval.ms på 10 minutter.
         it.maxInterval = 60_000L * 8
-    }
+    },
 ) {
     // Bruker aliased logger for unngå kollisjon med CommonErrorHandler.logger(): LogAccessor.
     val log = slf4jLogger()
@@ -24,7 +24,7 @@ class AivenKafkaErrorHandler : DefaultErrorHandler(
         thrownException: Exception,
         records: MutableList<ConsumerRecord<*, *>>,
         consumer: Consumer<*, *>,
-        container: MessageListenerContainer
+        container: MessageListenerContainer,
     ) {
         if (records.isEmpty()) {
             log.error("Listener mottok ikke data.", thrownException)
@@ -40,7 +40,7 @@ class AivenKafkaErrorHandler : DefaultErrorHandler(
         data: ConsumerRecords<*, *>,
         consumer: Consumer<*, *>,
         container: MessageListenerContainer,
-        invokeListener: Runnable
+        invokeListener: Runnable,
     ) {
         if (data.isEmpty) {
             log.error("Listener mottok ikke data.", thrownException)
@@ -53,16 +53,17 @@ class AivenKafkaErrorHandler : DefaultErrorHandler(
 
     private fun loggFeilMedMaskerFnr(
         record: ConsumerRecord<*, *>,
-        thrownException: Exception
+        thrownException: Exception,
     ) {
-        val key = if (record.key().erFnr()) {
-            "***"
-        } else {
-            record.key()
-        }
+        val key =
+            if (record.key().erFnr()) {
+                "***"
+            } else {
+                record.key()
+            }
         log.error(
             "Feil i prossesseringen av record med offset: ${record.offset()}, key: $key på topic ${record.topic()}.",
-            thrownException
+            thrownException,
         )
     }
 

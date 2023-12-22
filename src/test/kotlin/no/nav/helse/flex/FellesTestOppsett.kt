@@ -5,9 +5,9 @@ import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
 import no.nav.helse.flex.inntektsmelding.StatusRepository
-import no.nav.helse.flex.kafka.brukernotifikasjonBeskjedTopic
-import no.nav.helse.flex.kafka.brukernotifikasjonDoneTopic
-import no.nav.helse.flex.kafka.dittSykefravaerMeldingTopic
+import no.nav.helse.flex.kafka.BRUKERNOTIFIKASJON_BESKJED_TOPIC
+import no.nav.helse.flex.kafka.BRUKERNOTIFIKASJON_DONE_TOPIC
+import no.nav.helse.flex.kafka.DITT_SYKEFRAVAER_MELDING_TOPIC
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import org.amshove.kluent.shouldBeEmpty
 import org.apache.avro.generic.GenericRecord
@@ -29,7 +29,6 @@ private class PostgreSQLContainer14 : PostgreSQLContainer<PostgreSQLContainer14>
 @AutoConfigureObservability
 @SpringBootTest(classes = [Application::class])
 abstract class FellesTestOppsett {
-
     @Autowired
     lateinit var inntektsmeldingRepository: InntektsmeldingRepository
 
@@ -61,7 +60,6 @@ abstract class FellesTestOppsett {
     lateinit var meldingKafkaConsumer: Consumer<String, String>
 
     companion object {
-
         init {
             val threads = mutableListOf<Thread>()
 
@@ -87,9 +85,9 @@ abstract class FellesTestOppsett {
 
     @BeforeAll
     fun `Vi leser beskjed, done og melding kafka topicet og feiler om noe eksisterer`() {
-        beskjedKafkaConsumer.subscribeHvisIkkeSubscribed(brukernotifikasjonBeskjedTopic)
-        doneKafkaConsumer.subscribeHvisIkkeSubscribed(brukernotifikasjonDoneTopic)
-        meldingKafkaConsumer.subscribeHvisIkkeSubscribed(dittSykefravaerMeldingTopic)
+        beskjedKafkaConsumer.subscribeHvisIkkeSubscribed(BRUKERNOTIFIKASJON_BESKJED_TOPIC)
+        doneKafkaConsumer.subscribeHvisIkkeSubscribed(BRUKERNOTIFIKASJON_DONE_TOPIC)
+        meldingKafkaConsumer.subscribeHvisIkkeSubscribed(DITT_SYKEFRAVAER_MELDING_TOPIC)
 
         beskjedKafkaConsumer.hentProduserteRecords().shouldBeEmpty()
         doneKafkaConsumer.hentProduserteRecords().shouldBeEmpty()

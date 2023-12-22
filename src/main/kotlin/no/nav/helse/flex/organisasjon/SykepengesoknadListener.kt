@@ -1,7 +1,7 @@
 package no.nav.helse.flex.organisasjon
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.helse.flex.kafka.sykepengesoknadTopic
+import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -11,16 +11,18 @@ import org.springframework.stereotype.Component
 
 @Component
 class SykepengesoknadListener(
-    val organisasjonsOppdatering: OrganisasjonOppdatering
+    val organisasjonsOppdatering: OrganisasjonOppdatering,
 ) {
-
     @KafkaListener(
-        topics = [sykepengesoknadTopic],
+        topics = [SYKEPENGESOKNAD_TOPIC],
         containerFactory = "aivenKafkaListenerContainerFactory",
         id = "sykepengesoknad-organisasjon",
-        idIsGroup = false
+        idIsGroup = false,
     )
-    fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+    fun listen(
+        cr: ConsumerRecord<String, String>,
+        acknowledgment: Acknowledgment,
+    ) {
         val soknad = cr.value().tilSykepengesoknadDTO()
         organisasjonsOppdatering.handterSoknad(soknad)
         acknowledgment.acknowledge()
