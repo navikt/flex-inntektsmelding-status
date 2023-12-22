@@ -27,9 +27,8 @@ class BestillBeskjed(
     private val brukernotifikasjon: Brukernotifikasjon,
     private val meldingKafkaProducer: MeldingKafkaProducer,
     private val env: EnvironmentToggles,
-    @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String
+    @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
 ) {
-
     private val log = logger()
 
     private fun sykmeldtVarsel() = OffsetDateTime.now().toInstant()
@@ -39,30 +38,35 @@ class BestillBeskjed(
     fun opprettVarsler(inntektsmeldingMedStatus: InntektsmeldingMedStatus): Boolean {
         lockRepository.settAdvisoryTransactionLock(inntektsmeldingMedStatus.fnr.toLong())
 
-        val vedtaksperioder = statusRepository.hentAlleForPerson(
-            fnr = inntektsmeldingMedStatus.fnr,
-            orgNr = inntektsmeldingMedStatus.orgNr
-        )
+        val vedtaksperioder =
+            statusRepository.hentAlleForPerson(
+                fnr = inntektsmeldingMedStatus.fnr,
+                orgNr = inntektsmeldingMedStatus.orgNr,
+            )
         if (vedtaksperioder.overlapper()) {
             log.info("Fant overlappende perioder for id ${inntektsmeldingMedStatus.id}. Vet ikke hva jeg skal gjøre. Hopper over denne ")
             return false
         }
         if (vedtaksperioder.manglendeInntektsmeldingOverlapperBehandlesUtaforSpleis()) {
-            log.info("Fant overlappende perioder med mangler im og behandles utafor spleis for id ${inntektsmeldingMedStatus.id}. Vet ikke hva jeg skal gjøre. Hopper over denne")
+            log.info(
+                "Fant overlappende perioder med manglende inntektsmelding ${inntektsmeldingMedStatus.id} som behandles " +
+                    "utenfor Spleis. Ukjent hva som skal gjøre med denne, så hopper over.",
+            )
             return false
         }
 
-        val harManglendeImPeriodeRettForan = vedtaksperioder
-            .filter { it.status == StatusVerdi.MANGLER_INNTEKTSMELDING }
-            .any { it.vedtakTom.erRettFør(inntektsmeldingMedStatus.vedtakFom) }
+        val harManglendeImPeriodeRettForan =
+            vedtaksperioder
+                .filter { it.status == StatusVerdi.MANGLER_INNTEKTSMELDING }
+                .any { it.vedtakTom.erRettFør(inntektsmeldingMedStatus.vedtakFom) }
 
         if (harManglendeImPeriodeRettForan) {
             inntektsmeldingStatusRepository.save(
                 InntektsmeldingStatusDbRecord(
                     inntektsmeldingId = inntektsmeldingMedStatus.id,
                     opprettet = Instant.now(),
-                    status = StatusVerdi.HAR_PERIODE_RETT_FOER
-                )
+                    status = StatusVerdi.HAR_PERIODE_RETT_FOER,
+                ),
             )
             return false
         }
@@ -74,7 +78,7 @@ class BestillBeskjed(
             log.warn(
                 "Bestiller ikke beskjed for inntektsmelding med eksternId ${inntektsmeldingMedStatusHistorikk.eksternId} og " +
                     "statuser ${inntektsmeldingMedStatusHistorikk.statusHistorikk} siden det ikke er sendt Done-melding " +
-                    "for tidligere bestilte meldinger."
+                    "for tidligere bestilte meldinger.",
             )
             return false
         }
@@ -87,14 +91,18 @@ class BestillBeskjed(
         return true
     }
 
-    private fun bestillBeskjed(inntektsmeldingMedStatus: InntektsmeldingMedStatus, fom: LocalDate) {
-        val bestillingId = inntektsmeldingStatusRepository.save(
-            InntektsmeldingStatusDbRecord(
-                inntektsmeldingId = inntektsmeldingMedStatus.id,
-                opprettet = Instant.now(),
-                status = StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT
-            )
-        ).id!!
+    private fun bestillBeskjed(
+        inntektsmeldingMedStatus: InntektsmeldingMedStatus,
+        fom: LocalDate,
+    ) {
+        val bestillingId =
+            inntektsmeldingStatusRepository.save(
+                InntektsmeldingStatusDbRecord(
+                    inntektsmeldingId = inntektsmeldingMedStatus.id,
+                    opprettet = Instant.now(),
+                    status = StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
+                ),
+            ).id!!
 
         brukernotifikasjon.beskjedManglerInntektsmelding(
             fnr = inntektsmeldingMedStatus.fnr,
@@ -102,7 +110,7 @@ class BestillBeskjed(
             bestillingId = bestillingId,
             orgNavn = inntektsmeldingMedStatus.orgNavn,
             fom = fom,
-            synligFremTil = synligFremTil()
+            synligFremTil = synligFremTil(),
         )
     }
 
@@ -113,32 +121,38 @@ class BestillBeskjed(
         return OffsetDateTime.now().plusMinutes(20).toInstant()
     }
 
-    private fun bestillMelding(inntektsmeldingMedStatus: InntektsmeldingMedStatus, fom: LocalDate) {
-        val bestillingId = inntektsmeldingStatusRepository.save(
-            InntektsmeldingStatusDbRecord(
-                inntektsmeldingId = inntektsmeldingMedStatus.id,
-                opprettet = Instant.now(),
-                status = StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT
-            )
-        ).id!!
+    private fun bestillMelding(
+        inntektsmeldingMedStatus: InntektsmeldingMedStatus,
+        fom: LocalDate,
+    ) {
+        val bestillingId =
+            inntektsmeldingStatusRepository.save(
+                InntektsmeldingStatusDbRecord(
+                    inntektsmeldingId = inntektsmeldingMedStatus.id,
+                    opprettet = Instant.now(),
+                    status = StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT,
+                ),
+            ).id!!
 
         meldingKafkaProducer.produserMelding(
             meldingUuid = bestillingId,
-            meldingKafkaDto = MeldingKafkaDto(
-                fnr = inntektsmeldingMedStatus.fnr,
-                opprettMelding = OpprettMelding(
-                    tekst = "Vi mangler inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefraværet som startet ${
-                    fom.format(
-                        norskDateFormat
-                    )
-                    }.",
-                    lenke = inntektsmeldingManglerUrl,
-                    variant = Variant.INFO,
-                    lukkbar = false,
-                    synligFremTil = synligFremTil(),
-                    meldingType = "MANGLENDE_INNTEKTSMELDING"
-                )
-            )
+            meldingKafkaDto =
+                MeldingKafkaDto(
+                    fnr = inntektsmeldingMedStatus.fnr,
+                    opprettMelding =
+                        OpprettMelding(
+                            tekst = "Vi mangler inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefraværet som startet ${
+                                fom.format(
+                                    norskDateFormat,
+                                )
+                            }.",
+                            lenke = inntektsmeldingManglerUrl,
+                            variant = Variant.INFO,
+                            lukkbar = false,
+                            synligFremTil = synligFremTil(),
+                            meldingType = "MANGLENDE_INNTEKTSMELDING",
+                        ),
+                ),
         )
 
         log.info("Bestilte melding for manglende inntektsmelding ${inntektsmeldingMedStatus.eksternId}")

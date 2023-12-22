@@ -1,7 +1,7 @@
 package no.nav.helse.flex.inntektsmelding
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.helse.flex.kafka.inntektsmeldingstatusTopic
+import no.nav.helse.flex.kafka.INNTEKTSMELDING_STATUS_TOPIC
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.util.EnvironmentToggles
@@ -13,17 +13,20 @@ import org.springframework.stereotype.Component
 @Component
 class InntektsmeldingConsumer(
     private val inntektsmeldingService: InntektsmeldingService,
-    private val environmentToggles: EnvironmentToggles
+    private val environmentToggles: EnvironmentToggles,
 ) {
     private val log = logger()
 
     @KafkaListener(
-        topics = [inntektsmeldingstatusTopic],
+        topics = [INNTEKTSMELDING_STATUS_TOPIC],
         containerFactory = "aivenKafkaListenerContainerFactory",
         id = "flex-inntektsmelding-status-inntektsmelding",
-        idIsGroup = false
+        idIsGroup = false,
     )
-    fun listen(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+    fun listen(
+        cr: ConsumerRecord<String, String>,
+        acknowledgment: Acknowledgment,
+    ) {
         val kafkaDto: InntektsmeldingKafkaDto = objectMapper.readValue(cr.value())
 
         try {

@@ -5,8 +5,8 @@ import no.nav.helse.flex.inntektsmelding.InntektsmeldingKafkaDto
 import no.nav.helse.flex.inntektsmelding.Status
 import no.nav.helse.flex.inntektsmelding.StatusVerdi
 import no.nav.helse.flex.inntektsmelding.Vedtaksperiode
-import no.nav.helse.flex.kafka.inntektsmeldingstatusTopic
-import no.nav.helse.flex.kafka.sykepengesoknadTopic
+import no.nav.helse.flex.kafka.INNTEKTSMELDING_STATUS_TOPIC
+import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
 import no.nav.helse.flex.serialisertTilString
 import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.util.osloZone
@@ -29,7 +29,6 @@ import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class BestillBeskjedIntegrationTest : FellesTestOppsett() {
-
     @Autowired
     lateinit var kafkaProducer: KafkaProducer<String, String>
 
@@ -42,23 +41,24 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad`() {
-        val soknad = SykepengesoknadDTO(
-            fnr = fnr,
-            id = eksternId,
-            type = SoknadstypeDTO.ARBEIDSTAKERE,
-            status = SoknadsstatusDTO.NY,
-            fom = fom,
-            tom = tom,
-            arbeidssituasjon = ArbeidssituasjonDTO.ARBEIDSTAKER,
-            arbeidsgiver = ArbeidsgiverDTO(navn = "Flex AS", orgnummer = orgNr)
-        )
+        val soknad =
+            SykepengesoknadDTO(
+                fnr = fnr,
+                id = eksternId,
+                type = SoknadstypeDTO.ARBEIDSTAKERE,
+                status = SoknadsstatusDTO.NY,
+                fom = fom,
+                tom = tom,
+                arbeidssituasjon = ArbeidssituasjonDTO.ARBEIDSTAKER,
+                arbeidsgiver = ArbeidsgiverDTO(navn = "Flex AS", orgnummer = orgNr),
+            )
 
         kafkaProducer.send(
             ProducerRecord(
-                sykepengesoknadTopic,
+                SYKEPENGESOKNAD_TOPIC,
                 soknad.id,
-                soknad.serialisertTilString()
-            )
+                soknad.serialisertTilString(),
+            ),
         ).get()
 
         org.awaitility.Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
@@ -71,29 +71,31 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
     fun `Vi mottar MANGLER_INNTEKTSMELDING`() {
         kafkaProducer.send(
             ProducerRecord(
-                inntektsmeldingstatusTopic,
+                INNTEKTSMELDING_STATUS_TOPIC,
                 fnr,
                 InntektsmeldingKafkaDto(
                     id = UUID.randomUUID().toString(),
                     status = Status.MANGLER_INNTEKTSMELDING,
                     sykmeldt = fnr,
                     arbeidsgiver = orgNr,
-                    vedtaksperiode = Vedtaksperiode(
-                        id = eksternId,
-                        fom = fom.minusDays(16),
-                        tom = fom.minusDays(1)
-                    ),
-                    tidspunkt = OffsetDateTime.now()
-                ).serialisertTilString()
-            )
+                    vedtaksperiode =
+                        Vedtaksperiode(
+                            id = eksternId,
+                            fom = fom.minusDays(16),
+                            tom = fom.minusDays(1),
+                        ),
+                    tidspunkt = OffsetDateTime.now(),
+                ).serialisertTilString(),
+            ),
         ).get()
 
         Awaitility.await().atMost(5, TimeUnit.SECONDS)
             .until { finnInntektsmeldingId(eksternId) != null }
 
         val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
-        val inntektsmelding = statusRepository
-            .hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)
+        val inntektsmelding =
+            statusRepository
+                .hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)
 
         inntektsmelding!!.fnr shouldBeEqualTo fnr
         inntektsmelding.statusHistorikk shouldHaveSize 1
@@ -114,10 +116,11 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
             statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!
 
         inntektsmelding.statusHistorikk shouldHaveSize 3
-        inntektsmelding.statusHistorikk.last().status `should be in` listOf(
-            StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
-            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT
-        )
+        inntektsmelding.statusHistorikk.last().status `should be in`
+            listOf(
+                StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
+                StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT,
+            )
     }
 
     @Test
@@ -125,29 +128,31 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
     fun `Vi mottar MANGLER_INNTEKTSMELDING på nytt og lagrer den ikke ned i db`() {
         kafkaProducer.send(
             ProducerRecord(
-                inntektsmeldingstatusTopic,
+                INNTEKTSMELDING_STATUS_TOPIC,
                 fnr,
                 InntektsmeldingKafkaDto(
                     id = UUID.randomUUID().toString(),
                     status = Status.MANGLER_INNTEKTSMELDING,
                     sykmeldt = fnr,
                     arbeidsgiver = orgNr,
-                    vedtaksperiode = Vedtaksperiode(
-                        id = eksternId,
-                        fom = fom.minusDays(16),
-                        tom = fom.minusDays(1)
-                    ),
-                    tidspunkt = OffsetDateTime.now()
-                ).serialisertTilString()
-            )
+                    vedtaksperiode =
+                        Vedtaksperiode(
+                            id = eksternId,
+                            fom = fom.minusDays(16),
+                            tom = fom.minusDays(1),
+                        ),
+                    tidspunkt = OffsetDateTime.now(),
+                ).serialisertTilString(),
+            ),
         ).get()
 
         val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
 
-        val statusHistorikk = Awaitility.await().during(2, TimeUnit.SECONDS).until(
-            { statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
-            { historikk -> historikk.last().status != StatusVerdi.MANGLER_INNTEKTSMELDING }
-        )
+        val statusHistorikk =
+            Awaitility.await().during(2, TimeUnit.SECONDS).until(
+                { statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
+                { historikk -> historikk.last().status != StatusVerdi.MANGLER_INNTEKTSMELDING },
+            )
 
         statusHistorikk shouldHaveSize 3
     }
@@ -157,21 +162,22 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
     fun `Vi mottar TRENGER_IKKE_INNTEKTSMELDING og Donner beskjed på Ditt NAV og melding på Ditt Sykefravær`() {
         kafkaProducer.send(
             ProducerRecord(
-                inntektsmeldingstatusTopic,
+                INNTEKTSMELDING_STATUS_TOPIC,
                 fnr,
                 InntektsmeldingKafkaDto(
                     id = UUID.randomUUID().toString(),
                     status = Status.TRENGER_IKKE_INNTEKTSMELDING,
                     sykmeldt = fnr,
                     arbeidsgiver = orgNr,
-                    vedtaksperiode = Vedtaksperiode(
-                        id = eksternId,
-                        fom = fom.minusDays(16),
-                        tom = fom.minusDays(1)
-                    ),
-                    tidspunkt = OffsetDateTime.now()
-                ).serialisertTilString()
-            )
+                    vedtaksperiode =
+                        Vedtaksperiode(
+                            id = eksternId,
+                            fom = fom.minusDays(16),
+                            tom = fom.minusDays(1),
+                        ),
+                    tidspunkt = OffsetDateTime.now(),
+                ).serialisertTilString(),
+            ),
         ).get()
 
         doneKafkaConsumer.ventPåRecords(1)
@@ -179,15 +185,17 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
 
         val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
 
-        val statusHistorikk = Awaitility.await().atMost(2, TimeUnit.SECONDS).until(
-            { statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
-            { historikk ->
-                historikk.last().status in listOf(
-                    StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT,
-                    StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT
-                )
-            }
-        )
+        val statusHistorikk =
+            Awaitility.await().atMost(2, TimeUnit.SECONDS).until(
+                { statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
+                { historikk ->
+                    historikk.last().status in
+                        listOf(
+                            StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT,
+                            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT,
+                        )
+                },
+            )
 
         statusHistorikk shouldHaveSize 6
     }
@@ -197,29 +205,31 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
     fun `Vi mottar ny MANGLER_INNTEKTSMELDING`() {
         kafkaProducer.send(
             ProducerRecord(
-                inntektsmeldingstatusTopic,
+                INNTEKTSMELDING_STATUS_TOPIC,
                 fnr,
                 InntektsmeldingKafkaDto(
                     id = UUID.randomUUID().toString(),
                     status = Status.MANGLER_INNTEKTSMELDING,
                     sykmeldt = fnr,
                     arbeidsgiver = orgNr,
-                    vedtaksperiode = Vedtaksperiode(
-                        id = eksternId,
-                        fom = fom.minusDays(16),
-                        tom = fom.minusDays(1)
-                    ),
-                    tidspunkt = OffsetDateTime.now()
-                ).serialisertTilString()
-            )
+                    vedtaksperiode =
+                        Vedtaksperiode(
+                            id = eksternId,
+                            fom = fom.minusDays(16),
+                            tom = fom.minusDays(1),
+                        ),
+                    tidspunkt = OffsetDateTime.now(),
+                ).serialisertTilString(),
+            ),
         ).get()
 
         val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
 
-        val statusHistorikk = Awaitility.await().atMost(2, TimeUnit.SECONDS).until(
-            { statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
-            { historikk -> historikk.last().status == StatusVerdi.MANGLER_INNTEKTSMELDING }
-        )
+        val statusHistorikk =
+            Awaitility.await().atMost(2, TimeUnit.SECONDS).until(
+                { statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
+                { historikk -> historikk.last().status == StatusVerdi.MANGLER_INNTEKTSMELDING },
+            )
 
         statusHistorikk shouldHaveSize 7
     }
@@ -234,17 +244,18 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
 
         val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
 
-        val inntektsmelding = statusRepository
-            .hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)
+        val inntektsmelding =
+            statusRepository
+                .hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)
 
-        inntektsmelding!!.statusHistorikk.last().status `should be in` listOf(
-            StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
-            StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT
-        )
+        inntektsmelding!!.statusHistorikk.last().status `should be in`
+            listOf(
+                StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
+                StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT,
+            )
 
         inntektsmelding.statusHistorikk shouldHaveSize 9
     }
 
-    private fun finnInntektsmeldingId(eksternId: String) =
-        inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)
+    private fun finnInntektsmeldingId(eksternId: String) = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)
 }

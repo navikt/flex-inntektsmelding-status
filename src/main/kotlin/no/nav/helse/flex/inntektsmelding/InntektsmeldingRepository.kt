@@ -10,6 +10,7 @@ import java.time.LocalDate
 @Repository
 interface InntektsmeldingRepository : CrudRepository<InntektsmeldingDbRecord, String> {
     fun existsByEksternId(eksternId: String): Boolean
+
     fun findInntektsmeldingDbRecordByEksternId(eksternId: String): InntektsmeldingDbRecord?
 }
 
@@ -24,5 +25,5 @@ data class InntektsmeldingDbRecord(
     val vedtakFom: LocalDate,
     val vedtakTom: LocalDate,
     val eksternTimestamp: Instant,
-    val eksternId: String
+    val eksternId: String,
 )

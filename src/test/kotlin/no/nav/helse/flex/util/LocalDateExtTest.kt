@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class LocalDateExtTest {
-
     @Test
     fun `er rett før`() {
         val mandag = LocalDate.of(2018, 1, 1)

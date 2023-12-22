@@ -5,18 +5,18 @@ import java.time.Instant
 data class MeldingKafkaDto(
     val opprettMelding: OpprettMelding? = null,
     val lukkMelding: LukkMelding? = null,
-    val fnr: String
+    val fnr: String,
 )
 
 data class LukkMelding(
-    val timestamp: Instant
+    val timestamp: Instant,
 )
 
 enum class Variant {
     INFO,
     WARNING,
     SUCCESS,
-    ERROR
+    ERROR,
 }
 
 data class OpprettMelding(
@@ -25,5 +25,5 @@ data class OpprettMelding(
     val variant: Variant,
     val lukkbar: Boolean,
     val meldingType: String,
-    val synligFremTil: Instant? = null
+    val synligFremTil: Instant? = null,
 )

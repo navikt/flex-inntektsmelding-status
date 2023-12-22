@@ -6,37 +6,39 @@ import org.apache.kafka.common.config.SslConfigs
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 
+private const val JAVA_KEYSTORE = "JKS"
+private const val PKCS12 = "PKCS12"
+const val DITT_SYKEFRAVAER_MELDING_TOPIC = "flex." + "ditt-sykefravaer-melding"
+const val BRUKERNOTIFIKASJON_DONE_TOPIC = "min-side." + "aapen-brukernotifikasjon-done-v1"
+const val BRUKERNOTIFIKASJON_BESKJED_TOPIC = "min-side." + "aapen-brukernotifikasjon-beskjed-v1"
+const val INNTEKTSMELDING_STATUS_TOPIC = "tbd." + "inntektsmeldingstatus"
+const val INNTEKTSMELDING_STATUS_TESTDATA_TOPIC = "flex." + "inntektsmeldingstatus-testdata"
+const val SYKEPENGESOKNAD_TOPIC = "flex" + ".sykepengesoknad"
+
 @Configuration
 class AivenKafkaConfig(
     @Value("\${KAFKA_BROKERS}") private val kafkaBrokers: String,
     @Value("\${KAFKA_SECURITY_PROTOCOL:SSL}") private val kafkaSecurityProtocol: String,
     @Value("\${KAFKA_TRUSTSTORE_PATH}") private val kafkaTruststorePath: String,
     @Value("\${KAFKA_CREDSTORE_PASSWORD}") private val kafkaCredstorePassword: String,
-    @Value("\${KAFKA_KEYSTORE_PATH}") private val kafkaKeystorePath: String
+    @Value("\${KAFKA_KEYSTORE_PATH}") private val kafkaKeystorePath: String,
 ) {
-    private val JAVA_KEYSTORE = "JKS"
-    private val PKCS12 = "PKCS12"
+    fun commonConfig() =
+        mapOf(
+            BOOTSTRAP_SERVERS_CONFIG to kafkaBrokers,
+        ) + securityConfig()
 
-    fun commonConfig() = mapOf(
-        BOOTSTRAP_SERVERS_CONFIG to kafkaBrokers
-    ) + securityConfig()
-
-    private fun securityConfig() = mapOf(
-        CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to kafkaSecurityProtocol,
-        SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG to "", // Disable server host name verification
-        SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG to JAVA_KEYSTORE,
-        SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to PKCS12,
-        SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to kafkaTruststorePath,
-        SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to kafkaCredstorePassword,
-        SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to kafkaKeystorePath,
-        SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to kafkaCredstorePassword,
-        SslConfigs.SSL_KEY_PASSWORD_CONFIG to kafkaCredstorePassword
-    )
+    private fun securityConfig() =
+        mapOf(
+            CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to kafkaSecurityProtocol,
+            // Disables server host name verification.
+            SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG to "",
+            SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG to JAVA_KEYSTORE,
+            SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to PKCS12,
+            SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to kafkaTruststorePath,
+            SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to kafkaCredstorePassword,
+            SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to kafkaKeystorePath,
+            SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to kafkaCredstorePassword,
+            SslConfigs.SSL_KEY_PASSWORD_CONFIG to kafkaCredstorePassword,
+        )
 }
-
-const val dittSykefravaerMeldingTopic = "flex." + "ditt-sykefravaer-melding"
-const val brukernotifikasjonDoneTopic = "min-side." + "aapen-brukernotifikasjon-done-v1"
-const val brukernotifikasjonBeskjedTopic = "min-side." + "aapen-brukernotifikasjon-beskjed-v1"
-const val inntektsmeldingstatusTopic = "tbd." + "inntektsmeldingstatus"
-const val inntektsmeldingstatusTestdataTopic = "flex." + "inntektsmeldingstatus-testdata"
-const val sykepengesoknadTopic = "flex" + ".sykepengesoknad"

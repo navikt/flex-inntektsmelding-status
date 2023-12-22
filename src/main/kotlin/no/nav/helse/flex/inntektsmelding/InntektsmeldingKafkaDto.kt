@@ -9,27 +9,30 @@ data class InntektsmeldingKafkaDto(
     val sykmeldt: String,
     val arbeidsgiver: String,
     val vedtaksperiode: Vedtaksperiode,
-    val tidspunkt: OffsetDateTime
+    val tidspunkt: OffsetDateTime,
 )
 
 data class Vedtaksperiode(
     val id: String,
     val fom: LocalDate,
-    val tom: LocalDate
+    val tom: LocalDate,
 )
 
 enum class Status {
     MANGLER_INNTEKTSMELDING,
     HAR_INNTEKTSMELDING,
     TRENGER_IKKE_INNTEKTSMELDING,
-    BEHANDLES_UTENFOR_SPLEIS
+    BEHANDLES_UTENFOR_SPLEIS,
 }
 
 fun Status.tilStatusVerdi(): StatusVerdi {
     return when (this) {
-        Status.MANGLER_INNTEKTSMELDING -> StatusVerdi.MANGLER_INNTEKTSMELDING // Venter på inntektsmelding
-        Status.HAR_INNTEKTSMELDING -> StatusVerdi.HAR_INNTEKTSMELDING // Inntektsmelding mottatt, eller vedtaksperiode som ikke trenger ny inntektsmelding
-        Status.TRENGER_IKKE_INNTEKTSMELDING -> StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING // Ikke utbetaling, innenfor arbeidsgiverperiode
-        Status.BEHANDLES_UTENFOR_SPLEIS -> StatusVerdi.BEHANDLES_UTENFOR_SPLEIS // Kastes ut fra speil og behandles i gosys
+        Status.MANGLER_INNTEKTSMELDING -> StatusVerdi.MANGLER_INNTEKTSMELDING
+        // Inntektsmelding mottatt, eller vedtaksperiode som ikke trenger ny inntektsmelding.
+        Status.HAR_INNTEKTSMELDING -> StatusVerdi.HAR_INNTEKTSMELDING
+        // Ikke utbetaling, innenfor arbeidsgiverperiode.
+        Status.TRENGER_IKKE_INNTEKTSMELDING -> StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING
+        // Kastes ut fra Speil og behandles i Gosys.
+        Status.BEHANDLES_UTENFOR_SPLEIS -> StatusVerdi.BEHANDLES_UTENFOR_SPLEIS
     }
 }

@@ -14,9 +14,8 @@ import java.util.concurrent.TimeUnit
 class BestillBeskjedJobb(
     private val statusRepository: StatusRepository,
     private val bestillBeskjed: BestillBeskjed,
-    @Value("\${INNTEKTSMELDING_MANGLER_VENTETID}") private val ventetid: Long
+    @Value("\${INNTEKTSMELDING_MANGLER_VENTETID}") private val ventetid: Long,
 ) {
-
     private val log = logger()
 
     private fun sykmeldtVarsel() = OffsetDateTime.now().minusDays(ventetid).toInstant()
@@ -29,11 +28,12 @@ class BestillBeskjedJobb(
     fun jobMedParameter(opprettetFor: Instant) {
         var beskjederBestilt = 0
 
-        val manglerBeskjed = statusRepository
-            .hentAlleMedNyesteStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
-            .filter { it.statusOpprettet.isBefore(opprettetFor) }
-            .sortedByDescending { it.vedtakFom }
-            .take(200)
+        val manglerBeskjed =
+            statusRepository
+                .hentAlleMedNyesteStatus(StatusVerdi.MANGLER_INNTEKTSMELDING)
+                .filter { it.statusOpprettet.isBefore(opprettetFor) }
+                .sortedByDescending { it.vedtakFom }
+                .take(200)
 
         manglerBeskjed.forEach {
             if (bestillBeskjed.opprettVarsler(it)) {

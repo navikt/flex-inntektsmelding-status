@@ -7,8 +7,8 @@ import no.nav.brukernotifikasjon.schemas.builders.NokkelInputBuilder
 import no.nav.brukernotifikasjon.schemas.input.BeskjedInput
 import no.nav.brukernotifikasjon.schemas.input.DoneInput
 import no.nav.brukernotifikasjon.schemas.input.NokkelInput
-import no.nav.helse.flex.kafka.brukernotifikasjonBeskjedTopic
-import no.nav.helse.flex.kafka.brukernotifikasjonDoneTopic
+import no.nav.helse.flex.kafka.BRUKERNOTIFIKASJON_BESKJED_TOPIC
+import no.nav.helse.flex.kafka.BRUKERNOTIFIKASJON_DONE_TOPIC
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.util.norskDateFormat
 import org.apache.kafka.clients.producer.Producer
@@ -26,7 +26,7 @@ class Brukernotifikasjon(
     private val beskjedKafkaProducer: Producer<NokkelInput, BeskjedInput>,
     private val doneKafkaProducer: Producer<NokkelInput, DoneInput>,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
-    private val registry: MeterRegistry
+    private val registry: MeterRegistry,
 ) {
     val log = logger()
 
@@ -36,13 +36,13 @@ class Brukernotifikasjon(
         bestillingId: String,
         orgNavn: String,
         fom: LocalDate,
-        synligFremTil: Instant
+        synligFremTil: Instant,
     ) {
         registry.counter("brukernotifikasjon_mangler_inntektsmelding_beskjed_sendt").increment()
 
         beskjedKafkaProducer.send(
             ProducerRecord(
-                brukernotifikasjonBeskjedTopic,
+                BRUKERNOTIFIKASJON_BESKJED_TOPIC,
                 NokkelInputBuilder()
                     .withAppnavn("flex-inntektsmelding-status")
                     .withNamespace("flex")
@@ -54,17 +54,17 @@ class Brukernotifikasjon(
                     .withTidspunkt(LocalDateTime.now())
                     .withTekst(
                         "Vi mangler inntektsmeldingen fra $orgNavn for sykefraværet som startet ${
-                        fom.format(
-                            norskDateFormat
-                        )
-                        }."
+                            fom.format(
+                                norskDateFormat,
+                            )
+                        }.",
                     )
                     .withLink(URL(inntektsmeldingManglerUrl))
                     .withSikkerhetsnivaa(4)
                     .withSynligFremTil(synligFremTil.atOffset(UTC).toLocalDateTime())
                     .withEksternVarsling(false)
-                    .build()
-            )
+                    .build(),
+            ),
         ).get()
 
         log.info("Bestilte beskjed for manglende inntektsmelding $eksternId")
@@ -73,13 +73,13 @@ class Brukernotifikasjon(
     fun sendDonemelding(
         fnr: String,
         eksternId: String,
-        bestillingId: String
+        bestillingId: String,
     ) {
         registry.counter("brukernotifikasjon_done_sendt").increment()
 
         doneKafkaProducer.send(
             ProducerRecord(
-                brukernotifikasjonDoneTopic,
+                BRUKERNOTIFIKASJON_DONE_TOPIC,
                 NokkelInputBuilder()
                     .withAppnavn("flex-inntektsmelding-status")
                     .withNamespace("flex")
@@ -89,8 +89,8 @@ class Brukernotifikasjon(
                     .build(),
                 DoneInputBuilder()
                     .withTidspunkt(LocalDateTime.now())
-                    .build()
-            )
+                    .build(),
+            ),
         ).get()
     }
 }
