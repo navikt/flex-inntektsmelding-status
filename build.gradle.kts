@@ -28,7 +28,7 @@ val logstashLogbackEncoderVersion = "7.4"
 val kluentVersion = "1.73"
 val brukernotifikasjonAvroVersion = "2.5.2"
 val confluentVersion = "7.5.3"
-val sykepengesoknadKafkaVersion = "2023.12.05-10.16-3ffa06f7"
+val sykepengesoknadKafkaVersion = "2023.12.27-15.12-930f4d73"
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
