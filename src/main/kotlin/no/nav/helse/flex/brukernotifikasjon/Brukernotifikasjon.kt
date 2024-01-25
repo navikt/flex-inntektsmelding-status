@@ -40,6 +40,7 @@ class Brukernotifikasjon(
     ) {
         registry.counter("brukernotifikasjon_mangler_inntektsmelding_beskjed_sendt").increment()
 
+        @Suppress("DEPRECATION")
         beskjedKafkaProducer.send(
             ProducerRecord(
                 BRUKERNOTIFIKASJON_BESKJED_TOPIC,

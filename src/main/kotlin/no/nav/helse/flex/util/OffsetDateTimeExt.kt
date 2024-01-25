@@ -9,6 +9,8 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 val osloZone = ZoneId.of("Europe/Oslo")
+
+@Suppress("DEPRECATION")
 val norskDateFormat = DateTimeFormatter.ofPattern("d. MMMM yyyy").localizedBy(Locale("no", "NO", "nb"))
 
 fun OffsetDateTime.tilOsloZone(): OffsetDateTime = this.atZoneSameInstant(osloZone).toOffsetDateTime()
