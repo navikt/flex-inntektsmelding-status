@@ -15,7 +15,7 @@ import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import java.net.URL
+import java.net.URI
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -40,7 +40,6 @@ class Brukernotifikasjon(
     ) {
         registry.counter("brukernotifikasjon_mangler_inntektsmelding_beskjed_sendt").increment()
 
-        @Suppress("DEPRECATION")
         beskjedKafkaProducer.send(
             ProducerRecord(
                 BRUKERNOTIFIKASJON_BESKJED_TOPIC,
@@ -60,7 +59,7 @@ class Brukernotifikasjon(
                             )
                         }.",
                     )
-                    .withLink(URL(inntektsmeldingManglerUrl))
+                    .withLink(URI(inntektsmeldingManglerUrl).toURL())
                     .withSikkerhetsnivaa(4)
                     .withSynligFremTil(synligFremTil.atOffset(UTC).toLocalDateTime())
                     .withEksternVarsling(false)

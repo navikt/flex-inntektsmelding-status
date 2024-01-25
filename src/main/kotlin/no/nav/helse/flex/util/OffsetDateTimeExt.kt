@@ -1,17 +1,16 @@
 package no.nav.helse.flex.util
 
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneId
+import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.*
 
 val osloZone = ZoneId.of("Europe/Oslo")
-
-@Suppress("DEPRECATION")
-val norskDateFormat = DateTimeFormatter.ofPattern("d. MMMM yyyy").localizedBy(Locale("no", "NO", "nb"))
+val norskLocale =
+    Locale.Builder()
+        .setLanguage("nb")
+        .setRegion("NO")
+        .build()
+val norskDateFormat = DateTimeFormatter.ofPattern("d. MMMM yyyy").localizedBy(norskLocale)
 
 fun OffsetDateTime.tilOsloZone(): OffsetDateTime = this.atZoneSameInstant(osloZone).toOffsetDateTime()
 
