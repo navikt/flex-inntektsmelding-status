@@ -5,13 +5,12 @@ import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
 import no.nav.helse.flex.inntektsmelding.StatusRepository
-import no.nav.helse.flex.kafka.BRUKERNOTIFIKASJON_BESKJED_TOPIC
-import no.nav.helse.flex.kafka.BRUKERNOTIFIKASJON_DONE_TOPIC
 import no.nav.helse.flex.kafka.DITT_SYKEFRAVAER_MELDING_TOPIC
+import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import org.amshove.kluent.shouldBeEmpty
-import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.Consumer
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
@@ -51,13 +50,10 @@ abstract class FellesTestOppsett {
     lateinit var bestillBeskjedJobb: BestillBeskjedJobb
 
     @Autowired
-    lateinit var doneKafkaConsumer: Consumer<GenericRecord, GenericRecord>
-
-    @Autowired
-    lateinit var beskjedKafkaConsumer: Consumer<GenericRecord, GenericRecord>
-
-    @Autowired
     lateinit var meldingKafkaConsumer: Consumer<String, String>
+
+    @Autowired
+    lateinit var varslingConsumer: Consumer<String, String>
 
     companion object {
         init {
@@ -83,14 +79,17 @@ abstract class FellesTestOppsett {
         }
     }
 
-    @BeforeAll
-    fun `Vi leser beskjed, done og melding kafka topicet og feiler om noe eksisterer`() {
-        beskjedKafkaConsumer.subscribeHvisIkkeSubscribed(BRUKERNOTIFIKASJON_BESKJED_TOPIC)
-        doneKafkaConsumer.subscribeHvisIkkeSubscribed(BRUKERNOTIFIKASJON_DONE_TOPIC)
-        meldingKafkaConsumer.subscribeHvisIkkeSubscribed(DITT_SYKEFRAVAER_MELDING_TOPIC)
+    @AfterAll
+    fun `Vi leser oppgave kafka topicet og feil hvis noe finnes og slik at subklassetestene leser alt`() {
+        varslingConsumer.hentProduserteRecords().shouldBeEmpty()
+        meldingKafkaConsumer.hentProduserteRecords().shouldBeEmpty()
+    }
 
-        beskjedKafkaConsumer.hentProduserteRecords().shouldBeEmpty()
-        doneKafkaConsumer.hentProduserteRecords().shouldBeEmpty()
+    @BeforeAll
+    fun `Vi leser oppgave og done kafka topicet og feiler om noe eksisterer`() {
+        varslingConsumer.subscribeHvisIkkeSubscribed(MINSIDE_BRUKERVARSEL)
+        meldingKafkaConsumer.subscribeHvisIkkeSubscribed(DITT_SYKEFRAVAER_MELDING_TOPIC)
+        varslingConsumer.hentProduserteRecords().shouldBeEmpty()
         meldingKafkaConsumer.hentProduserteRecords().shouldBeEmpty()
     }
 

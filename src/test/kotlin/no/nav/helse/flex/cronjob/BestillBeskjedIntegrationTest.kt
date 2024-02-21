@@ -107,7 +107,7 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
     fun `Vi bestiller beskjed på Ditt Nav og melding på Ditt Sykefravær`() {
         bestillBeskjedJobb.jobMedParameter(opprettetFor = OffsetDateTime.now(osloZone).toInstant())
 
-        beskjedKafkaConsumer.ventPåRecords(1)
+        varslingConsumer.ventPåRecords(1)
         meldingKafkaConsumer.ventPåRecords(1)
 
         val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
@@ -180,7 +180,7 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
             ),
         ).get()
 
-        doneKafkaConsumer.ventPåRecords(1)
+        varslingConsumer.ventPåRecords(1)
         meldingKafkaConsumer.ventPåRecords(1)
 
         val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
@@ -239,7 +239,7 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
     fun `Vi bestiller ny beskjed på Ditt Nav og melding på Ditt Sykefravær siden alt er Donet`() {
         bestillBeskjedJobb.jobMedParameter(opprettetFor = OffsetDateTime.now(osloZone).toInstant())
 
-        beskjedKafkaConsumer.ventPåRecords(1).first()
+        varslingConsumer.ventPåRecords(1).first()
         meldingKafkaConsumer.ventPåRecords(1).first()
 
         val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!

@@ -15,6 +15,8 @@ import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
 import no.nav.helse.flex.sykepengesoknad.kafka.SoknadstypeDTO
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
 import no.nav.helse.flex.util.osloZone
+import no.nav.tms.varsel.action.Sensitivitet
+import no.nav.tms.varsel.builder.VarselActionBuilder
 import org.amshove.kluent.shouldBeAfter
 import org.amshove.kluent.shouldBeBefore
 import org.amshove.kluent.shouldBeEqualTo
@@ -30,7 +32,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
 import org.springframework.beans.factory.annotation.Autowired
 import org.testcontainers.shaded.org.awaitility.Awaitility.await
-import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
@@ -191,23 +192,21 @@ class IntegrationTest : FellesTestOppsett() {
     fun `Vi bestiller beskjed på Ditt NAV og melding på Ditt Sykefravær`() {
         bestillBeskjedJobb.jobMedParameter(opprettetFor = OffsetDateTime.now(osloZone).toInstant())
 
-        val beskjedCR = beskjedKafkaConsumer.ventPåRecords(1).first()
+        val beskjedCR = varslingConsumer.ventPåRecords(1).first()
 
         val nokkelInput = beskjedCR.key()
-        nokkelInput.get("appnavn") shouldBeEqualTo "flex-inntektsmelding-status"
-        nokkelInput.get("namespace") shouldBeEqualTo "flex"
-        nokkelInput.get("fodselsnummer") shouldBeEqualTo fnr
-        nokkelInput.get("eventId") shouldBeEqualTo manglerBeskjedBestillingId
-        nokkelInput.get("grupperingsId") shouldBeEqualTo manglerBeskjedBestillingId
+        nokkelInput shouldBeEqualTo manglerBeskjedBestillingId
 
-        val beskjedInput = beskjedCR.value()
-        beskjedInput.get("eksternVarsling") shouldBeEqualTo false
-        beskjedInput.get("link") shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
-        beskjedInput.get("sikkerhetsnivaa") shouldBeEqualTo 4
-        beskjedInput.get("tekst") shouldBeEqualTo "Vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
-        beskjedInput.get("tidspunkt")
+        val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
+        beskjedInput.ident shouldBeEqualTo fnr
+        beskjedInput.varselId shouldBeEqualTo manglerBeskjedBestillingId
+        beskjedInput.eksternVarsling.shouldBeNull()
+        beskjedInput.link shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
+        beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
+        beskjedInput.tekster.first().tekst shouldBeEqualTo
+            "Vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
 
-        val synligFremTil = Instant.ofEpochMilli(beskjedInput.get("synligFremTil") as Long)
+        val synligFremTil = beskjedInput.aktivFremTil!!.toInstant()
         synligFremTil.shouldBeAfter(OffsetDateTime.now().plusMinutes(19).toInstant())
         synligFremTil.shouldBeBefore(OffsetDateTime.now().plusMinutes(21).toInstant())
 
@@ -291,11 +290,11 @@ class IntegrationTest : FellesTestOppsett() {
     @Order(4)
     fun `Beskjed og melding donnes`() {
         val doneBrukernotifikasjon =
-            doneKafkaConsumer
+            varslingConsumer
                 .ventPåRecords(1)
                 .first()
-                .key()
-        doneBrukernotifikasjon.get("grupperingsId") shouldBeEqualTo manglerBeskjedBestillingId
+        doneBrukernotifikasjon.key() shouldBeEqualTo manglerBeskjedBestillingId
+        doneBrukernotifikasjon.value().tilInaktiverVarselInstance().varselId shouldBeEqualTo manglerBeskjedBestillingId
 
         val cr = meldingKafkaConsumer.ventPåRecords(1).first()
         val doneDittSykefravaer: MeldingKafkaDto = cr.value().let { objectMapper.readValue(it) }
@@ -352,4 +351,12 @@ class IntegrationTest : FellesTestOppsett() {
                 StatusVerdi.HAR_INNTEKTSMELDING,
             )
     }
+}
+
+fun String.tilOpprettVarselInstance(): VarselActionBuilder.OpprettVarselInstance {
+    return objectMapper.readValue(this)
+}
+
+fun String.tilInaktiverVarselInstance(): VarselActionBuilder.InaktiverVarselInstance {
+    return objectMapper.readValue(this)
 }
