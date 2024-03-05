@@ -20,7 +20,7 @@ class BestillBeskjedJobb(
 
     private fun sykmeldtVarsel() = OffsetDateTime.now().minusDays(ventetid).toInstant()
 
-    @Scheduled(initialDelay = 2, fixedDelay = 30, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 2, fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
     fun job() {
         jobMedParameter(opprettetFor = sykmeldtVarsel())
     }
