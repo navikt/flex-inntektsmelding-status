@@ -219,7 +219,8 @@ class IntegrationTest : FellesTestOppsett() {
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING"
-        opprettMelding.tekst shouldBeEqualTo "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
+        opprettMelding.tekst shouldBeEqualTo
+            "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO

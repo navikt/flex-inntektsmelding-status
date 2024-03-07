@@ -41,11 +41,13 @@ class Brukernotifikasjon(
                 tekst =
                     Tekst(
                         spraakkode = "nb",
-                        tekst = "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen fra $orgNavn for sykefraværet som startet ${
-                            fom.format(
-                                norskDateFormat,
-                            )
-                        }.",
+                        tekst =
+                            "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen " +
+                                "fra $orgNavn for sykefraværet som startet ${
+                                    fom.format(
+                                        norskDateFormat,
+                                    )
+                                }.",
                         default = true,
                     )
                 aktivFremTil = synligFremTil.atZone(UTC)
