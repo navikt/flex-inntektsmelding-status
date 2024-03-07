@@ -41,7 +41,7 @@ class Brukernotifikasjon(
                 tekst =
                     Tekst(
                         spraakkode = "nb",
-                        tekst = "Vi mangler inntektsmeldingen fra $orgNavn for sykefraværet som startet ${
+                        tekst = "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen fra $orgNavn for sykefraværet som startet ${
                             fom.format(
                                 norskDateFormat,
                             )
@@ -50,7 +50,7 @@ class Brukernotifikasjon(
                     )
                 aktivFremTil = synligFremTil.atZone(UTC)
                 link = inntektsmeldingManglerUrl
-                eksternVarsling = null
+                eksternVarsling = EksternVarslingBestilling()
             }
 
         kafkaProducer.send(ProducerRecord(MINSIDE_BRUKERVARSEL, bestillingId, opprettVarsel)).get()

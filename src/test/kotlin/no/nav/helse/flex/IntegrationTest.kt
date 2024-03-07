@@ -200,11 +200,11 @@ class IntegrationTest : FellesTestOppsett() {
         val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
         beskjedInput.ident shouldBeEqualTo fnr
         beskjedInput.varselId shouldBeEqualTo manglerBeskjedBestillingId
-        beskjedInput.eksternVarsling.shouldBeNull()
+        beskjedInput.eksternVarsling.shouldNotBeNull()
         beskjedInput.link shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
+            "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
 
         val synligFremTil = beskjedInput.aktivFremTil!!.toInstant()
         synligFremTil.shouldBeAfter(OffsetDateTime.now().plusMinutes(19).toInstant())
@@ -219,7 +219,7 @@ class IntegrationTest : FellesTestOppsett() {
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING"
-        opprettMelding.tekst shouldBeEqualTo "Vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
+        opprettMelding.tekst shouldBeEqualTo "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 16. mai 2022."
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
