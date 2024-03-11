@@ -141,11 +141,13 @@ class BestillBeskjed(
                     fnr = inntektsmeldingMedStatus.fnr,
                     opprettMelding =
                         OpprettMelding(
-                            tekst = "Vi mangler inntektsmeldingen fra ${inntektsmeldingMedStatus.orgNavn} for sykefraværet som startet ${
-                                fom.format(
-                                    norskDateFormat,
-                                )
-                            }.",
+                            tekst =
+                                "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen " +
+                                    "fra ${inntektsmeldingMedStatus.orgNavn} for sykefraværet som startet ${
+                                        fom.format(
+                                            norskDateFormat,
+                                        )
+                                    }.",
                             lenke = inntektsmeldingManglerUrl,
                             variant = Variant.INFO,
                             lukkbar = false,
