@@ -44,13 +44,27 @@ class BestillBeskjed(
                 orgNr = inntektsmeldingMedStatus.orgNr,
             )
         if (vedtaksperioder.overlapper()) {
-            log.info("Fant overlappende perioder for id ${inntektsmeldingMedStatus.id}. Vet ikke hva jeg skal gjøre. Hopper over denne ")
+            log.info("Fant overlappende perioder for id ${inntektsmeldingMedStatus.id}. Vet ikke hva jeg skal gjøre. Hopper over denne.")
+            inntektsmeldingStatusRepository.save(
+                InntektsmeldingStatusDbRecord(
+                    inntektsmeldingId = inntektsmeldingMedStatus.id,
+                    opprettet = Instant.now(),
+                    status = StatusVerdi.OVELAPPER_SENDER_IKKE_UT,
+                ),
+            )
             return false
         }
         if (vedtaksperioder.manglendeInntektsmeldingOverlapperBehandlesUtaforSpleis()) {
             log.info(
                 "Fant overlappende perioder med manglende inntektsmelding ${inntektsmeldingMedStatus.id} som behandles " +
-                    "utenfor Spleis. Ukjent hva som skal gjøre med denne, så hopper over.",
+                    "utenfor Spleis. Vet ikke hva jeg skal gjøre. Hopper over denne.",
+            )
+            inntektsmeldingStatusRepository.save(
+                InntektsmeldingStatusDbRecord(
+                    inntektsmeldingId = inntektsmeldingMedStatus.id,
+                    opprettet = Instant.now(),
+                    status = StatusVerdi.OVELAPPER_BEHANDLES_UTAFOR_SPLEIS_SENDER_IKKE_UT,
+                ),
             )
             return false
         }
