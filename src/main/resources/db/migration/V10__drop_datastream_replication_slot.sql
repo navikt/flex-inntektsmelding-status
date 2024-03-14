@@ -1,0 +1,1 @@
+SELECT PG_DROP_REPLICATION_SLOT('flex_inntektsmelding_status_publication') FROM pg_replication_slots;
