@@ -1,0 +1,1 @@
+CREATE PUBLICATION flex_inntektsmelding_status_publication for ALL TABLES;
