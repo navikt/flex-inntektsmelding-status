@@ -11,4 +11,4 @@ env:
   SPRING_PROFILES_ACTIVE: default
   INNTEKTSMELDING_MANGLER_URL: https://www.nav.no/syk/sykefravaer/inntektsmelding
   INNTEKTSMELDING_MANGLER_VENTETID: 15
-  KAFKA_AUTO_OFFSET_RESET: none
+  KAFKA_AUTO_OFFSET_RESET: earliest #TODO tilbake til none når offset etablert

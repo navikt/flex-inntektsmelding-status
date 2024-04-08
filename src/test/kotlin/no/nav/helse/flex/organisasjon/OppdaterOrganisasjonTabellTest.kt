@@ -1,24 +1,16 @@
 package no.nav.helse.flex.organisasjon
 
 import no.nav.helse.flex.FellesTestOppsett
-import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
-import no.nav.helse.flex.serialisertTilString
 import no.nav.helse.flex.sykepengesoknad.kafka.*
 import org.amshove.kluent.`should be equal to`
 import org.amshove.kluent.shouldBeNull
-import org.apache.kafka.clients.producer.Producer
-import org.apache.kafka.clients.producer.ProducerRecord
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class OppdaterOrganisasjonTabellTest : FellesTestOppsett() {
-    @Autowired
-    lateinit var kafkaProducer: Producer<String, String>
-
     @Test
     fun `Oppretter ny organisasjon hvis den ikke finnes fra før`() {
         organisasjonRepository.deleteAll()
@@ -142,16 +134,5 @@ class OppdaterOrganisasjonTabellTest : FellesTestOppsett() {
         val orgEtterOppdatering = organisasjonRepository.findByOrgnummer(soknad.arbeidsgiver!!.orgnummer!!)!!
         orgEtterOppdatering.navn `should be equal to` "Bedriften AS Med nytt navn :)"
         orgEtterOppdatering.oppdatertAv `should be equal to` soknad2.id
-    }
-
-    fun sendSykepengesoknad(soknad: SykepengesoknadDTO) {
-        kafkaProducer.send(
-            ProducerRecord(
-                SYKEPENGESOKNAD_TOPIC,
-                null,
-                soknad.id,
-                soknad.serialisertTilString(),
-            ),
-        ).get()
     }
 }
