@@ -1,22 +1,26 @@
-package no.nav.helse.flex.organisasjon
+package no.nav.helse.flex.sykepengesoknad
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.springframework.context.annotation.Profile
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 
 @Component
+@Profile("test")
 class SykepengesoknadListener(
-    val organisasjonsOppdatering: OrganisasjonOppdatering,
+    val sykepengesoknadLagring: SykepengesoknadLagring,
 ) {
     @KafkaListener(
         topics = [SYKEPENGESOKNAD_TOPIC],
         containerFactory = "aivenKafkaListenerContainerFactory",
-        id = "sykepengesoknad-organisasjon",
+        id = "sykepengesoknad-perioder",
+        // Det er to listenere på dette topicet
+        groupId = "flex-inntektmeldingstatus-sykepengesoknad-perioder",
         idIsGroup = false,
     )
     fun listen(
@@ -24,7 +28,7 @@ class SykepengesoknadListener(
         acknowledgment: Acknowledgment,
     ) {
         val soknad = cr.value().tilSykepengesoknadDTO()
-        organisasjonsOppdatering.handterSoknad(soknad)
+        sykepengesoknadLagring.handterSoknad(soknad)
         acknowledgment.acknowledge()
     }
 

@@ -7,9 +7,14 @@ import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
 import no.nav.helse.flex.inntektsmelding.StatusRepository
 import no.nav.helse.flex.kafka.DITT_SYKEFRAVAER_MELDING_TOPIC
 import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
+import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
+import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
+import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
 import org.amshove.kluent.shouldBeEmpty
 import org.apache.kafka.clients.consumer.Consumer
+import org.apache.kafka.clients.producer.Producer
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
@@ -41,6 +46,9 @@ abstract class FellesTestOppsett {
     lateinit var organisasjonRepository: OrganisasjonRepository
 
     @Autowired
+    lateinit var sykepengesoknadRepository: SykepengesoknadRepository
+
+    @Autowired
     lateinit var jdbcTemplate: JdbcTemplate
 
     @Autowired
@@ -54,6 +62,9 @@ abstract class FellesTestOppsett {
 
     @Autowired
     lateinit var varslingConsumer: Consumer<String, String>
+
+    @Autowired
+    lateinit var kafkaProducer: Producer<String, String>
 
     companion object {
         init {
@@ -104,5 +115,16 @@ abstract class FellesTestOppsett {
     fun slettFraDatabase() {
         jdbcTemplate.update("DELETE FROM inntektsmelding_status")
         jdbcTemplate.update("DELETE FROM inntektsmelding")
+    }
+
+    fun sendSykepengesoknad(soknad: SykepengesoknadDTO) {
+        kafkaProducer.send(
+            ProducerRecord(
+                SYKEPENGESOKNAD_TOPIC,
+                null,
+                soknad.id,
+                soknad.serialisertTilString(),
+            ),
+        ).get()
     }
 }

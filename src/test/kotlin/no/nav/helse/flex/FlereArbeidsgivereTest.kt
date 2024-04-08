@@ -14,14 +14,12 @@ import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
 import no.nav.helse.flex.util.osloZone
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldHaveSize
-import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.awaitility.Awaitility
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
-import org.springframework.beans.factory.annotation.Autowired
 import org.testcontainers.shaded.org.awaitility.Awaitility.await
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -30,9 +28,6 @@ import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class FlereArbeidsgivereTest : FellesTestOppsett() {
-    @Autowired
-    lateinit var kafkaProducer: KafkaProducer<String, String>
-
     private final val fnr = "12345678901"
 
     private final val bomloSykepengesoknadId = UUID.randomUUID().toString()
