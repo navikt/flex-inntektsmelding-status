@@ -1,10 +1,14 @@
-package no.nav.helse.flex.Vedtak
+import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.helse.flex.objectMapper
+import java.time.LocalDate
+import java.util.*
+
+
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.repository.CrudRepository
 import org.springframework.stereotype.Repository
 import java.time.Instant
-import java.time.LocalDate
 
 @Repository
 interface VedtakRepository : CrudRepository<Vedtak, String> {
