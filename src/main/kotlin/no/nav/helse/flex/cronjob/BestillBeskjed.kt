@@ -11,7 +11,7 @@ import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.erRettFør
 import no.nav.helse.flex.util.finnSykefraværStart
-import no.nav.helse.flex.util.norskDateFormat
+import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmeldingTekst
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -155,13 +155,7 @@ class BestillBeskjed(
                     fnr = inntektsmeldingMedStatus.fnr,
                     opprettMelding =
                         OpprettMelding(
-                            tekst =
-                                "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen " +
-                                    "fra ${inntektsmeldingMedStatus.orgNavn} for sykefraværet som startet ${
-                                        fom.format(
-                                            norskDateFormat,
-                                        )
-                                    }.",
+                            tekst = skapVenterPåInntektsmeldingTekst(fom, inntektsmeldingMedStatus.orgNavn),
                             lenke = inntektsmeldingManglerUrl,
                             variant = Variant.INFO,
                             lukkbar = false,

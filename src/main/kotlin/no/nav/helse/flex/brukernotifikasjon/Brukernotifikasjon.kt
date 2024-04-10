@@ -3,7 +3,7 @@ package no.nav.helse.flex.brukernotifikasjon
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
 import no.nav.helse.flex.logger
-import no.nav.helse.flex.util.norskDateFormat
+import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmeldingTekst
 import no.nav.tms.varsel.action.*
 import no.nav.tms.varsel.builder.VarselActionBuilder
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -41,13 +41,7 @@ class Brukernotifikasjon(
                 tekst =
                     Tekst(
                         spraakkode = "nb",
-                        tekst =
-                            "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen " +
-                                "fra $orgNavn for sykefraværet som startet ${
-                                    fom.format(
-                                        norskDateFormat,
-                                    )
-                                }.",
+                        tekst = skapVenterPåInntektsmeldingTekst(fom, orgNavn),
                         default = true,
                     )
                 aktivFremTil = synligFremTil.atZone(UTC)
