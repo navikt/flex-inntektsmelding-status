@@ -1,6 +1,5 @@
-package no.nav.helse.flex.sykepengesoknad
+package no.nav.helse.flex.vedtak
 
-import VedtakRepository
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO

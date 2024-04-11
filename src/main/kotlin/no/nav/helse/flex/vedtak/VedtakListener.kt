@@ -1,4 +1,4 @@
-package no.nav.helse.flex.kafka
+package no.nav.helse.flex.vedtak
 
 // import no.nav.helse.flex.vedtak.VedtakLagring
 import org.apache.kafka.clients.consumer.ConsumerRecord
