@@ -1,21 +1,46 @@
 package no.nav.helse.flex.vedtak
 
+import no.nav.helse.flex.inntektsmelding.*
 import no.nav.helse.flex.logger
-import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
-import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
-import no.nav.helse.flex.vedtak.VedtakDto
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.stereotype.Component
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
+
 // wtf wtf wtf
 @Component
-class VedtakLagring (
-    private val sykepengesoknadRepository: VedtakRepository
-){
+class VedtakLagring(
+    private val inntektsmeldingRepository: InntektsmeldingRepository,
+    private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
+) {
     val log = logger()
-    fun handterVedtak (vedtak: VedtakDto) {
 
+    fun handterVedtak(cr: ConsumerRecord<String, String>) {
+        if (cr.erVedtakFattet()) {
+            val vedtaket =
+                try {
+                    cr.value().tilVedtakFattetForEksternDto()
+                } catch (e: Exception) {
+                    throw RuntimeException("Kunne ikke deserialisere vedtak", e)
+                }
+
+            var dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(vedtaket.vedtaksperiodeId)?.id
+            if (dbId == null) {
+                throw Exception("Fant ikke inntektsmelding for vedtak, dette skal ikke skje")
+            }
+
+            inntektsmeldingStatusRepository.save(
+            InntektsmeldingStatusDbRecord(
+                inntektsmeldingId = dbId,
+                opprettet = Instant.now(),
+                status = StatusVerdi.VEDTAK_FATTET,
+            ),
+        )
+        }
     }
+}
 
+private fun ConsumerRecord<String, String>.erVedtakFattet(): Boolean {
+    return headers().any { header ->
+        header.key() == "type" && String(header.value()) == "VedtakFattet"
+    }
 }

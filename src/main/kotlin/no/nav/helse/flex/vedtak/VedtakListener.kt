@@ -1,6 +1,5 @@
 package no.nav.helse.flex.vedtak
 
-// import no.nav.helse.flex.vedtak.VedtakLagring
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
@@ -8,8 +7,10 @@ import org.springframework.stereotype.Component
 
 const val VEDTAK_TOPIC = "tbd.vedtak"
 
+// todo husk at vi må spørre om vi får lese
 @Component
 class VedtakKafkaListener(
+    private val mottaVedtak: VedtakLagring,
 ) {
     @KafkaListener(
         topics = [VEDTAK_TOPIC],
@@ -19,6 +20,8 @@ class VedtakKafkaListener(
         cr: ConsumerRecord<String, String>,
         acknowledgment: Acknowledgment,
     ) {
+        mottaVedtak.handterVedtak(cr)
+
         acknowledgment.acknowledge()
     }
 }
