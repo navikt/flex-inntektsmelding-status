@@ -10,7 +10,7 @@ data class VedtakFattetForEksternDto(
     val organisasjonsnummer: String,
     val fom: LocalDate,
     val tom: LocalDate,
-    val vedtaksperiodeId: String,
+    // val vedtaksperiodeId: String, // todo utgår pga at
     // val skjæringstidspunkt: LocalDate,
 //    val dokumenter: List<Dokument>,
     //  val inntekt: Double,
