@@ -41,9 +41,10 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
             tidspunkt = OffsetDateTime.now(),
         )
 
-    @BeforeAll
-    fun beforeAll() {
-        organisasjonRepository.save(
+    @BeforeEach
+    fun setUp() {
+        slettFraDatabase()
+                organisasjonRepository.save(
             Organisasjon(
                 orgnummer = orgnummer,
                 navn = "org",
@@ -52,11 +53,7 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
                 oppdatertAv = "soknad",
             ),
         )
-    }
 
-    @BeforeEach
-    fun setUp() {
-        slettFraDatabase()
     }
 
     @Test

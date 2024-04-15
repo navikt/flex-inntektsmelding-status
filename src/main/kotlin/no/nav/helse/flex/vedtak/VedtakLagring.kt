@@ -7,6 +7,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import java.time.ZoneId
 
 @Component
 class VedtakLagring(
@@ -45,7 +46,7 @@ class VedtakLagring(
             inntektsmeldingStatusRepository.save(
                 InntektsmeldingStatusDbRecord(
                     inntektsmeldingId = vedtakDbRecord.id!!,
-                    opprettet = Instant.now(),
+                    opprettet = vedtaket.vedtakFattetTidspunkt?.atZone(ZoneId.of("Europe/Oslo"))?.toInstant() ?: Instant.ofEpochMilli(cr.timestamp()),
                     status = StatusVerdi.VEDTAK_FATTET,
                 ),
             )
