@@ -87,9 +87,6 @@ class VedtakLagringTest : FellesTestOppsett() {
     @Test
     @Order(1)
     fun `Skal lagre vedtaksperiode fra kafka`() {
-
-
-
         val sisteStatus = statusRepository.hentAlleForPerson(fnr = fnr, orgNr = flexOrgNr)
         sisteStatus.shouldHaveSize(1)
         sisteStatus.first().status shouldBeEqualTo StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING
@@ -118,7 +115,5 @@ class VedtakLagringTest : FellesTestOppsett() {
         val sisteStatusEtterpaa = statusRepository.hentAlleForPerson(fnr = fnr, orgNr = flexOrgNr)
         sisteStatusEtterpaa.shouldHaveSize(1)
         sisteStatusEtterpaa.first().status shouldBeEqualTo StatusVerdi.VEDTAK_FATTET
-
     }
-
 }

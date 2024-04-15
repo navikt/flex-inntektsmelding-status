@@ -5,7 +5,6 @@ import no.nav.helse.flex.organisasjon.Organisasjon
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldHaveSize
 import org.awaitility.Awaitility.await
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Test
@@ -44,7 +43,7 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
     @BeforeEach
     fun setUp() {
         slettFraDatabase()
-                organisasjonRepository.save(
+        organisasjonRepository.save(
             Organisasjon(
                 orgnummer = orgnummer,
                 navn = "org",
@@ -53,7 +52,6 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
                 oppdatertAv = "soknad",
             ),
         )
-
     }
 
     @Test

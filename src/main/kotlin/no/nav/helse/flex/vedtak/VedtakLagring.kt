@@ -46,7 +46,9 @@ class VedtakLagring(
             inntektsmeldingStatusRepository.save(
                 InntektsmeldingStatusDbRecord(
                     inntektsmeldingId = vedtakDbRecord.id!!,
-                    opprettet = vedtaket.vedtakFattetTidspunkt?.atZone(ZoneId.of("Europe/Oslo"))?.toInstant() ?: Instant.ofEpochMilli(cr.timestamp()),
+                    opprettet =
+                        vedtaket.vedtakFattetTidspunkt?.atZone(ZoneId.of("Europe/Oslo"))?.toInstant()
+                            ?: Instant.ofEpochMilli(cr.timestamp()),
                     status = StatusVerdi.VEDTAK_FATTET,
                 ),
             )
