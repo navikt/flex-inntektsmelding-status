@@ -12,6 +12,8 @@ interface InntektsmeldingRepository : CrudRepository<InntektsmeldingDbRecord, St
     fun existsByEksternId(eksternId: String): Boolean
 
     fun findInntektsmeldingDbRecordByEksternId(eksternId: String): InntektsmeldingDbRecord?
+
+    fun findInntektsmeldingDbRecordByFnr(fnr: String): List<InntektsmeldingDbRecord>
 }
 
 @Table("inntektsmelding")

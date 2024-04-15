@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
-// wtf wtf wtf
 @Component
 class VedtakLagring(
     private val inntektsmeldingRepository: InntektsmeldingRepository,
@@ -16,6 +15,7 @@ class VedtakLagring(
     private val lockRepository: LockRepository,
 ) {
     val log = logger()
+
     @Transactional
     fun handterVedtak(cr: ConsumerRecord<String, String>) {
         if (cr.erVedtakFattet()) {
@@ -28,19 +28,27 @@ class VedtakLagring(
 
             lockRepository.settAdvisoryTransactionLock(vedtaket.fødselsnummer.toLong())
 
-            // todo vi har ikke
-            var dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(vedtaket)?.id
-            if (dbId == null) {
-                throw Exception("Fant ikke inntektsmelding for vedtak, dette skal ikke skje")
+            val vedtakDbRecord =
+                inntektsmeldingRepository.findInntektsmeldingDbRecordByFnr(vedtaket.fødselsnummer).find {
+                    it.vedtakFom == vedtaket.fom && it.vedtakTom == vedtaket.tom &&
+                        it.orgNr == vedtaket.organisasjonsnummer
+                }
+
+            if (vedtakDbRecord == null) {
+                log.error(
+                    "Fant ikke inntektsmelding for vedtak med utbetalingsid: ${vedtaket.utbetalingId}" +
+                        " fom: ${vedtaket.fom} tom: ${vedtaket.tom}",
+                )
+                return
             }
 
             inntektsmeldingStatusRepository.save(
-            InntektsmeldingStatusDbRecord(
-                inntektsmeldingId = dbId,
-                opprettet = Instant.now(),
-                status = StatusVerdi.VEDTAK_FATTET,
-            ),
-        )
+                InntektsmeldingStatusDbRecord(
+                    inntektsmeldingId = vedtakDbRecord.id!!,
+                    opprettet = Instant.now(),
+                    status = StatusVerdi.VEDTAK_FATTET,
+                ),
+            )
         }
     }
 }

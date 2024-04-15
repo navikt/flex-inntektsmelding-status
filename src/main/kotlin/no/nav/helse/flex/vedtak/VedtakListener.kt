@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component
 
 const val VEDTAK_TOPIC = "tbd.vedtak"
 
-// todo husk at vi må spørre om vi får lese
 @Component
 class VedtakKafkaListener(
     private val mottaVedtak: VedtakLagring,
