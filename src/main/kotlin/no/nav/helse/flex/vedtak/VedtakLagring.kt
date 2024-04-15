@@ -28,8 +28,8 @@ class VedtakLagring(
 
             lockRepository.settAdvisoryTransactionLock(vedtaket.fødselsnummer.toLong())
 
-
-            var dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(vedtaket.vedtaksperiodeId)?.id
+            // todo vi har ikke
+            var dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(vedtaket)?.id
             if (dbId == null) {
                 throw Exception("Fant ikke inntektsmelding for vedtak, dette skal ikke skje")
             }
