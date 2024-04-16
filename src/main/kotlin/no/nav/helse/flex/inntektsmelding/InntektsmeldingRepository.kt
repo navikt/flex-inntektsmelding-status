@@ -28,4 +28,5 @@ data class InntektsmeldingDbRecord(
     val vedtakTom: LocalDate,
     val eksternTimestamp: Instant,
     val eksternId: String,
+    val ferdigBehandlet: Instant? = null,
 )
