@@ -56,10 +56,11 @@ class StatusRepository(
                      INNER JOIN (SELECT vedtaksperiode_db_id, max(opprettet) AS opprettet
                                  FROM vedtaksperiode_status
                                  GROUP BY vedtaksperiode_db_id) max_status
-                                ON status.vedtaksperiode_db_id = max_status.vedtaksperiode_db_id
-                                    AND status.opprettet = max_status.opprettet
+                                    ON status.vedtaksperiode_db_id = max_status.vedtaksperiode_db_id AND
+                                       status.opprettet = max_status.opprettet
                      INNER JOIN vedtaksperiode vp ON vp.id = status.vedtaksperiode_db_id
-            WHERE status.status IN (:harStatus)    
+            WHERE status.status IN (:harStatus)  
+              AND ferdig_behandlet IS NULL
             ORDER BY opprettet
             """,
             MapSqlParameterSource().addValue("harStatus", harStatus.asList(), Types.VARCHAR),
@@ -88,12 +89,13 @@ class StatusRepository(
             FROM vedtaksperiode_status status
                      INNER JOIN (SELECT vedtaksperiode_db_id, max(opprettet) AS opprettet
                                  FROM vedtaksperiode_status
-                                 WHERE vedtaksperiode_db_id IN (SELECT id FROM vedtaksperiode
-                                                             WHERE fnr = :fnr
-                                                             AND org_nr = :orgNr)
+                                 WHERE vedtaksperiode_db_id IN 
+                                    (SELECT id FROM vedtaksperiode
+                                     WHERE fnr = :fnr
+                                       AND org_nr = :orgNr)
                                  GROUP BY vedtaksperiode_db_id) max_status
-                                ON status.vedtaksperiode_db_id = max_status.vedtaksperiode_db_id
-                                    AND status.opprettet = max_status.opprettet
+                                ON status.vedtaksperiode_db_id = max_status.vedtaksperiode_db_id AND
+                                   status.opprettet = max_status.opprettet
                      INNER JOIN vedtaksperiode vp ON vp.id = status.vedtaksperiode_db_id
             ORDER BY opprettet
             """,
