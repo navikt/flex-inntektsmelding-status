@@ -5,7 +5,6 @@ import no.nav.helse.flex.organisasjon.Organisasjon
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldHaveSize
 import org.awaitility.Awaitility.await
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Test
@@ -41,8 +40,9 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
             tidspunkt = OffsetDateTime.now(),
         )
 
-    @BeforeAll
-    fun beforeAll() {
+    @BeforeEach
+    fun setUp() {
+        slettFraDatabase()
         organisasjonRepository.save(
             Organisasjon(
                 orgnummer = orgnummer,
@@ -52,11 +52,6 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
                 oppdatertAv = "soknad",
             ),
         )
-    }
-
-    @BeforeEach
-    fun setUp() {
-        slettFraDatabase()
     }
 
     @Test

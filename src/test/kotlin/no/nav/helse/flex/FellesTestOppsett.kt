@@ -111,6 +111,7 @@ abstract class FellesTestOppsett {
     fun slettFraDatabase() {
         jdbcTemplate.update("DELETE FROM inntektsmelding_status")
         jdbcTemplate.update("DELETE FROM inntektsmelding")
+        jdbcTemplate.update("DELETE FROM organisasjon")
     }
 
     fun sendSykepengesoknad(soknad: SykepengesoknadDTO) {
