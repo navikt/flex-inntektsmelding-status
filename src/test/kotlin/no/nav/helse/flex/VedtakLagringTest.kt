@@ -103,7 +103,7 @@ class VedtakLagringTest : FellesTestOppsett() {
                     fom = fom.minusDays(16),
                     tom = fom.minusDays(1),
                     utbetalingId = UUID.randomUUID().toString(),
-                    vedtakFattetTidspunkt = LocalDateTime.now(),
+                    vedtakFattetTidspunkt = LocalDateTime.now().plusDays(5),
                 ).serialisertTilString(),
                 listOf(RecordHeader("type", "VedtakFattet".toByteArray())),
             ),
