@@ -11,8 +11,8 @@ import java.time.ZoneId
 
 @Component
 class VedtakLagring(
-    private val inntektsmeldingRepository: InntektsmeldingRepository,
-    private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
+    private val vedtaksperiodeRepository: VedtaksperiodeRepository,
+    private val vedtaksperiodeStatusRepository: VedtaksperiodeStatusRepository,
     private val lockRepository: LockRepository,
 ) {
     val log = logger()
@@ -30,7 +30,7 @@ class VedtakLagring(
             lockRepository.settAdvisoryTransactionLock(vedtaket.fødselsnummer.toLong())
 
             val vedtakDbRecord =
-                inntektsmeldingRepository.findInntektsmeldingDbRecordByFnr(vedtaket.fødselsnummer).find {
+                vedtaksperiodeRepository.findVedtaksperiodeDbRecordByFnr(vedtaket.fødselsnummer).find {
                     it.vedtakFom == vedtaket.fom && it.vedtakTom == vedtaket.tom &&
                         it.orgNr == vedtaket.organisasjonsnummer
                 }
@@ -43,9 +43,9 @@ class VedtakLagring(
                 return
             }
 
-            inntektsmeldingStatusRepository.save(
-                InntektsmeldingStatusDbRecord(
-                    inntektsmeldingId = vedtakDbRecord.id!!,
+            vedtaksperiodeStatusRepository.save(
+                VedtaksperiodeStatusDbRecord(
+                    vedtaksperiodeDbId = vedtakDbRecord.id!!,
                     opprettet =
                         vedtaket.vedtakFattetTidspunkt?.atZone(ZoneId.of("Europe/Oslo"))?.toInstant()
                             ?: Instant.ofEpochMilli(cr.timestamp()),

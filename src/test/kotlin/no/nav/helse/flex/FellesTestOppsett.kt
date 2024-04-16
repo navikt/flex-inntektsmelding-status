@@ -7,9 +7,9 @@ import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
 import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
-import no.nav.helse.flex.vedtaksperiode.InntektsmeldingRepository
-import no.nav.helse.flex.vedtaksperiode.InntektsmeldingStatusRepository
 import no.nav.helse.flex.vedtaksperiode.StatusRepository
+import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeRepository
+import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeStatusRepository
 import org.amshove.kluent.shouldBeEmpty
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
@@ -33,10 +33,10 @@ private class PostgreSQLContainer14 : PostgreSQLContainer<PostgreSQLContainer14>
 @SpringBootTest(classes = [Application::class])
 abstract class FellesTestOppsett {
     @Autowired
-    lateinit var inntektsmeldingRepository: InntektsmeldingRepository
+    lateinit var vedtaksperiodeRepository: VedtaksperiodeRepository
 
     @Autowired
-    lateinit var inntektsmeldingStatusRepository: InntektsmeldingStatusRepository
+    lateinit var vedtaksperiodeStatusRepository: VedtaksperiodeStatusRepository
 
     @Autowired
     lateinit var statusRepository: StatusRepository
@@ -109,8 +109,8 @@ abstract class FellesTestOppsett {
     }
 
     fun slettFraDatabase() {
-        jdbcTemplate.update("DELETE FROM inntektsmelding_status")
-        jdbcTemplate.update("DELETE FROM inntektsmelding")
+        jdbcTemplate.update("DELETE FROM vedtaksperiode_status")
+        jdbcTemplate.update("DELETE FROM vedtaksperiode")
         jdbcTemplate.update("DELETE FROM organisasjon")
     }
 

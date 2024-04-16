@@ -11,7 +11,7 @@ class InntektsmeldingMedStatusOverlapperExtKtTest {
     val fom = LocalDate.now()
     val tom = fom.plusDays(2)
     val base =
-        InntektsmeldingMedStatus(
+        VedtaksperiodeMedStatus(
             id = UUID.randomUUID().toString(),
             fnr = "123",
             orgNr = "sdf",
@@ -27,7 +27,7 @@ class InntektsmeldingMedStatusOverlapperExtKtTest {
 
     @Test
     fun `tom liste overlapper ikke`() {
-        emptyList<InntektsmeldingMedStatus>().overlapper().`should be false`()
+        emptyList<VedtaksperiodeMedStatus>().overlapper().`should be false`()
     }
 
     @Test
