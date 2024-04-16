@@ -3,7 +3,6 @@ package no.nav.helse.flex.inntektsmelding
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
-import no.nav.helse.flex.serialisertTilString
 import no.nav.inntektsmeldingkontrakt.Inntektsmelding
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -35,17 +34,7 @@ class LagreInntektsmeldingerFraKafka(
                 arbeidsgivertype = inntektsmelding.arbeidsgivertype.toString(),
                 fullRefusjon = fullRefusjon,
                 virksomhetsnummer = inntektsmelding.virksomhetsnummer,
-                inntektsmeldingdatoer =
-                    Inntektsmeldingdatoer(
-                        arbeidsgiverperioder =
-                            inntektsmelding.arbeidsgiverperioder.map {
-                                Periode(
-                                    fom = it.fom,
-                                    tom = it.tom,
-                                )
-                            },
-                        foersteFravaersdag = inntektsmelding.foersteFravaersdag,
-                    ).serialisertTilString(),
+                foersteFravaersdag = inntektsmelding.foersteFravaersdag,
             ),
         )
         log.info("Lagret inntektsmelding med id ${inntektsmelding.inntektsmeldingId} i databasen")

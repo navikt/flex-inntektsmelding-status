@@ -16,15 +16,5 @@ data class InntektsmeldingDbRecord(
     val fullRefusjon: Boolean,
     val opprettet: Instant,
     val mottattDato: Instant,
-    val inntektsmeldingdatoer: String,
-)
-
-data class Inntektsmeldingdatoer(
-    val arbeidsgiverperioder: List<Periode>,
     val foersteFravaersdag: LocalDate?,
-)
-
-data class Periode(
-    val fom: LocalDate,
-    val tom: LocalDate,
 )
