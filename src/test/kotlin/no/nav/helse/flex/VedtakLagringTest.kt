@@ -66,16 +66,16 @@ class VedtakLagringTest : FellesTestOppsett() {
             ),
         ).get()
         await().atMost(10, TimeUnit.SECONDS).until {
-            inntektsmeldingRepository.existsByEksternId(flexVedtaksperiode1)
+            vedtaksperiodeRepository.existsByEksternId(flexVedtaksperiode1)
         }
 
-        val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(flexVedtaksperiode1)!!.id!!
+        val dbId = vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(flexVedtaksperiode1)!!.id!!
 
         await().atMost(5, TimeUnit.SECONDS).until {
-            inntektsmeldingStatusRepository.existsByInntektsmeldingId(dbId)
+            vedtaksperiodeStatusRepository.existsByVedtaksperiodeDbId(dbId)
         }
 
-        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
+        val inntektsmelding = statusRepository.hentVedtaksperiodeMedStatusHistorikk(dbId)!!
         inntektsmelding.fnr shouldBeEqualTo fnr
         inntektsmelding.eksternId shouldBeEqualTo flexVedtaksperiode1
         inntektsmelding.orgNr shouldBeEqualTo flexOrgNr
@@ -91,7 +91,7 @@ class VedtakLagringTest : FellesTestOppsett() {
         sisteStatus.shouldHaveSize(1)
         sisteStatus.first().status shouldBeEqualTo StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING
 
-        inntektsmeldingStatusRepository.findAll().toList() shouldHaveSize 1
+        vedtaksperiodeStatusRepository.findAll().toList() shouldHaveSize 1
         kafkaProducer.send(
             ProducerRecord(
                 VEDTAK_TOPIC,
@@ -109,7 +109,7 @@ class VedtakLagringTest : FellesTestOppsett() {
             ),
         ).get()
         await().atMost(5, TimeUnit.SECONDS).until {
-            inntektsmeldingStatusRepository.findAll().toList().size == 2
+            vedtaksperiodeStatusRepository.findAll().toList().size == 2
         }
 
         val sisteStatusEtterpaa = statusRepository.hentAlleForPerson(fnr = fnr, orgNr = flexOrgNr)

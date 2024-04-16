@@ -62,7 +62,7 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
 
         val statusHistorikk =
             Awaitility.await().atMost(2, TimeUnit.SECONDS).until(
-                { statusRepository.hentInntektsmeldingMedStatusHistorikk(finnInntektsmeldingId())!!.statusHistorikk },
+                { statusRepository.hentVedtaksperiodeMedStatusHistorikk(finnInntektsmeldingId())!!.statusHistorikk },
                 { it.last().status == StatusVerdi.HAR_INNTEKTSMELDING },
             )
 
@@ -75,7 +75,7 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
         vedtaksperiodeStatusService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
 
         await().atMost(2, TimeUnit.SECONDS).until {
-            statusRepository.hentInntektsmeldingMedStatusHistorikk(finnInntektsmeldingId())!!.statusHistorikk.size == 1
+            statusRepository.hentVedtaksperiodeMedStatusHistorikk(finnInntektsmeldingId())!!.statusHistorikk.size == 1
         }
 
         var antallMeldinger = 1
@@ -88,9 +88,9 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
                     StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
                 )
         }.forEach {
-            inntektsmeldingStatusRepository.save(
-                InntektsmeldingStatusDbRecord(
-                    inntektsmeldingId = finnInntektsmeldingId(),
+            vedtaksperiodeStatusRepository.save(
+                VedtaksperiodeStatusDbRecord(
+                    vedtaksperiodeDbId = finnInntektsmeldingId(),
                     opprettet = Instant.now(),
                     status = it,
                 ),
@@ -100,7 +100,7 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
 
             val statusHistorikk =
                 Awaitility.await().atMost(2, TimeUnit.SECONDS).until(
-                    { statusRepository.hentInntektsmeldingMedStatusHistorikk(finnInntektsmeldingId())!!.statusHistorikk },
+                    { statusRepository.hentVedtaksperiodeMedStatusHistorikk(finnInntektsmeldingId())!!.statusHistorikk },
                     { historikk -> historikk.last().status == StatusVerdi.MANGLER_INNTEKTSMELDING },
                 )
 
@@ -112,6 +112,6 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
     }
 
     private fun finnInntektsmeldingId(): String {
-        return inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
+        return vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(eksternId)!!.id!!
     }
 }

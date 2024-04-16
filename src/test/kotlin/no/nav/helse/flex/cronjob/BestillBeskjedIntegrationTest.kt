@@ -90,7 +90,7 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
         val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
         val inntektsmelding =
             statusRepository
-                .hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)
+                .hentVedtaksperiodeMedStatusHistorikk(inntektsmeldingDbRecord.id!!)
 
         inntektsmelding!!.fnr shouldBeEqualTo fnr
         inntektsmelding.statusHistorikk shouldHaveSize 1
@@ -108,7 +108,7 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
         val inntektsmeldingDbRecord = finnInntektsmeldingId(eksternId)!!
 
         val inntektsmelding =
-            statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!
+            statusRepository.hentVedtaksperiodeMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!
 
         inntektsmelding.statusHistorikk shouldHaveSize 3
         inntektsmelding.statusHistorikk.last().status `should be in`
@@ -145,7 +145,7 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
 
         val statusHistorikk =
             Awaitility.await().during(2, TimeUnit.SECONDS).until(
-                { statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
+                { statusRepository.hentVedtaksperiodeMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
                 { historikk -> historikk.last().status != StatusVerdi.MANGLER_INNTEKTSMELDING },
             )
 
@@ -182,7 +182,7 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
 
         val statusHistorikk =
             Awaitility.await().atMost(2, TimeUnit.SECONDS).until(
-                { statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
+                { statusRepository.hentVedtaksperiodeMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
                 { historikk ->
                     historikk.last().status in
                         listOf(
@@ -222,7 +222,7 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
 
         val statusHistorikk =
             Awaitility.await().atMost(2, TimeUnit.SECONDS).until(
-                { statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
+                { statusRepository.hentVedtaksperiodeMedStatusHistorikk(inntektsmeldingDbRecord.id!!)!!.statusHistorikk },
                 { historikk -> historikk.last().status == StatusVerdi.MANGLER_INNTEKTSMELDING },
             )
 
@@ -241,7 +241,7 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
 
         val inntektsmelding =
             statusRepository
-                .hentInntektsmeldingMedStatusHistorikk(inntektsmeldingDbRecord.id!!)
+                .hentVedtaksperiodeMedStatusHistorikk(inntektsmeldingDbRecord.id!!)
 
         inntektsmelding!!.statusHistorikk.last().status `should be in`
             listOf(
@@ -252,5 +252,5 @@ class BestillBeskjedIntegrationTest : FellesTestOppsett() {
         inntektsmelding.statusHistorikk shouldHaveSize 9
     }
 
-    private fun finnInntektsmeldingId(eksternId: String) = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)
+    private fun finnInntektsmeldingId(eksternId: String) = vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(eksternId)
 }

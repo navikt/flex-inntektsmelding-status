@@ -20,8 +20,8 @@ import java.time.OffsetDateTime
 
 @Component
 class VedtaksperiodeStatusService(
-    private val inntektsmeldingRepository: InntektsmeldingRepository,
-    private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
+    private val vedtaksperiodeRepository: VedtaksperiodeRepository,
+    private val vedtaksperiodeStatusRepository: VedtaksperiodeStatusRepository,
     private val statusRepository: StatusRepository,
     private val brukernotifikasjon: Brukernotifikasjon,
     private val meldingKafkaProducer: MeldingKafkaProducer,
@@ -40,7 +40,7 @@ class VedtaksperiodeStatusService(
         lockRepository.settAdvisoryTransactionLock(kafkaDto.sykmeldt.toLong())
 
         val dbId = lagreInntektsmeldingHvisDenIkkeFinnesAllerede(kafkaDto, eksternId)
-        val inntektsmeldingMedStatusHistorikk = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
+        val inntektsmeldingMedStatusHistorikk = statusRepository.hentVedtaksperiodeMedStatusHistorikk(dbId)!!
 
         when (kafkaDto.status) {
             Status.MANGLER_INNTEKTSMELDING -> manglerInntektsmelding(kafkaDto, dbId, inntektsmeldingMedStatusHistorikk)
@@ -60,12 +60,12 @@ class VedtaksperiodeStatusService(
         kafkaDto: InntektsmeldingKafkaDto,
         eksternId: String,
     ): String {
-        var dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)?.id
+        var dbId = vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(eksternId)?.id
 
         if (dbId == null) {
             dbId =
-                inntektsmeldingRepository.save(
-                    InntektsmeldingDbRecord(
+                vedtaksperiodeRepository.save(
+                    VedtaksperiodeDbRecord(
                         fnr = kafkaDto.sykmeldt,
                         orgNr = kafkaDto.arbeidsgiver,
                         orgNavn =
@@ -88,7 +88,7 @@ class VedtaksperiodeStatusService(
     private fun manglerInntektsmelding(
         kafkaDto: InntektsmeldingKafkaDto,
         dbId: String,
-        inntektsmelding: InntektsmeldingMedStatusHistorikk,
+        inntektsmelding: VedtaksperiodeMedStatusHistorikk,
     ) {
         if (inntektsmelding.statusHistorikk.isNotEmpty()) {
             if (inntektsmelding.sisteStatus() == StatusVerdi.MANGLER_INNTEKTSMELDING) {
@@ -118,9 +118,9 @@ class VedtaksperiodeStatusService(
             )
         }
 
-        inntektsmeldingStatusRepository.save(
-            InntektsmeldingStatusDbRecord(
-                inntektsmeldingId = dbId,
+        vedtaksperiodeStatusRepository.save(
+            VedtaksperiodeStatusDbRecord(
+                vedtaksperiodeDbId = dbId,
                 opprettet = Instant.now(),
                 status = kafkaDto.status.tilStatusVerdi(),
             ),
@@ -129,16 +129,16 @@ class VedtaksperiodeStatusService(
         log.info("Inntektsmelding ${inntektsmelding.eksternId} mangler inntektsmelding")
     }
 
-    private fun InntektsmeldingMedStatusHistorikk.sisteStatus() = statusHistorikk.reversed().first().status
+    private fun VedtaksperiodeMedStatusHistorikk.sisteStatus() = statusHistorikk.reversed().first().status
 
     private fun harInntektsmelding(
         kafkaDto: InntektsmeldingKafkaDto,
         dbId: String,
-        inntektsmelding: InntektsmeldingMedStatusHistorikk,
+        inntektsmelding: VedtaksperiodeMedStatusHistorikk,
     ) {
-        inntektsmeldingStatusRepository.save(
-            InntektsmeldingStatusDbRecord(
-                inntektsmeldingId = dbId,
+        vedtaksperiodeStatusRepository.save(
+            VedtaksperiodeStatusDbRecord(
+                vedtaksperiodeDbId = dbId,
                 opprettet = Instant.now(),
                 status = kafkaDto.status.tilStatusVerdi(),
             ),
@@ -164,11 +164,11 @@ class VedtaksperiodeStatusService(
     private fun trengerIkkeInntektsmelding(
         kafkaDto: InntektsmeldingKafkaDto,
         dbId: String,
-        inntektsmelding: InntektsmeldingMedStatusHistorikk,
+        inntektsmelding: VedtaksperiodeMedStatusHistorikk,
     ) {
-        inntektsmeldingStatusRepository.save(
-            InntektsmeldingStatusDbRecord(
-                inntektsmeldingId = dbId,
+        vedtaksperiodeStatusRepository.save(
+            VedtaksperiodeStatusDbRecord(
+                vedtaksperiodeDbId = dbId,
                 opprettet = Instant.now(),
                 status = kafkaDto.status.tilStatusVerdi(),
             ),
@@ -188,11 +188,11 @@ class VedtaksperiodeStatusService(
     private fun behandlesUtenforSpleis(
         kafkaDto: InntektsmeldingKafkaDto,
         dbId: String,
-        inntektsmelding: InntektsmeldingMedStatusHistorikk,
+        inntektsmelding: VedtaksperiodeMedStatusHistorikk,
     ) {
-        inntektsmeldingStatusRepository.save(
-            InntektsmeldingStatusDbRecord(
-                inntektsmeldingId = dbId,
+        vedtaksperiodeStatusRepository.save(
+            VedtaksperiodeStatusDbRecord(
+                vedtaksperiodeDbId = dbId,
                 opprettet = Instant.now(),
                 status = kafkaDto.status.tilStatusVerdi(),
             ),
@@ -210,7 +210,7 @@ class VedtaksperiodeStatusService(
     }
 
     private fun doneBeskjed(
-        inntektsmelding: InntektsmeldingMedStatusHistorikk,
+        inntektsmelding: VedtaksperiodeMedStatusHistorikk,
         dbId: String,
     ) {
         if (inntektsmelding.harBeskjedDonet()) {
@@ -227,9 +227,9 @@ class VedtaksperiodeStatusService(
             bestillingId = bestillingId,
         )
 
-        inntektsmeldingStatusRepository.save(
-            InntektsmeldingStatusDbRecord(
-                inntektsmeldingId = dbId,
+        vedtaksperiodeStatusRepository.save(
+            VedtaksperiodeStatusDbRecord(
+                vedtaksperiodeDbId = dbId,
                 opprettet = Instant.now(),
                 status = StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT,
             ),
@@ -239,7 +239,7 @@ class VedtaksperiodeStatusService(
     }
 
     private fun doneMelding(
-        inntektsmelding: InntektsmeldingMedStatusHistorikk,
+        inntektsmelding: VedtaksperiodeMedStatusHistorikk,
         dbId: String,
     ) {
         if (inntektsmelding.harMeldingDonet()) {
@@ -262,9 +262,9 @@ class VedtaksperiodeStatusService(
                 ),
         )
 
-        inntektsmeldingStatusRepository.save(
-            InntektsmeldingStatusDbRecord(
-                inntektsmeldingId = dbId,
+        vedtaksperiodeStatusRepository.save(
+            VedtaksperiodeStatusDbRecord(
+                vedtaksperiodeDbId = dbId,
                 opprettet = Instant.now(),
                 status = StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_DONE_SENDT,
             ),
@@ -273,11 +273,11 @@ class VedtaksperiodeStatusService(
         log.info("Donet ditt sykefravær melding om manglende inntektsmelding ${inntektsmelding.eksternId}")
     }
 
-    private fun bestillMeldingMottattInntektsmelding(inntektsmeldingMedStatus: InntektsmeldingMedStatusHistorikk) {
+    private fun bestillMeldingMottattInntektsmelding(inntektsmeldingMedStatus: VedtaksperiodeMedStatusHistorikk) {
         val bestillingId =
-            inntektsmeldingStatusRepository.save(
-                InntektsmeldingStatusDbRecord(
-                    inntektsmeldingId = inntektsmeldingMedStatus.id,
+            vedtaksperiodeStatusRepository.save(
+                VedtaksperiodeStatusDbRecord(
+                    vedtaksperiodeDbId = inntektsmeldingMedStatus.id,
                     opprettet = Instant.now(),
                     status = StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT,
                 ),

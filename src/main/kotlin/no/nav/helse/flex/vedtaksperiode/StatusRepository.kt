@@ -12,101 +12,101 @@ import java.time.LocalDate
 class StatusRepository(
     private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,
 ) {
-    fun hentInntektsmeldingMedStatusHistorikk(inntektsmeldingId: String): InntektsmeldingMedStatusHistorikk? {
+    fun hentVedtaksperiodeMedStatusHistorikk(vedtaksperiodeDbId: String): VedtaksperiodeMedStatusHistorikk? {
         return namedParameterJdbcTemplate.queryForObject(
             """
-            SELECT im.id,
-                   im.fnr,
-                   im.org_nr,
-                   im.org_navn,
-                   im.opprettet,
-                   im.vedtak_fom,
-                   im.vedtak_tom,
-                   im.ekstern_timestamp,
-                   im.ekstern_id,
+            SELECT vp.id,
+                   vp.fnr,
+                   vp.org_nr,
+                   vp.org_navn,
+                   vp.opprettet,
+                   vp.vedtak_fom,
+                   vp.vedtak_tom,
+                   vp.ekstern_timestamp,
+                   vp.ekstern_id,
                    status.id AS status_id,
                    status.status,
                    status.opprettet AS status_opprettet
-            FROM inntektsmelding im
-            LEFT JOIN inntektsmelding_status status ON status.inntektsmelding_id = im.id
-            WHERE im.id = :inntektsmelding_id
+            FROM vedtaksperiode vp
+            LEFT JOIN vedtaksperiode_status status ON status.vedtaksperiode_db_id = vp.id
+            WHERE vp.id = :vedtaksperiode_db_id
             ORDER BY status_opprettet
             """,
-            MapSqlParameterSource().addValue("inntektsmelding_id", inntektsmeldingId),
+            MapSqlParameterSource().addValue("vedtaksperiode_db_id", vedtaksperiodeDbId),
         ) { resultSet, _ ->
-            resultSet.tilInntektsmeldingMedStatusHistorikk()
+            resultSet.tilVedtaksperiodeMedStatusHistorikk()
         }
     }
 
-    fun hentAlleMedNyesteStatus(vararg harStatus: StatusVerdi): List<InntektsmeldingMedStatus> {
+    fun hentAlleMedNyesteStatus(vararg harStatus: StatusVerdi): List<VedtaksperiodeMedStatus> {
         return namedParameterJdbcTemplate.query(
             """
-            SELECT im.id,
-                   im.fnr,
-                   im.org_nr,
-                   im.org_navn,
-                   im.opprettet,
-                   im.vedtak_fom,
-                   im.vedtak_tom,
-                   im.ekstern_timestamp,
-                   im.ekstern_id,
+            SELECT vp.id,
+                   vp.fnr,
+                   vp.org_nr,
+                   vp.org_navn,
+                   vp.opprettet,
+                   vp.vedtak_fom,
+                   vp.vedtak_tom,
+                   vp.ekstern_timestamp,
+                   vp.ekstern_id,
                    status.status,
                    status.opprettet AS status_opprettet
-            FROM inntektsmelding_status status
-                     INNER JOIN (SELECT inntektsmelding_id, max(opprettet) AS opprettet
-                                 FROM inntektsmelding_status
-                                 GROUP BY inntektsmelding_id) max_status
-                                ON status.inntektsmelding_id = max_status.inntektsmelding_id
+            FROM vedtaksperiode_status status
+                     INNER JOIN (SELECT vedtaksperiode_db_id, max(opprettet) AS opprettet
+                                 FROM vedtaksperiode_status
+                                 GROUP BY vedtaksperiode_db_id) max_status
+                                ON status.vedtaksperiode_db_id = max_status.vedtaksperiode_db_id
                                     AND status.opprettet = max_status.opprettet
-                     INNER JOIN inntektsmelding im ON im.id = status.inntektsmelding_id
+                     INNER JOIN vedtaksperiode vp ON vp.id = status.vedtaksperiode_db_id
             WHERE status.status IN (:harStatus)    
             ORDER BY opprettet
             """,
             MapSqlParameterSource().addValue("harStatus", harStatus.asList(), Types.VARCHAR),
         ) { resultSet, _ ->
-            resultSet.tilInntektsmelding()
+            resultSet.tilVedtaksperiodeMedStatus()
         }
     }
 
     fun hentAlleForPerson(
         fnr: String,
         orgNr: String,
-    ): List<InntektsmeldingMedStatus> {
+    ): List<VedtaksperiodeMedStatus> {
         return namedParameterJdbcTemplate.query(
             """
-            SELECT im.id,
-                   im.fnr,
-                   im.org_nr,
-                   im.org_navn,
-                   im.opprettet,
-                   im.vedtak_fom,
-                   im.vedtak_tom,
-                   im.ekstern_timestamp,
-                   im.ekstern_id,
+            SELECT vp.id,
+                   vp.fnr,
+                   vp.org_nr,
+                   vp.org_navn,
+                   vp.opprettet,
+                   vp.vedtak_fom,
+                   vp.vedtak_tom,
+                   vp.ekstern_timestamp,
+                   vp.ekstern_id,
                    status.status,
                    status.opprettet AS status_opprettet
-            FROM inntektsmelding_status status
-                     INNER JOIN (SELECT inntektsmelding_id, max(opprettet) AS opprettet
-                                 FROM inntektsmelding_status
-                                 WHERE inntektsmelding_id IN (SELECT id FROM inntektsmelding
+            FROM vedtaksperiode_status status
+                     INNER JOIN (SELECT vedtaksperiode_db_id, max(opprettet) AS opprettet
+                                 FROM vedtaksperiode_status
+                                 WHERE vedtaksperiode_db_id IN (SELECT id FROM vedtaksperiode
                                                              WHERE fnr = :fnr
                                                              AND org_nr = :orgNr)
-                                 GROUP BY inntektsmelding_id) max_status
-                                ON status.inntektsmelding_id = max_status.inntektsmelding_id
+                                 GROUP BY vedtaksperiode_db_id) max_status
+                                ON status.vedtaksperiode_db_id = max_status.vedtaksperiode_db_id
                                     AND status.opprettet = max_status.opprettet
-                     INNER JOIN inntektsmelding im ON im.id = status.inntektsmelding_id
+                     INNER JOIN vedtaksperiode vp ON vp.id = status.vedtaksperiode_db_id
             ORDER BY opprettet
             """,
             MapSqlParameterSource()
                 .addValue("fnr", fnr)
                 .addValue("orgNr", orgNr),
         ) { resultSet, _ ->
-            resultSet.tilInntektsmelding()
+            resultSet.tilVedtaksperiodeMedStatus()
         }
     }
 
-    private fun ResultSet.tilInntektsmelding(): InntektsmeldingMedStatus {
-        return InntektsmeldingMedStatus(
+    private fun ResultSet.tilVedtaksperiodeMedStatus(): VedtaksperiodeMedStatus {
+        return VedtaksperiodeMedStatus(
             id = getString("id"),
             fnr = getString("fnr"),
             orgNr = getString("org_nr"),
@@ -121,16 +121,17 @@ class StatusRepository(
         )
     }
 
-    private fun ResultSet.tilInntektsmeldingMedStatusHistorikk(): InntektsmeldingMedStatusHistorikk {
+    private fun ResultSet.tilVedtaksperiodeMedStatusHistorikk(): VedtaksperiodeMedStatusHistorikk {
         val statusVerdier =
+
             if (this.getString("status") != null) {
-                mutableListOf(mapInntektsmeldingStatus())
+                mutableListOf(mapVedtaksperiodeStatus())
             } else {
                 mutableListOf()
             }
 
         val inntektsmelding =
-            InntektsmeldingMedStatusHistorikk(
+            VedtaksperiodeMedStatusHistorikk(
                 id = getString("id"),
                 fnr = getString("fnr"),
                 orgNr = getString("org_nr"),
@@ -144,20 +145,20 @@ class StatusRepository(
             )
 
         while (next()) {
-            statusVerdier.add(mapInntektsmeldingStatus())
+            statusVerdier.add(mapVedtaksperiodeStatus())
         }
 
         return inntektsmelding
     }
 
-    private fun ResultSet.mapInntektsmeldingStatus() =
+    private fun ResultSet.mapVedtaksperiodeStatus() =
         StatusHistorikk(
             id = getString("status_id"),
             status = StatusVerdi.valueOf(getString("status")),
         )
 }
 
-data class InntektsmeldingMedStatus(
+data class VedtaksperiodeMedStatus(
     val id: String,
     val fnr: String,
     val orgNr: String,
@@ -171,7 +172,7 @@ data class InntektsmeldingMedStatus(
     val statusOpprettet: Instant,
 )
 
-data class InntektsmeldingMedStatusHistorikk(
+data class VedtaksperiodeMedStatusHistorikk(
     val id: String,
     val fnr: String,
     val orgNr: String,

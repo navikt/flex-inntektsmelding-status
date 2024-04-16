@@ -1,6 +1,6 @@
 package no.nav.helse.flex.vedtaksperiode
 
-fun List<InntektsmeldingMedStatus>.overlapper(): Boolean {
+fun List<VedtaksperiodeMedStatus>.overlapper(): Boolean {
     val perioderViSjekker = this.filter { it.status != StatusVerdi.BEHANDLES_UTENFOR_SPLEIS }
     return perioderViSjekker
         .any { a ->
@@ -9,7 +9,7 @@ fun List<InntektsmeldingMedStatus>.overlapper(): Boolean {
         }
 }
 
-fun List<InntektsmeldingMedStatus>.manglendeInntektsmeldingOverlapperBehandlesUtaforSpleis(): Boolean {
+fun List<VedtaksperiodeMedStatus>.manglendeInntektsmeldingOverlapperBehandlesUtaforSpleis(): Boolean {
     val behandlesUtenforSpleis = this.filter { it.status == StatusVerdi.BEHANDLES_UTENFOR_SPLEIS }
     val manglendeInntektsmelding = this.filter { it.status == StatusVerdi.MANGLER_INNTEKTSMELDING }
     return behandlesUtenforSpleis
@@ -19,6 +19,6 @@ fun List<InntektsmeldingMedStatus>.manglendeInntektsmeldingOverlapperBehandlesUt
         }
 }
 
-fun InntektsmeldingMedStatus.overlapper(andre: InntektsmeldingMedStatus) =
+fun VedtaksperiodeMedStatus.overlapper(andre: VedtaksperiodeMedStatus) =
     (this.vedtakFom >= andre.vedtakFom && this.vedtakFom <= andre.vedtakTom) ||
         (this.vedtakTom <= andre.vedtakTom && this.vedtakTom >= andre.vedtakFom)

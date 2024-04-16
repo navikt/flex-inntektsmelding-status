@@ -47,23 +47,6 @@ class FlereArbeidsgivereTest : FellesTestOppsett() {
     private final val fom = LocalDate.of(2022, 6, 1)
     private final val tom = LocalDate.of(2022, 6, 30)
 
-    val manglerBeskjedBestillingId: String by lazy {
-        val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(flexSykepengesoknadId)!!.id!!
-        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
-        inntektsmelding
-            .statusHistorikk
-            .first { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }
-            .id
-    }
-    val manglerMeldingBestillingId: String by lazy {
-        val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(flexSykepengesoknadId)!!.id!!
-        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
-        inntektsmelding
-            .statusHistorikk
-            .first { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }
-            .id
-    }
-
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
@@ -183,22 +166,22 @@ class FlereArbeidsgivereTest : FellesTestOppsett() {
             ),
         ).get()
         await().atMost(5, TimeUnit.SECONDS).until {
-            inntektsmeldingRepository.existsByEksternId(flexVedtaksperiode1) &&
-                inntektsmeldingRepository.existsByEksternId(
+            vedtaksperiodeRepository.existsByEksternId(flexVedtaksperiode1) &&
+                vedtaksperiodeRepository.existsByEksternId(
                     flexVedtaksperiode2,
                 ) &&
-                inntektsmeldingRepository.existsByEksternId(
+                vedtaksperiodeRepository.existsByEksternId(
                     flexVedtaksperiode3,
                 )
         }
 
-        val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(flexVedtaksperiode2)!!.id!!
+        val dbId = vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(flexVedtaksperiode2)!!.id!!
 
         await().atMost(5, TimeUnit.SECONDS).until {
-            inntektsmeldingStatusRepository.existsByInntektsmeldingId(dbId)
+            vedtaksperiodeStatusRepository.existsByVedtaksperiodeDbId(dbId)
         }
 
-        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
+        val inntektsmelding = statusRepository.hentVedtaksperiodeMedStatusHistorikk(dbId)!!
         inntektsmelding.fnr shouldBeEqualTo fnr
         inntektsmelding.eksternId shouldBeEqualTo flexVedtaksperiode2
         inntektsmelding.orgNr shouldBeEqualTo flexOrgNr
@@ -270,20 +253,20 @@ class FlereArbeidsgivereTest : FellesTestOppsett() {
             ),
         ).get()
         await().atMost(5, TimeUnit.SECONDS).until {
-            inntektsmeldingRepository.existsByEksternId(bomloVedtaksperiode1) &&
-                inntektsmeldingRepository.existsByEksternId(bomloVedtaksperiode2) &&
-                inntektsmeldingRepository.existsByEksternId(
+            vedtaksperiodeRepository.existsByEksternId(bomloVedtaksperiode1) &&
+                vedtaksperiodeRepository.existsByEksternId(bomloVedtaksperiode2) &&
+                vedtaksperiodeRepository.existsByEksternId(
                     bomloVedtaksperiode3,
                 )
         }
 
-        val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(bomloVedtaksperiode2)!!.id!!
+        val dbId = vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(bomloVedtaksperiode2)!!.id!!
 
         await().atMost(5, TimeUnit.SECONDS).until {
-            inntektsmeldingStatusRepository.existsByInntektsmeldingId(dbId)
+            vedtaksperiodeStatusRepository.existsByVedtaksperiodeDbId(dbId)
         }
 
-        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
+        val inntektsmelding = statusRepository.hentVedtaksperiodeMedStatusHistorikk(dbId)!!
         inntektsmelding.fnr shouldBeEqualTo fnr
         inntektsmelding.eksternId shouldBeEqualTo bomloVedtaksperiode2
         inntektsmelding.orgNr shouldBeEqualTo bomloOrgNr

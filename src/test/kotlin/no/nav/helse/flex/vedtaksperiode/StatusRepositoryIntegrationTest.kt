@@ -59,7 +59,7 @@ class StatusRepositoryIntegrationTest : FellesTestOppsett() {
     fun `Hent inntektsmelding med statushistorikk før første status er lagret`() {
         val inntektsmeldingId = lagInntektsmeldingMedStatus()
 
-        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingId)
+        val inntektsmelding = statusRepository.hentVedtaksperiodeMedStatusHistorikk(inntektsmeldingId)
         inntektsmelding!!.id `should be equal to` inntektsmeldingId
         inntektsmelding.statusHistorikk.size `should be equal to` 0
     }
@@ -73,7 +73,7 @@ class StatusRepositoryIntegrationTest : FellesTestOppsett() {
                 StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT,
             )
 
-        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingId)
+        val inntektsmelding = statusRepository.hentVedtaksperiodeMedStatusHistorikk(inntektsmeldingId)
         inntektsmelding!!.id `should be equal to` inntektsmeldingId
         inntektsmelding.statusHistorikk.size `should be equal to` 3
         inntektsmelding.statusHistorikk.first().status `should be` StatusVerdi.MANGLER_INNTEKTSMELDING
@@ -89,7 +89,7 @@ class StatusRepositoryIntegrationTest : FellesTestOppsett() {
         val postfix = RandomStringUtils.randomAlphanumeric(3)
 
         val inntektsmelding =
-            InntektsmeldingDbRecord(
+            VedtaksperiodeDbRecord(
                 fnr = "fnr-$postfix",
                 orgNr = "orgNr-$postfix",
                 orgNavn = "orgNavn-$postfix",
@@ -100,13 +100,13 @@ class StatusRepositoryIntegrationTest : FellesTestOppsett() {
                 eksternTimestamp = instant,
             )
 
-        val (inntektsmeldingId) = inntektsmeldingRepository.save(inntektsmelding)
+        val (inntektsmeldingId) = vedtaksperiodeRepository.save(inntektsmelding)
 
         var counter = 0
         statuser.forEach {
-            inntektsmeldingStatusRepository.save(
-                InntektsmeldingStatusDbRecord(
-                    inntektsmeldingId = inntektsmeldingId!!,
+            vedtaksperiodeStatusRepository.save(
+                VedtaksperiodeStatusDbRecord(
+                    vedtaksperiodeDbId = inntektsmeldingId!!,
                     opprettet = (counter == 0).let { instant }.plusSeconds(counter.toLong()),
                     status = it,
                 ),

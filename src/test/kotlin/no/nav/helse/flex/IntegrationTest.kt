@@ -46,24 +46,24 @@ class IntegrationTest : FellesTestOppsett() {
     private final val tom = LocalDate.of(2022, 6, 30)
 
     val manglerBeskjedBestillingId: String by lazy {
-        val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
-        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
+        val dbId = vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(eksternId)!!.id!!
+        val inntektsmelding = statusRepository.hentVedtaksperiodeMedStatusHistorikk(dbId)!!
         inntektsmelding
             .statusHistorikk
             .first { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }
             .id
     }
     val manglerMeldingBestillingId: String by lazy {
-        val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
-        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
+        val dbId = vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(eksternId)!!.id!!
+        val inntektsmelding = statusRepository.hentVedtaksperiodeMedStatusHistorikk(dbId)!!
         inntektsmelding
             .statusHistorikk
             .first { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }
             .id
     }
     val mottatMeldingBestillingId: String by lazy {
-        val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
-        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
+        val dbId = vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(eksternId)!!.id!!
+        val inntektsmelding = statusRepository.hentVedtaksperiodeMedStatusHistorikk(dbId)!!
         inntektsmelding
             .statusHistorikk
             .first { it.status == StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT }
@@ -159,19 +159,19 @@ class IntegrationTest : FellesTestOppsett() {
             ),
         ).get()
         await().atMost(5, TimeUnit.SECONDS).until {
-            inntektsmeldingRepository.existsByEksternId(eksternId) &&
-                inntektsmeldingRepository.existsByEksternId(
+            vedtaksperiodeRepository.existsByEksternId(eksternId) &&
+                vedtaksperiodeRepository.existsByEksternId(
                     eksternId2,
                 )
         }
 
-        val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
+        val dbId = vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(eksternId)!!.id!!
 
         await().atMost(5, TimeUnit.SECONDS).until {
-            inntektsmeldingStatusRepository.existsByInntektsmeldingId(dbId)
+            vedtaksperiodeStatusRepository.existsByVedtaksperiodeDbId(dbId)
         }
 
-        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
+        val inntektsmelding = statusRepository.hentVedtaksperiodeMedStatusHistorikk(dbId)!!
         inntektsmelding.fnr shouldBeEqualTo fnr
         inntektsmelding.eksternId shouldBeEqualTo eksternId
         inntektsmelding.orgNr shouldBeEqualTo orgNr
@@ -266,17 +266,17 @@ class IntegrationTest : FellesTestOppsett() {
                 ).serialisertTilString(),
             ),
         ).get()
-        val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
+        val dbId = vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(eksternId)!!.id!!
 
         await().atMost(5, TimeUnit.SECONDS).until {
-            statusRepository.hentInntektsmeldingMedStatusHistorikk(
+            statusRepository.hentVedtaksperiodeMedStatusHistorikk(
                 dbId,
             )?.statusHistorikk?.any { it.status == StatusVerdi.HAR_INNTEKTSMELDING }
         }
-        val dbId2 = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId2)!!.id!!
+        val dbId2 = vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(eksternId2)!!.id!!
 
         await().atMost(5, TimeUnit.SECONDS).until {
-            statusRepository.hentInntektsmeldingMedStatusHistorikk(
+            statusRepository.hentVedtaksperiodeMedStatusHistorikk(
                 dbId2,
             )?.statusHistorikk?.any { it.status == StatusVerdi.HAR_INNTEKTSMELDING }
         }
@@ -323,8 +323,8 @@ class IntegrationTest : FellesTestOppsett() {
     @Test
     @Order(6)
     fun `Status historikken er riktig`() {
-        val dbId = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId)!!.id!!
-        val inntektsmelding = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbId)!!
+        val dbId = vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(eksternId)!!.id!!
+        val inntektsmelding = statusRepository.hentVedtaksperiodeMedStatusHistorikk(dbId)!!
 
         inntektsmelding.statusHistorikk.map { it.status } shouldBeEqualTo
             listOf(
@@ -337,8 +337,8 @@ class IntegrationTest : FellesTestOppsett() {
                 StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT,
             )
 
-        val dbIdPeriode2 = inntektsmeldingRepository.findInntektsmeldingDbRecordByEksternId(eksternId2)!!.id!!
-        val inntektsmelding2 = statusRepository.hentInntektsmeldingMedStatusHistorikk(dbIdPeriode2)!!
+        val dbIdPeriode2 = vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(eksternId2)!!.id!!
+        val inntektsmelding2 = statusRepository.hentVedtaksperiodeMedStatusHistorikk(dbIdPeriode2)!!
 
         inntektsmelding2.statusHistorikk.map { it.status } shouldBeEqualTo
             listOf(

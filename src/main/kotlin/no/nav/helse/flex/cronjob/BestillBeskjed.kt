@@ -22,7 +22,7 @@ import java.time.OffsetDateTime
 @Component
 class BestillBeskjed(
     private val statusRepository: StatusRepository,
-    private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
+    private val vedtaksperiodeStatusRepository: VedtaksperiodeStatusRepository,
     private val lockRepository: LockRepository,
     private val brukernotifikasjon: Brukernotifikasjon,
     private val meldingKafkaProducer: MeldingKafkaProducer,
@@ -35,19 +35,19 @@ class BestillBeskjed(
 
     // Oppretter transaksjon her for å sikret at advisory lock ikke relases før metoden har kjørt ferdig.
     @Transactional
-    fun opprettVarsler(inntektsmeldingMedStatus: InntektsmeldingMedStatus): Boolean {
-        lockRepository.settAdvisoryTransactionLock(inntektsmeldingMedStatus.fnr.toLong())
+    fun opprettVarsler(vedtaksperiodeMedStatus: VedtaksperiodeMedStatus): Boolean {
+        lockRepository.settAdvisoryTransactionLock(vedtaksperiodeMedStatus.fnr.toLong())
 
         val vedtaksperioder =
             statusRepository.hentAlleForPerson(
-                fnr = inntektsmeldingMedStatus.fnr,
-                orgNr = inntektsmeldingMedStatus.orgNr,
+                fnr = vedtaksperiodeMedStatus.fnr,
+                orgNr = vedtaksperiodeMedStatus.orgNr,
             )
         if (vedtaksperioder.overlapper()) {
-            log.info("Fant overlappende perioder for id ${inntektsmeldingMedStatus.id}. Vet ikke hva jeg skal gjøre. Hopper over denne.")
-            inntektsmeldingStatusRepository.save(
-                InntektsmeldingStatusDbRecord(
-                    inntektsmeldingId = inntektsmeldingMedStatus.id,
+            log.info("Fant overlappende perioder for id ${vedtaksperiodeMedStatus.id}. Vet ikke hva jeg skal gjøre. Hopper over denne.")
+            vedtaksperiodeStatusRepository.save(
+                VedtaksperiodeStatusDbRecord(
+                    vedtaksperiodeDbId = vedtaksperiodeMedStatus.id,
                     opprettet = Instant.now(),
                     status = StatusVerdi.OVELAPPER_SENDER_IKKE_UT,
                 ),
@@ -56,12 +56,12 @@ class BestillBeskjed(
         }
         if (vedtaksperioder.manglendeInntektsmeldingOverlapperBehandlesUtaforSpleis()) {
             log.info(
-                "Fant overlappende perioder med manglende inntektsmelding ${inntektsmeldingMedStatus.id} som behandles " +
+                "Fant overlappende perioder med manglende inntektsmelding ${vedtaksperiodeMedStatus.id} som behandles " +
                     "utenfor Spleis. Vet ikke hva jeg skal gjøre. Hopper over denne.",
             )
-            inntektsmeldingStatusRepository.save(
-                InntektsmeldingStatusDbRecord(
-                    inntektsmeldingId = inntektsmeldingMedStatus.id,
+            vedtaksperiodeStatusRepository.save(
+                VedtaksperiodeStatusDbRecord(
+                    vedtaksperiodeDbId = vedtaksperiodeMedStatus.id,
                     opprettet = Instant.now(),
                     status = StatusVerdi.OVELAPPER_BEHANDLES_UTAFOR_SPLEIS_SENDER_IKKE_UT,
                 ),
@@ -72,12 +72,12 @@ class BestillBeskjed(
         val harManglendeImPeriodeRettForan =
             vedtaksperioder
                 .filter { it.status == StatusVerdi.MANGLER_INNTEKTSMELDING }
-                .any { it.vedtakTom.erRettFør(inntektsmeldingMedStatus.vedtakFom) }
+                .any { it.vedtakTom.erRettFør(vedtaksperiodeMedStatus.vedtakFom) }
 
         if (harManglendeImPeriodeRettForan) {
-            inntektsmeldingStatusRepository.save(
-                InntektsmeldingStatusDbRecord(
-                    inntektsmeldingId = inntektsmeldingMedStatus.id,
+            vedtaksperiodeStatusRepository.save(
+                VedtaksperiodeStatusDbRecord(
+                    vedtaksperiodeDbId = vedtaksperiodeMedStatus.id,
                     opprettet = Instant.now(),
                     status = StatusVerdi.HAR_PERIODE_RETT_FOER,
                 ),
@@ -86,7 +86,7 @@ class BestillBeskjed(
         }
 
         val inntektsmeldingMedStatusHistorikk =
-            statusRepository.hentInntektsmeldingMedStatusHistorikk(inntektsmeldingMedStatus.id)!!
+            statusRepository.hentVedtaksperiodeMedStatusHistorikk(vedtaksperiodeMedStatus.id)!!
 
         if (!inntektsmeldingMedStatusHistorikk.alleBrukernotifikasjonerErDonet()) {
             log.warn(
@@ -97,32 +97,32 @@ class BestillBeskjed(
             return false
         }
 
-        val fom = vedtaksperioder.finnSykefraværStart(inntektsmeldingMedStatus.vedtakFom)
+        val fom = vedtaksperioder.finnSykefraværStart(vedtaksperiodeMedStatus.vedtakFom)
 
-        bestillBeskjed(inntektsmeldingMedStatus, fom)
+        bestillBeskjed(vedtaksperiodeMedStatus, fom)
 
-        bestillMelding(inntektsmeldingMedStatus, fom)
+        bestillMelding(vedtaksperiodeMedStatus, fom)
         return true
     }
 
     private fun bestillBeskjed(
-        inntektsmeldingMedStatus: InntektsmeldingMedStatus,
+        vedtaksperiodeMedStatus: VedtaksperiodeMedStatus,
         fom: LocalDate,
     ) {
         val bestillingId =
-            inntektsmeldingStatusRepository.save(
-                InntektsmeldingStatusDbRecord(
-                    inntektsmeldingId = inntektsmeldingMedStatus.id,
+            vedtaksperiodeStatusRepository.save(
+                VedtaksperiodeStatusDbRecord(
+                    vedtaksperiodeDbId = vedtaksperiodeMedStatus.id,
                     opprettet = Instant.now(),
                     status = StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT,
                 ),
             ).id!!
 
         brukernotifikasjon.beskjedManglerInntektsmelding(
-            fnr = inntektsmeldingMedStatus.fnr,
-            eksternId = inntektsmeldingMedStatus.eksternId,
+            fnr = vedtaksperiodeMedStatus.fnr,
+            eksternId = vedtaksperiodeMedStatus.eksternId,
             bestillingId = bestillingId,
-            orgNavn = inntektsmeldingMedStatus.orgNavn,
+            orgNavn = vedtaksperiodeMedStatus.orgNavn,
             fom = fom,
             synligFremTil = synligFremTil(),
         )
@@ -136,13 +136,13 @@ class BestillBeskjed(
     }
 
     private fun bestillMelding(
-        inntektsmeldingMedStatus: InntektsmeldingMedStatus,
+        vedtaksperiodeMedStatus: VedtaksperiodeMedStatus,
         fom: LocalDate,
     ) {
         val bestillingId =
-            inntektsmeldingStatusRepository.save(
-                InntektsmeldingStatusDbRecord(
-                    inntektsmeldingId = inntektsmeldingMedStatus.id,
+            vedtaksperiodeStatusRepository.save(
+                VedtaksperiodeStatusDbRecord(
+                    vedtaksperiodeDbId = vedtaksperiodeMedStatus.id,
                     opprettet = Instant.now(),
                     status = StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT,
                 ),
@@ -152,10 +152,10 @@ class BestillBeskjed(
             meldingUuid = bestillingId,
             meldingKafkaDto =
                 MeldingKafkaDto(
-                    fnr = inntektsmeldingMedStatus.fnr,
+                    fnr = vedtaksperiodeMedStatus.fnr,
                     opprettMelding =
                         OpprettMelding(
-                            tekst = skapVenterPåInntektsmeldingTekst(fom, inntektsmeldingMedStatus.orgNavn),
+                            tekst = skapVenterPåInntektsmeldingTekst(fom, vedtaksperiodeMedStatus.orgNavn),
                             lenke = inntektsmeldingManglerUrl,
                             variant = Variant.INFO,
                             lukkbar = false,
@@ -165,6 +165,6 @@ class BestillBeskjed(
                 ),
         )
 
-        log.info("Bestilte melding for manglende inntektsmelding ${inntektsmeldingMedStatus.eksternId}")
+        log.info("Bestilte melding for manglende inntektsmelding ${vedtaksperiodeMedStatus.eksternId}")
     }
 }

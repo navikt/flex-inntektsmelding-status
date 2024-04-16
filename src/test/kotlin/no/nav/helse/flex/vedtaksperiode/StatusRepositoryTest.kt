@@ -7,7 +7,7 @@ import java.time.LocalDate
 
 class StatusRepositoryTest {
     private val inntektsmelding =
-        InntektsmeldingMedStatusHistorikk(
+        VedtaksperiodeMedStatusHistorikk(
             id = "id",
             fnr = "fnr",
             orgNr = "orgNr",

@@ -5,10 +5,10 @@ import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helse.flex.kafka.DITT_SYKEFRAVAER_MELDING_TOPIC
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
-import no.nav.helse.flex.vedtaksperiode.InntektsmeldingRepository
-import no.nav.helse.flex.vedtaksperiode.InntektsmeldingStatusDbRecord
-import no.nav.helse.flex.vedtaksperiode.InntektsmeldingStatusRepository
 import no.nav.helse.flex.vedtaksperiode.StatusVerdi
+import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeRepository
+import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeStatusDbRecord
+import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeStatusRepository
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.kafka.annotation.KafkaListener
@@ -18,8 +18,8 @@ import java.time.Instant
 
 @Component
 class MeldingConsumer(
-    private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
-    private val inntektsmeldingRepository: InntektsmeldingRepository,
+    private val vedtaksperiodeStatusRepository: VedtaksperiodeStatusRepository,
+    private val vedtaksperiodeRepository: VedtaksperiodeRepository,
     private val registry: MeterRegistry,
 ) {
     val log = logger()
@@ -48,14 +48,14 @@ class MeldingConsumer(
             return
         }
 
-        val melding = inntektsmeldingStatusRepository.findByIdOrNull(key) ?: return
-        val eksternId = inntektsmeldingRepository.findByIdOrNull(melding.inntektsmeldingId)!!.eksternId
+        val melding = vedtaksperiodeStatusRepository.findByIdOrNull(key) ?: return
+        val eksternId = vedtaksperiodeRepository.findByIdOrNull(melding.vedtaksperiodeDbId)!!.eksternId
 
         if (melding.status == StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT) {
             registry.counter("ditt_sykefravaer_lukk_melding_mottatt").increment()
-            inntektsmeldingStatusRepository.save(
-                InntektsmeldingStatusDbRecord(
-                    inntektsmeldingId = melding.inntektsmeldingId,
+            vedtaksperiodeStatusRepository.save(
+                VedtaksperiodeStatusDbRecord(
+                    vedtaksperiodeDbId = melding.vedtaksperiodeDbId,
                     opprettet = Instant.now(),
                     status = StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_LUKKET,
                 ),

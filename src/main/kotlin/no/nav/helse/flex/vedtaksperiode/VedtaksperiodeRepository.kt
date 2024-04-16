@@ -8,16 +8,16 @@ import java.time.Instant
 import java.time.LocalDate
 
 @Repository
-interface InntektsmeldingRepository : CrudRepository<InntektsmeldingDbRecord, String> {
+interface VedtaksperiodeRepository : CrudRepository<VedtaksperiodeDbRecord, String> {
     fun existsByEksternId(eksternId: String): Boolean
 
-    fun findInntektsmeldingDbRecordByEksternId(eksternId: String): InntektsmeldingDbRecord?
+    fun findVedtaksperiodeDbRecordByEksternId(eksternId: String): VedtaksperiodeDbRecord?
 
-    fun findInntektsmeldingDbRecordByFnr(fnr: String): List<InntektsmeldingDbRecord>
+    fun findVedtaksperiodeDbRecordByFnr(fnr: String): List<VedtaksperiodeDbRecord>
 }
 
-@Table("inntektsmelding")
-data class InntektsmeldingDbRecord(
+@Table("vedtaksperiode")
+data class VedtaksperiodeDbRecord(
     @Id
     val id: String? = null,
     val fnr: String,
