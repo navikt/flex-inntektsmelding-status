@@ -1,0 +1,4 @@
+ALTER INDEX inntektsmelding_fnr_idx RENAME TO vedtaksperiode_fnr_idx;
+ALTER INDEX inntektsmelding_ferdig_behandlet_idx RENAME TO vedtaksperiode_ferdig_behandlet_idx;
+ALTER INDEX inntektsmelding_ekstern_id_idx RENAME TO vedtaksperiode_ekstern_id_idx;
+ALTER INDEX inntektsmelding_id_fk_idx RENAME TO vedtaksperiode_db_id_fk_idx;
