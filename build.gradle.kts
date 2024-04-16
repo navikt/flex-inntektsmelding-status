@@ -26,6 +26,7 @@ val logstashLogbackEncoderVersion = "7.4"
 val kluentVersion = "1.73"
 val varselKotlinBuilderVersion = "1.0.3-test-3"
 val sykepengesoknadKafkaVersion = "2024.03.21-14.13-5011349f"
+val inntektsmeldingKontraktVersion = "2024.03.11-02-07-32abf"
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
@@ -43,6 +44,7 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
     implementation("no.nav.helse.flex:sykepengesoknad-kafka:$sykepengesoknadKafkaVersion")
     implementation("no.nav.tms.varsel:kotlin-builder:$varselKotlinBuilderVersion")
+    implementation("no.nav.sykepenger.kontrakter:inntektsmelding-kontrakt:$inntektsmeldingKontraktVersion")
 
     testImplementation(platform("org.testcontainers:testcontainers-bom:$testContainersVersion"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")

@@ -1,15 +1,15 @@
 package no.nav.helse.flex.cronjob
 
 import no.nav.helse.flex.FellesTestOppsett
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingKafkaDto
-import no.nav.helse.flex.inntektsmelding.Status
-import no.nav.helse.flex.inntektsmelding.StatusVerdi
-import no.nav.helse.flex.inntektsmelding.Vedtaksperiode
 import no.nav.helse.flex.kafka.INNTEKTSMELDING_STATUS_TOPIC
 import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
 import no.nav.helse.flex.serialisertTilString
 import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.util.osloZone
+import no.nav.helse.flex.vedtaksperiode.InntektsmeldingKafkaDto
+import no.nav.helse.flex.vedtaksperiode.Status
+import no.nav.helse.flex.vedtaksperiode.StatusVerdi
+import no.nav.helse.flex.vedtaksperiode.Vedtaksperiode
 import no.nav.helse.flex.ventPåRecords
 import org.amshove.kluent.`should be in`
 import org.amshove.kluent.shouldBeEqualTo

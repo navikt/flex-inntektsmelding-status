@@ -1,15 +1,14 @@
 package no.nav.helse.flex.cronjob
 
-import no.nav.helse.flex.inntektsmelding.StatusRepository
-import no.nav.helse.flex.inntektsmelding.StatusVerdi
 import no.nav.helse.flex.logger
+import no.nav.helse.flex.vedtaksperiode.StatusRepository
+import no.nav.helse.flex.vedtaksperiode.StatusVerdi
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.OffsetDateTime
-import java.util.Calendar.SATURDAY
 import java.util.concurrent.TimeUnit
 
 @Component

@@ -1,8 +1,8 @@
 package no.nav.helse.flex.vedtak
 
 import no.nav.helse.flex.database.LockRepository
-import no.nav.helse.flex.inntektsmelding.*
 import no.nav.helse.flex.logger
+import no.nav.helse.flex.vedtaksperiode.*
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional

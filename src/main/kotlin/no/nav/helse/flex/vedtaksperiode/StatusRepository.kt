@@ -1,4 +1,4 @@
-package no.nav.helse.flex.inntektsmelding
+package no.nav.helse.flex.vedtaksperiode
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate

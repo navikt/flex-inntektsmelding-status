@@ -1,4 +1,4 @@
-package no.nav.helse.flex.inntektsmelding
+package no.nav.helse.flex.vedtaksperiode
 
 import org.amshove.kluent.`should be`
 import org.junit.jupiter.api.Test

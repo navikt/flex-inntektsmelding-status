@@ -1,4 +1,4 @@
-package no.nav.helse.flex.inntektsmelding
+package no.nav.helse.flex.vedtaksperiode
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table

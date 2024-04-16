@@ -1,4 +1,4 @@
-package no.nav.helse.flex.inntektsmelding
+package no.nav.helse.flex.vedtaksperiode
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.kafka.INNTEKTSMELDING_STATUS_TOPIC
@@ -11,8 +11,8 @@ import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 
 @Component
-class InntektsmeldingConsumer(
-    private val inntektsmeldingService: InntektsmeldingService,
+class InntektsmeldingStatusConsumer(
+    private val vedtaksperiodeStatusService: VedtaksperiodeStatusService,
     private val environmentToggles: EnvironmentToggles,
 ) {
     private val log = logger()
@@ -30,7 +30,7 @@ class InntektsmeldingConsumer(
         val kafkaDto: InntektsmeldingKafkaDto = objectMapper.readValue(cr.value())
 
         try {
-            inntektsmeldingService.prosesserKafkaMelding(kafkaDto)
+            vedtaksperiodeStatusService.prosesserKafkaMelding(kafkaDto)
         } catch (e: RuntimeException) {
             if (!environmentToggles.isProduction() && e.message?.contains("Finner ikke orgnummer") == true) {
                 log.info("Finner ikke orgnummer i dev, går videre", e)

@@ -1,4 +1,4 @@
-package no.nav.helse.flex.inntektsmelding
+package no.nav.helse.flex.vedtaksperiode
 
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.organisasjon.Organisasjon
@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class InntektsmeldingServiceTest : FellesTestOppsett() {
     @Autowired
-    private lateinit var inntektsmeldingService: InntektsmeldingService
+    private lateinit var vedtaksperiodeStatusService: VedtaksperiodeStatusService
 
     val eksternId = "vedtak-id"
     val orgnummer = "org-nr"
@@ -56,9 +56,9 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
 
     @Test
     fun `Lagrer ikke duplikat MANGLER_INNTEKTSMELDING`() {
-        inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
-        inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
-        inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.HAR_INNTEKTSMELDING))
+        vedtaksperiodeStatusService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
+        vedtaksperiodeStatusService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
+        vedtaksperiodeStatusService.prosesserKafkaMelding(kafkaDto().copy(status = Status.HAR_INNTEKTSMELDING))
 
         val statusHistorikk =
             Awaitility.await().atMost(2, TimeUnit.SECONDS).until(
@@ -72,7 +72,7 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
 
     @Test
     fun `Lagrer MANGLER_INNTEKTSMELDING selv om en annen status allerede eksisterer`() {
-        inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
+        vedtaksperiodeStatusService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
 
         await().atMost(2, TimeUnit.SECONDS).until {
             statusRepository.hentInntektsmeldingMedStatusHistorikk(finnInntektsmeldingId())!!.statusHistorikk.size == 1
@@ -96,7 +96,7 @@ class InntektsmeldingServiceTest : FellesTestOppsett() {
                 ),
             )
 
-            inntektsmeldingService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
+            vedtaksperiodeStatusService.prosesserKafkaMelding(kafkaDto().copy(status = Status.MANGLER_INNTEKTSMELDING))
 
             val statusHistorikk =
                 Awaitility.await().atMost(2, TimeUnit.SECONDS).until(

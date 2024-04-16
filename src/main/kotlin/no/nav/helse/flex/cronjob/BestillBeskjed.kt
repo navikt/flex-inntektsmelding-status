@@ -2,7 +2,6 @@ package no.nav.helse.flex.cronjob
 
 import no.nav.helse.flex.brukernotifikasjon.Brukernotifikasjon
 import no.nav.helse.flex.database.LockRepository
-import no.nav.helse.flex.inntektsmelding.*
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
@@ -12,6 +11,7 @@ import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.erRettFør
 import no.nav.helse.flex.util.finnSykefraværStart
 import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmeldingTekst
+import no.nav.helse.flex.vedtaksperiode.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional

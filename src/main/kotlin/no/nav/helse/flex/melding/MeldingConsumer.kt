@@ -2,13 +2,13 @@ package no.nav.helse.flex.melding
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.micrometer.core.instrument.MeterRegistry
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusDbRecord
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
-import no.nav.helse.flex.inntektsmelding.StatusVerdi
 import no.nav.helse.flex.kafka.DITT_SYKEFRAVAER_MELDING_TOPIC
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
+import no.nav.helse.flex.vedtaksperiode.InntektsmeldingRepository
+import no.nav.helse.flex.vedtaksperiode.InntektsmeldingStatusDbRecord
+import no.nav.helse.flex.vedtaksperiode.InntektsmeldingStatusRepository
+import no.nav.helse.flex.vedtaksperiode.StatusVerdi
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.kafka.annotation.KafkaListener

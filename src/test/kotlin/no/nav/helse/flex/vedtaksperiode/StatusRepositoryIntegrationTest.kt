@@ -1,4 +1,4 @@
-package no.nav.helse.flex.inntektsmelding
+package no.nav.helse.flex.vedtaksperiode
 
 import no.nav.helse.flex.FellesTestOppsett
 import org.amshove.kluent.`should be`
