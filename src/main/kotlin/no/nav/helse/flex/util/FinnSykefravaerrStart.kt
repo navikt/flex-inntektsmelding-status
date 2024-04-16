@@ -1,6 +1,6 @@
 package no.nav.helse.flex.util
 
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingMedStatus
+import no.nav.helse.flex.vedtaksperiode.InntektsmeldingMedStatus
 import java.time.LocalDate
 
 fun List<InntektsmeldingMedStatus>.finnSykefraværStart(fom: LocalDate): LocalDate {

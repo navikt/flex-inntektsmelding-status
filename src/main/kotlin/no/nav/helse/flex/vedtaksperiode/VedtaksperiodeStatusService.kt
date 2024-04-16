@@ -1,4 +1,4 @@
-package no.nav.helse.flex.inntektsmelding
+package no.nav.helse.flex.vedtaksperiode
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
@@ -19,7 +19,7 @@ import java.time.Instant
 import java.time.OffsetDateTime
 
 @Component
-class InntektsmeldingService(
+class VedtaksperiodeStatusService(
     private val inntektsmeldingRepository: InntektsmeldingRepository,
     private val inntektsmeldingStatusRepository: InntektsmeldingStatusRepository,
     private val statusRepository: StatusRepository,

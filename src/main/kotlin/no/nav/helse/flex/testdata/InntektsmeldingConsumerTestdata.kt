@@ -1,10 +1,10 @@
 package no.nav.helse.flex.testdata
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingKafkaDto
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingService
 import no.nav.helse.flex.kafka.INNTEKTSMELDING_STATUS_TESTDATA_TOPIC
 import no.nav.helse.flex.objectMapper
+import no.nav.helse.flex.vedtaksperiode.InntektsmeldingKafkaDto
+import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeStatusService
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.context.annotation.Profile
 import org.springframework.kafka.annotation.KafkaListener
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 @Component
 @Profile("testdata")
 class InntektsmeldingConsumerTestdata(
-    private val inntektsmeldingService: InntektsmeldingService,
+    private val vedtaksperiodeStatusService: VedtaksperiodeStatusService,
 ) {
     @KafkaListener(
         topics = [INNTEKTSMELDING_STATUS_TESTDATA_TOPIC],
@@ -29,7 +29,7 @@ class InntektsmeldingConsumerTestdata(
     ) {
         val kafkaDto: InntektsmeldingKafkaDto = objectMapper.readValue(cr.value())
 
-        inntektsmeldingService.prosesserKafkaMelding(kafkaDto)
+        vedtaksperiodeStatusService.prosesserKafkaMelding(kafkaDto)
 
         acknowledgment.acknowledge()
     }

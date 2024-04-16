@@ -2,14 +2,14 @@ package no.nav.helse.flex
 
 import no.nav.helse.flex.cronjob.BestillBeskjedJobb
 import no.nav.helse.flex.database.LockRepository
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingStatusRepository
-import no.nav.helse.flex.inntektsmelding.StatusRepository
 import no.nav.helse.flex.kafka.DITT_SYKEFRAVAER_MELDING_TOPIC
 import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
 import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
+import no.nav.helse.flex.vedtaksperiode.InntektsmeldingRepository
+import no.nav.helse.flex.vedtaksperiode.InntektsmeldingStatusRepository
+import no.nav.helse.flex.vedtaksperiode.StatusRepository
 import org.amshove.kluent.shouldBeEmpty
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer

@@ -1,4 +1,4 @@
-package no.nav.helse.flex.inntektsmelding
+package no.nav.helse.flex.vedtaksperiode
 
 import java.time.LocalDate
 import java.time.OffsetDateTime

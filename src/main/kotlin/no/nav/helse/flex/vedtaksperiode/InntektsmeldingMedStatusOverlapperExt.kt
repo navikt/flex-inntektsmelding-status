@@ -1,4 +1,4 @@
-package no.nav.helse.flex.inntektsmelding
+package no.nav.helse.flex.vedtaksperiode
 
 fun List<InntektsmeldingMedStatus>.overlapper(): Boolean {
     val perioderViSjekker = this.filter { it.status != StatusVerdi.BEHANDLES_UTENFOR_SPLEIS }
