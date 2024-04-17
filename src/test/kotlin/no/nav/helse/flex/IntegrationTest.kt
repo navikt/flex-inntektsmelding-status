@@ -1,6 +1,7 @@
 package no.nav.helse.flex
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.helse.flex.api.VedtaksperiodeResponse
 import no.nav.helse.flex.kafka.INNTEKTSMELDING_STATUS_TOPIC
 import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
 import no.nav.helse.flex.melding.MeldingKafkaDto
@@ -29,6 +30,9 @@ import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
+import org.springframework.http.MediaType
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.testcontainers.shaded.org.awaitility.Awaitility.await
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -346,6 +350,49 @@ class IntegrationTest : FellesTestOppsett() {
                 StatusVerdi.HAR_PERIODE_RETT_FOER,
                 StatusVerdi.HAR_INNTEKTSMELDING,
             )
+    }
+
+    @Test
+    @Order(99)
+    fun `Vi kan hente ut historikken fra flex internal frontend`() {
+        val responseString =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/api/v1/vedtaksperioder")
+                        .header("Authorization", "Bearer ${skapAzureJwt("flex-internal-frontend-client-id")}")
+                        .header("fnr", fnr)
+                        .contentType(MediaType.APPLICATION_JSON),
+                )
+                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful).andReturn().response.contentAsString
+
+        val response: List<VedtaksperiodeResponse> = objectMapper.readValue(responseString)
+        response shouldHaveSize 1
+        response[0].orgnr shouldBeEqualTo orgNr
+        response[0].statusHistorikk shouldHaveSize 3
+    }
+
+    @Test
+    @Order(99)
+    fun `Trenger riktig auth for å hente data med api`() {
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("/api/v1/vedtaksperioder")
+                    .header("Authorization", "Bearer ${skapAzureJwt("en-annen-client-id")}")
+                    .header("fnr", fnr)
+                    .contentType(MediaType.APPLICATION_JSON),
+            )
+            .andExpect(MockMvcResultMatchers.status().is4xxClientError)
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("/api/v1/vedtaksperioder")
+                    .header("fnr", fnr)
+                    .contentType(MediaType.APPLICATION_JSON),
+            )
+            .andExpect(MockMvcResultMatchers.status().is4xxClientError)
     }
 }
 

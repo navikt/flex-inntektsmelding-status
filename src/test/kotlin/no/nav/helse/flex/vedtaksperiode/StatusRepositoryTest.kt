@@ -26,7 +26,7 @@ class StatusRepositoryTest {
             inntektsmelding.copy(
                 statusHistorikk =
                     listOf(
-                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING),
+                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING, Instant.now()),
                     ),
             )
 
@@ -39,8 +39,8 @@ class StatusRepositoryTest {
             inntektsmelding.copy(
                 statusHistorikk =
                     listOf(
-                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING),
-                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT),
+                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT, Instant.now()),
                     ),
             )
 
@@ -53,9 +53,9 @@ class StatusRepositoryTest {
             inntektsmelding.copy(
                 statusHistorikk =
                     listOf(
-                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING),
-                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT),
-                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT),
+                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT, Instant.now()),
                     ),
             )
 
@@ -68,12 +68,12 @@ class StatusRepositoryTest {
             inntektsmelding.copy(
                 statusHistorikk =
                     listOf(
-                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING),
-                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT),
-                        StatusHistorikk("id", StatusVerdi.HAR_INNTEKTSMELDING),
-                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT),
-                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING),
-                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT),
+                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.HAR_INNTEKTSMELDING, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT, Instant.now()),
                     ),
             )
 
@@ -86,14 +86,14 @@ class StatusRepositoryTest {
             inntektsmelding.copy(
                 statusHistorikk =
                     listOf(
-                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING),
-                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT),
-                        StatusHistorikk("id", StatusVerdi.HAR_INNTEKTSMELDING),
-                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT),
-                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING),
-                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT),
-                        StatusHistorikk("id", StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING),
-                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT),
+                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.HAR_INNTEKTSMELDING, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.TRENGER_IKKE_INNTEKTSMELDING, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT, Instant.now()),
                     ),
             )
 
@@ -106,11 +106,11 @@ class StatusRepositoryTest {
             inntektsmelding.copy(
                 statusHistorikk =
                     listOf(
-                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING),
-                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT),
-                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT),
-                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT),
-                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT),
+                        StatusHistorikk("id", StatusVerdi.MANGLER_INNTEKTSMELDING, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT, Instant.now()),
+                        StatusHistorikk("id", StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT, Instant.now()),
                     ),
             )
 
