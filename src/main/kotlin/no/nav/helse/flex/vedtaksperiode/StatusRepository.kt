@@ -50,6 +50,7 @@ class StatusRepository(
                    vp.vedtak_tom,
                    vp.ekstern_timestamp,
                    vp.ekstern_id,
+                   status.vedtaksperiode_db_id,
                    status.status,
                    status.opprettet AS status_opprettet
             FROM vedtaksperiode_status status
@@ -84,6 +85,7 @@ class StatusRepository(
                    vp.vedtak_tom,
                    vp.ekstern_timestamp,
                    vp.ekstern_id,
+                   status.vedtaksperiode_db_id,
                    status.status,
                    status.opprettet AS status_opprettet
             FROM vedtaksperiode_status status
@@ -107,12 +109,31 @@ class StatusRepository(
         }
     }
 
+    fun hentAlleOrgnrForPerson(fnr: String): Set<String> {
+        return namedParameterJdbcTemplate.query(
+            """
+            SELECT distinct vp.org_nr
+            FROM vedtaksperiode vp
+            where vp.fnr = :fnr
+            """,
+            MapSqlParameterSource()
+                .addValue("fnr", fnr),
+        ) { resultSet, _ ->
+            resultSet.tilOrgnr()
+        }.toSet()
+    }
+
+    private fun ResultSet.tilOrgnr(): String {
+        return getString("org_nr")
+    }
+
     private fun ResultSet.tilVedtaksperiodeMedStatus(): VedtaksperiodeMedStatus {
         return VedtaksperiodeMedStatus(
             id = getString("id"),
             fnr = getString("fnr"),
             orgNr = getString("org_nr"),
             orgNavn = getString("org_navn"),
+            vedtaksperiodeDbId = getString("vedtaksperiode_db_id"),
             opprettet = getTimestamp("opprettet").toInstant(),
             vedtakFom = getDate("vedtak_fom").toLocalDate(),
             vedtakTom = getDate("vedtak_tom").toLocalDate(),
@@ -157,6 +178,7 @@ class StatusRepository(
         StatusHistorikk(
             id = getString("status_id"),
             status = StatusVerdi.valueOf(getString("status")),
+            opprettet = getTimestamp("status_opprettet").toInstant(),
         )
 }
 
@@ -169,6 +191,7 @@ data class VedtaksperiodeMedStatus(
     val vedtakFom: LocalDate,
     val vedtakTom: LocalDate,
     val eksternTimestamp: Instant,
+    val vedtaksperiodeDbId: String,
     val eksternId: String,
     val status: StatusVerdi,
     val statusOpprettet: Instant,
@@ -216,4 +239,5 @@ data class VedtaksperiodeMedStatusHistorikk(
 data class StatusHistorikk(
     val id: String,
     val status: StatusVerdi,
+    val opprettet: Instant,
 )

@@ -10,6 +10,8 @@ import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
 import no.nav.helse.flex.vedtaksperiode.StatusRepository
 import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeRepository
 import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeStatusRepository
+import no.nav.security.mock.oauth2.MockOAuth2Server
+import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.amshove.kluent.shouldBeEmpty
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
@@ -19,8 +21,11 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.test.web.servlet.MockMvc
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
@@ -31,12 +36,20 @@ private class PostgreSQLContainer14 : PostgreSQLContainer<PostgreSQLContainer14>
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureObservability
 @SpringBootTest(classes = [Application::class])
+@AutoConfigureMockMvc(print = MockMvcPrint.NONE, printOnlyOnFailure = false)
+@EnableMockOAuth2Server
 abstract class FellesTestOppsett {
     @Autowired
     lateinit var vedtaksperiodeRepository: VedtaksperiodeRepository
 
     @Autowired
     lateinit var vedtaksperiodeStatusRepository: VedtaksperiodeStatusRepository
+
+    @Autowired
+    lateinit var mockMvc: MockMvc
+
+    @Autowired
+    lateinit var server: MockOAuth2Server
 
     @Autowired
     lateinit var statusRepository: StatusRepository

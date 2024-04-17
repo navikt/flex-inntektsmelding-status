@@ -23,6 +23,7 @@ class InntektsmeldingMedStatusOverlapperExtKtTest {
             status = StatusVerdi.MANGLER_INNTEKTSMELDING,
             statusOpprettet = Instant.now(),
             opprettet = Instant.now(),
+            vedtaksperiodeDbId = "123",
         )
 
     @Test

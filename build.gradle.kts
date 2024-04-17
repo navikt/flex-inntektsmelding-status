@@ -27,6 +27,7 @@ val kluentVersion = "1.73"
 val varselKotlinBuilderVersion = "1.0.3-test-3"
 val sykepengesoknadKafkaVersion = "2024.03.21-14.13-5011349f"
 val inntektsmeldingKontraktVersion = "2024.03.11-02-07-32abf"
+val tokenSupportVersion = "4.1.4"
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
@@ -45,6 +46,8 @@ dependencies {
     implementation("no.nav.helse.flex:sykepengesoknad-kafka:$sykepengesoknadKafkaVersion")
     implementation("no.nav.tms.varsel:kotlin-builder:$varselKotlinBuilderVersion")
     implementation("no.nav.sykepenger.kontrakter:inntektsmelding-kontrakt:$inntektsmeldingKontraktVersion")
+    implementation("no.nav.security:token-validation-spring:$tokenSupportVersion")
+    implementation("no.nav.security:token-client-spring:$tokenSupportVersion")
 
     testImplementation(platform("org.testcontainers:testcontainers-bom:$testContainersVersion"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -52,6 +55,7 @@ dependencies {
     testImplementation("org.testcontainers:kafka")
     testImplementation("org.awaitility:awaitility")
     testImplementation("org.amshove.kluent:kluent:$kluentVersion")
+    testImplementation("no.nav.security:token-validation-spring-test:$tokenSupportVersion")
 }
 
 kotlin {
