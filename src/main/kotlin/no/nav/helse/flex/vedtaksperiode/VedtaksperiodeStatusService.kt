@@ -121,7 +121,7 @@ class VedtaksperiodeStatusService(
         vedtaksperiodeStatusRepository.save(
             VedtaksperiodeStatusDbRecord(
                 vedtaksperiodeDbId = dbId,
-                opprettet = Instant.now(),
+                opprettet = kafkaDto.tidspunkt.toInstant(),
                 status = kafkaDto.status.tilStatusVerdi(),
             ),
         )
@@ -139,7 +139,7 @@ class VedtaksperiodeStatusService(
         vedtaksperiodeStatusRepository.save(
             VedtaksperiodeStatusDbRecord(
                 vedtaksperiodeDbId = dbId,
-                opprettet = Instant.now(),
+                opprettet = kafkaDto.tidspunkt.toInstant(),
                 status = kafkaDto.status.tilStatusVerdi(),
             ),
         )
@@ -169,7 +169,7 @@ class VedtaksperiodeStatusService(
         vedtaksperiodeStatusRepository.save(
             VedtaksperiodeStatusDbRecord(
                 vedtaksperiodeDbId = dbId,
-                opprettet = Instant.now(),
+                opprettet = kafkaDto.tidspunkt.toInstant(),
                 status = kafkaDto.status.tilStatusVerdi(),
             ),
         )
@@ -193,7 +193,7 @@ class VedtaksperiodeStatusService(
         vedtaksperiodeStatusRepository.save(
             VedtaksperiodeStatusDbRecord(
                 vedtaksperiodeDbId = dbId,
-                opprettet = Instant.now(),
+                opprettet = kafkaDto.tidspunkt.toInstant(),
                 status = kafkaDto.status.tilStatusVerdi(),
             ),
         )
