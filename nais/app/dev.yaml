@@ -7,6 +7,7 @@ memory: 400Mi
 db_tier: db-f1-micro
 db_highAvailability: false
 db_pointInTimeRecovery: false
+azureTenant: trygdeetaten.no
 env:
   SPRING_PROFILES_ACTIVE: default, testdata
   INNTEKTSMELDING_MANGLER_URL: https://www.ekstern.dev.nav.no/syk/sykefravaer/inntektsmelding

@@ -7,8 +7,9 @@ memory: 600Mi
 db_tier: db-custom-1-3840
 db_highAvailability: true
 db_pointInTimeRecovery: true
+azureTenant: nav.no
 env:
   SPRING_PROFILES_ACTIVE: default
   INNTEKTSMELDING_MANGLER_URL: https://www.nav.no/syk/sykefravaer/inntektsmelding
   INNTEKTSMELDING_MANGLER_VENTETID: 15
-  KAFKA_AUTO_OFFSET_RESET: earliest # TODO må settes tilbake i etterkant av merge til main
+  KAFKA_AUTO_OFFSET_RESET: none
