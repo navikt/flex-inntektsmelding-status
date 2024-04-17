@@ -36,7 +36,7 @@ class VedtakLagring(
                 }
 
             if (vedtakDbRecord == null) {
-                log.error(
+                log.warn(
                     "Fant ikke inntektsmelding for vedtak med utbetalingsid: ${vedtaket.utbetalingId}" +
                         " fom: ${vedtaket.fom} tom: ${vedtaket.tom}",
                 )
