@@ -32,6 +32,11 @@ spec:
     requests:
       cpu: {{cpu}}
       memory: {{memory}}
+  azure:
+    application:
+      enabled: true
+      allowAllUsers: true
+      tenant: {{azureTenant}}
   kafka:
     pool: {{kafkaPool}}
   gcp:
@@ -54,6 +59,10 @@ spec:
         flags:
           - name: cloudsql.logical_decoding
             value: "on"
+  accessPolicy:
+    inbound:
+      rules:
+        - application: flex-internal-frontend
   env:
   {{#each env}}
      - name: {{@key}}
