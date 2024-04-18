@@ -59,6 +59,8 @@ spec:
         flags:
           - name: cloudsql.logical_decoding
             value: "on"
+          - name: temp_file_limit
+            value: "{{db_tempFileLimit}}"
   accessPolicy:
     inbound:
       rules:
