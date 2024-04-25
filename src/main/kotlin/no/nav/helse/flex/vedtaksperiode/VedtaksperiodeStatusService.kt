@@ -157,7 +157,9 @@ class VedtaksperiodeStatusService(
 
         if (inntektsmelding.harMeldingSendt()) {
             doneMelding(inntektsmelding, dbId)
-            bestillMeldingMottattInntektsmelding(inntektsmelding)
+            if (!inntektsmelding.harMeldingMottattInntektsmeldingSendt()) {
+                bestillMeldingMottattInntektsmelding(inntektsmelding)
+            }
         }
     }
 

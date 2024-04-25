@@ -213,6 +213,11 @@ data class VedtaksperiodeMedStatusHistorikk(
 
     fun harMeldingSendt() = statusHistorikk.any { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }
 
+    fun harMeldingMottattInntektsmeldingSendt() =
+        statusHistorikk.any {
+            it.status == StatusVerdi.DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_SENDT
+        }
+
     fun harBeskjedDonet() = statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }
 
     fun harMeldingDonet() = statusHistorikk.any { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_DONE_SENDT }

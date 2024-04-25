@@ -353,6 +353,44 @@ class IntegrationTest : FellesTestOppsett() {
     }
 
     @Test
+    @Order(7)
+    fun `Vi mottar enda en inntektsmelding`() {
+        kafkaProducer.send(
+            ProducerRecord(
+                INNTEKTSMELDING_STATUS_TOPIC,
+                fnr,
+                InntektsmeldingKafkaDto(
+                    id = UUID.randomUUID().toString(),
+                    status = Status.HAR_INNTEKTSMELDING,
+                    sykmeldt = fnr,
+                    arbeidsgiver = orgNr,
+                    vedtaksperiode =
+                        Vedtaksperiode(
+                            id = eksternId,
+                            fom = fom,
+                            tom = tom,
+                        ),
+                    tidspunkt = OffsetDateTime.now(),
+                ).serialisertTilString(),
+            ),
+        ).get()
+
+        val dbId = vedtaksperiodeRepository.findVedtaksperiodeDbRecordByEksternId(eksternId)!!.id!!
+
+        await().atMost(5, TimeUnit.SECONDS).until {
+            statusRepository.hentVedtaksperiodeMedStatusHistorikk(
+                dbId,
+            )?.statusHistorikk?.any { it.status == StatusVerdi.HAR_INNTEKTSMELDING }
+        }
+    }
+
+    @Test
+    @Order(8)
+    fun `Ingen ny mottatt melding sendes`() {
+        meldingKafkaConsumer.ventPåRecords(0)
+    }
+
+    @Test
     @Order(99)
     fun `Vi kan hente ut historikken fra flex internal frontend`() {
         val responseString =
