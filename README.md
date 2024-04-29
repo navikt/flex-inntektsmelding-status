@@ -2,7 +2,7 @@
 
 
 ## Inkommenda data
-Data input til appen er topicene med tbd.inntektsmeldingstatus og flex.sykepengesoknad.
+Data input til appen er topicene med tbd.inntektsmeldingstatus, flex.sykepengesoknad og tbd.vedtak.
 Sykepengesøknadene brukes til å lage et map mellom orgnummer og orgnavn for å slippe å gjøre eksternt oppslag.
 
 ## Data
