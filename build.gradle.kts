@@ -24,7 +24,7 @@ repositories {
 val testContainersVersion = "1.19.7"
 val logstashLogbackEncoderVersion = "7.4"
 val kluentVersion = "1.73"
-val varselKotlinBuilderVersion = "1.0.3-test-3"
+val varselKotlinBuilderVersion = "1.0.3"
 val sykepengesoknadKafkaVersion = "2024.03.21-14.13-5011349f"
 val inntektsmeldingKontraktVersion = "2024.03.11-02-07-32abf"
 val tokenSupportVersion = "4.1.4"
@@ -41,13 +41,12 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
     implementation("org.postgresql:postgresql")
     implementation("org.flywaydb:flyway-core")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
     implementation("no.nav.helse.flex:sykepengesoknad-kafka:$sykepengesoknadKafkaVersion")
-    implementation("no.nav.tms.varsel:kotlin-builder:$varselKotlinBuilderVersion")
     implementation("no.nav.sykepenger.kontrakter:inntektsmelding-kontrakt:$inntektsmeldingKontraktVersion")
     implementation("no.nav.security:token-validation-spring:$tokenSupportVersion")
     implementation("no.nav.security:token-client-spring:$tokenSupportVersion")
+    implementation("no.nav.tms.varsel:kotlin-builder:$varselKotlinBuilderVersion")
 
     testImplementation(platform("org.testcontainers:testcontainers-bom:$testContainersVersion"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
