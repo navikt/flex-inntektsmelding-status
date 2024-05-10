@@ -6,6 +6,7 @@ import no.nav.helse.flex.kafka.DITT_SYKEFRAVAER_MELDING_TOPIC
 import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
 import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
+import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
 import no.nav.helse.flex.vedtaksperiode.StatusRepository
 import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeRepository
@@ -56,6 +57,9 @@ abstract class FellesTestOppsett {
 
     @Autowired
     lateinit var organisasjonRepository: OrganisasjonRepository
+
+    @Autowired
+    lateinit var sykepengesoknadRepository: SykepengesoknadRepository
 
     @Autowired
     lateinit var jdbcTemplate: JdbcTemplate
