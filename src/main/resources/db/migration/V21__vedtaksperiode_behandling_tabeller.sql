@@ -1,7 +1,7 @@
 CREATE TABLE vedtaksperiode_behandling
 (
     id                   VARCHAR(36) DEFAULT uuid_generate_v4() PRIMARY KEY,
-    opprettet            TIMESTAMP WITH TIME ZONE NOT NULL,
+    opprettet_database   TIMESTAMP WITH TIME ZONE NOT NULL,
     oppdatert            TIMESTAMP WITH TIME ZONE NOT NULL,
     siste_spleisstatus   VARCHAR                  NOT NULL,
     siste_varslingstatus VARCHAR                  NULL,
@@ -15,7 +15,8 @@ CREATE TABLE vedtaksperiode_behandling_status
 (
     id                          VARCHAR(36) DEFAULT uuid_generate_v4() PRIMARY KEY,
     periode_behandling_id       VARCHAR(36)              NOT NULL REFERENCES vedtaksperiode_behandling (id),
-    opprettet                   TIMESTAMP WITH TIME ZONE NOT NULL,
+    opprettet_database          TIMESTAMP WITH TIME ZONE NOT NULL,
+    tidspunkt                   TIMESTAMP WITH TIME ZONE NOT NULL,
     status                      VARCHAR                  NOT NULL,
     brukervarsel_id             VARCHAR(36)              NULL,
     ditt_sykefravaer_melding_id VARCHAR(36)              NULL
