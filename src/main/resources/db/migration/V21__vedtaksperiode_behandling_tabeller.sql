@@ -21,6 +21,7 @@ CREATE TABLE vedtaksperiode_behandling_status
     ditt_sykefravaer_melding_id VARCHAR(36)              NULL
 );
 
-CREATE INDEX vedtaksperiode_behandling_sykepengesoknad_uuid ON vedtaksperiode_behandling (sykepengesoknad_uuid);
+CREATE INDEX vedtaksperiode_behandling_sykepengesoknad_uuid_idx ON vedtaksperiode_behandling (sykepengesoknad_uuid);
+CREATE INDEX vedtaksperiode_behandling_siste_statuser ON vedtaksperiode_behandling (siste_spleisstatus, siste_varslingstatus);
 
 CREATE INDEX sykepengesoknad_fnr_idx ON sykepengesoknad (fnr);
