@@ -1,7 +1,6 @@
 package no.nav.helse.flex.vedtaksperiodebehandling
 
 import java.time.OffsetDateTime
-import java.util.*
 
 data class Behandlingstatusmelding(
     val vedtaksperiodeId: String,

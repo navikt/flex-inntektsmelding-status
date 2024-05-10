@@ -1,5 +1,6 @@
 package no.nav.helse.flex
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.cronjob.BestillBeskjedJobb
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.kafka.DITT_SYKEFRAVAER_MELDING_TOPIC
@@ -11,8 +12,11 @@ import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
 import no.nav.helse.flex.vedtaksperiode.StatusRepository
 import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeRepository
 import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeStatusRepository
+import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
+import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusRepository
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
+import no.nav.tms.varsel.builder.VarselActionBuilder
 import org.amshove.kluent.shouldBeEmpty
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
@@ -60,6 +64,12 @@ abstract class FellesTestOppsett {
 
     @Autowired
     lateinit var sykepengesoknadRepository: SykepengesoknadRepository
+
+    @Autowired
+    lateinit var vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository
+
+    @Autowired
+    lateinit var vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository
 
     @Autowired
     lateinit var jdbcTemplate: JdbcTemplate
@@ -141,4 +151,12 @@ abstract class FellesTestOppsett {
             ),
         ).get()
     }
+}
+
+fun String.tilOpprettVarselInstance(): VarselActionBuilder.OpprettVarselInstance {
+    return objectMapper.readValue(this)
+}
+
+fun String.tilInaktiverVarselInstance(): VarselActionBuilder.InaktiverVarselInstance {
+    return objectMapper.readValue(this)
 }
