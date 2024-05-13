@@ -23,7 +23,7 @@ class HentAltForPerson(
 
         return soknader.map { soknad ->
             val vedtaksperiodeBehandling = vedtaksperiodeBehandlinger.find { it.sykepengesoknadUuid == soknad.sykepengesoknadUuid }
-            val status = statuser.filter { it.vedtaksperiodeBehandlingId == vedtaksperiodeBehandling?.id }
+            val status = statuser.filter { it.vedtaksperiodeBehandlingId == vedtaksperiodeBehandling?.id }.sortedBy { it.tidspunkt }
             FullVedtaksperiodeBehandling(soknad, vedtaksperiodeBehandling, status)
         }
     }
