@@ -25,7 +25,7 @@ val testContainersVersion = "1.19.7"
 val logstashLogbackEncoderVersion = "7.4"
 val kluentVersion = "1.73"
 val varselKotlinBuilderVersion = "1.0.3"
-val sykepengesoknadKafkaVersion = "2024.03.21-14.13-5011349f"
+val sykepengesoknadKafkaVersion = "2024.05.04-08.31-672172ee"
 val inntektsmeldingKontraktVersion = "2024.03.11-02-07-32abf"
 val tokenSupportVersion = "4.1.4"
 
