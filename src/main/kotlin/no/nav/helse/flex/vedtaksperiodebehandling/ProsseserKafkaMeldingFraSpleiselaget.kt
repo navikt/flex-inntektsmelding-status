@@ -92,7 +92,7 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                 ),
             )
         }
-
+        kafkaDto.erTillattStatusEndring(vedtaksperiodeBehandling.sisteSpleisstatus)
         when (kafkaDto.status) {
             Behandlingstatustype.OPPRETTET -> {
                 log.warn(
@@ -119,6 +119,31 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                 oppdaterdatabaseMedSisteStatus()
                 // TODO fjern sendte mangler im varsler
                 // TODO fjern sendte forsinket saksbehandlingsvarsler
+            }
+        }
+    }
+
+    fun Behandlingstatusmelding.erTillattStatusEndring(gammelStatus: StatusVerdi) {
+        fun sjekkStatus(forventetGammelVerdi: StatusVerdi) {
+            if (gammelStatus != forventetGammelVerdi) {
+                log.warn(
+                    "Forventet ikke gammel status $gammelStatus for ny status ${this.status} for " +
+                        "vedtaksperiodeid ${this.vedtaksperiodeId} og behandlign id ${this.behandlingId}",
+                )
+            }
+        }
+
+        when (this.status) {
+            Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER -> {
+                sjekkStatus(StatusVerdi.OPPRETTET)
+            }
+            Behandlingstatustype.VENTER_PÅ_SAKSBEHANDLER -> {
+                sjekkStatus(StatusVerdi.VENTER_PÅ_ARBEIDSGIVER)
+            }
+            Behandlingstatustype.FERDIG -> {
+                sjekkStatus(StatusVerdi.VENTER_PÅ_SAKSBEHANDLER)
+            }
+            else -> {
             }
         }
     }
