@@ -140,8 +140,8 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
         val response: List<FullVedtaksperiodeBehandling> = objectMapper.readValue(responseString)
         response shouldHaveSize 1
         response[0].soknad.orgnummer shouldBeEqualTo orgNr
-        response[0].status shouldHaveSize 2
-        response[0].vedtaksperiode!!.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_ARBEIDSGIVER
+        response[0].vedtaksperioder[0].status shouldHaveSize 2
+        response[0].vedtaksperioder[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_ARBEIDSGIVER
     }
 
     @Test
@@ -230,15 +230,15 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
         val response: List<FullVedtaksperiodeBehandling> = objectMapper.readValue(responseString)
         response shouldHaveSize 1
         response[0].soknad.orgnummer shouldBeEqualTo orgNr
-        response[0].status shouldHaveSize 4
-        response[0].status.map { it.status.name } shouldBeEqualTo
+        response[0].vedtaksperioder[0].status shouldHaveSize 4
+        response[0].vedtaksperioder[0].status.map { it.status.name } shouldBeEqualTo
             listOf(
                 "OPPRETTET",
                 "VENTER_PÅ_ARBEIDSGIVER",
                 "VENTER_PÅ_SAKSBEHANDLER",
                 "FERDIG",
             )
-        response[0].vedtaksperiode!!.sisteSpleisstatus shouldBeEqualTo FERDIG
+        response[0].vedtaksperioder[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
     }
 
     @Test
