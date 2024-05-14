@@ -22,15 +22,21 @@ class HentAltForPerson(
             vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(vedtaksperiodeBehandlinger.map { it.id!! })
 
         return soknader.map { soknad ->
-            val vedtaksperiodeBehandling = vedtaksperiodeBehandlinger.find { it.sykepengesoknadUuid == soknad.sykepengesoknadUuid }
-            val status = statuser.filter { it.vedtaksperiodeBehandlingId == vedtaksperiodeBehandling?.id }.sortedBy { it.tidspunkt }
-            FullVedtaksperiodeBehandling(soknad, vedtaksperiodeBehandling, status)
+            val vedtaksperiodeBehandlingerMedStatus =
+                vedtaksperiodeBehandlinger
+                    .filter { it.sykepengesoknadUuid == soknad.sykepengesoknadUuid }
+                    .map { VedtaksperiodeMedStatuser(it, statuser.filter { status -> status.vedtaksperiodeBehandlingId == it.id }) }
+            FullVedtaksperiodeBehandling(soknad, vedtaksperiodeBehandlingerMedStatus)
         }
     }
 }
 
+data class VedtaksperiodeMedStatuser(
+    val vedtaksperiode: VedtaksperiodeBehandlingDbRecord,
+    val status: List<VedtaksperiodeBehandlingStatusDbRecord>,
+)
+
 data class FullVedtaksperiodeBehandling(
     val soknad: Sykepengesoknad,
-    val vedtaksperiode: VedtaksperiodeBehandlingDbRecord?,
-    val status: List<VedtaksperiodeBehandlingStatusDbRecord>,
+    val vedtaksperioder: List<VedtaksperiodeMedStatuser>,
 )
