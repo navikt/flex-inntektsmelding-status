@@ -124,8 +124,8 @@ class ProsseserKafkaMeldingFraSpleiselaget(
     }
 
     fun Behandlingstatusmelding.erTillattStatusEndring(gammelStatus: StatusVerdi) {
-        fun sjekkStatus(forventetGammelVerdi: StatusVerdi) {
-            if (gammelStatus != forventetGammelVerdi) {
+        fun sjekkStatus(forventetGammelVerdi: List<StatusVerdi>) {
+            if (!forventetGammelVerdi.contains(gammelStatus)) {
                 log.warn(
                     "Forventet ikke gammel status $gammelStatus for ny status ${this.status} for " +
                         "vedtaksperiodeid ${this.vedtaksperiodeId} og behandlign id ${this.behandlingId}",
@@ -135,14 +135,17 @@ class ProsseserKafkaMeldingFraSpleiselaget(
 
         when (this.status) {
             Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER -> {
-                sjekkStatus(StatusVerdi.OPPRETTET)
+                sjekkStatus(listOf(StatusVerdi.OPPRETTET))
             }
+
             Behandlingstatustype.VENTER_PÅ_SAKSBEHANDLER -> {
-                sjekkStatus(StatusVerdi.VENTER_PÅ_ARBEIDSGIVER)
+                sjekkStatus(listOf(StatusVerdi.VENTER_PÅ_ARBEIDSGIVER, StatusVerdi.VENTER_PÅ_SAKSBEHANDLER))
             }
+
             Behandlingstatustype.FERDIG -> {
-                sjekkStatus(StatusVerdi.VENTER_PÅ_SAKSBEHANDLER)
+                sjekkStatus(listOf(StatusVerdi.VENTER_PÅ_SAKSBEHANDLER, StatusVerdi.VENTER_PÅ_ARBEIDSGIVER))
             }
+
             else -> {
             }
         }
