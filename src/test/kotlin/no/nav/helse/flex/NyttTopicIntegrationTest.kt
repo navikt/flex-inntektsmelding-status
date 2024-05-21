@@ -131,7 +131,7 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
         perioderSomVenterPaaArbeidsgiver.first().fnr shouldBeEqualTo fnr
         perioderSomVenterPaaArbeidsgiver.first().sykepengesoknadUuid shouldBeEqualTo soknadId
 
-        periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now().minusSeconds(30))
+        periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(OffsetDateTime.now().minusHours(3).toInstant())
             .shouldBeEmpty()
     }
 
