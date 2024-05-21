@@ -29,7 +29,7 @@ class OpprydningJobb(
         var oppryddet = 0
 
         manglerImSendt
-            .take(200).forEach {
+            .take(500).forEach {
                 opprydning.fjernVarsler(it)
                 oppryddet++
             }
