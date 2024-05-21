@@ -14,7 +14,7 @@ class OpprydningJobb(
 ) {
     private val log = logger()
 
-    @Scheduled(initialDelay = 2, fixedDelay = 180, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 2, fixedDelay = 2, timeUnit = TimeUnit.MINUTES)
     fun job() {
         jobMedParameter()
     }
