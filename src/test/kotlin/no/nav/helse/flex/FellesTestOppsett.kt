@@ -1,7 +1,6 @@
 package no.nav.helse.flex
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.helse.flex.cronjob.BestillBeskjedJobb
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.kafka.DITT_SYKEFRAVAER_MELDING_TOPIC
 import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
@@ -9,9 +8,6 @@ import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
-import no.nav.helse.flex.vedtaksperiode.StatusRepository
-import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeRepository
-import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeStatusRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.PeriodeStatusRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusRepository
@@ -46,19 +42,10 @@ private class PostgreSQLContainer14 : PostgreSQLContainer<PostgreSQLContainer14>
 @EnableMockOAuth2Server
 abstract class FellesTestOppsett {
     @Autowired
-    lateinit var vedtaksperiodeRepository: VedtaksperiodeRepository
-
-    @Autowired
-    lateinit var vedtaksperiodeStatusRepository: VedtaksperiodeStatusRepository
-
-    @Autowired
     lateinit var mockMvc: MockMvc
 
     @Autowired
     lateinit var server: MockOAuth2Server
-
-    @Autowired
-    lateinit var statusRepository: StatusRepository
 
     @Autowired
     lateinit var organisasjonRepository: OrganisasjonRepository
@@ -80,9 +67,6 @@ abstract class FellesTestOppsett {
 
     @Autowired
     lateinit var lockRepository: LockRepository
-
-    @Autowired
-    lateinit var bestillBeskjedJobb: BestillBeskjedJobb
 
     @Autowired
     lateinit var meldingKafkaConsumer: Consumer<String, String>
