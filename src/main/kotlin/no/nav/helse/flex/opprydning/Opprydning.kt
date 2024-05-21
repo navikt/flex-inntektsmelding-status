@@ -44,13 +44,16 @@ class Opprydning(
         inntektsmelding: VedtaksperiodeMedStatusHistorikk,
         dbId: String,
     ) {
+        val bestillingId =
+            inntektsmelding.statusHistorikk.last { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }.id
+
         if (inntektsmelding.harBeskjedDonet()) {
-            log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede donet brukernotifikasjon beskjed")
+            log.info(
+                "Inntektsmelding ${inntektsmelding.eksternId} har allerede donet brukernotifikasjon beskjed. " +
+                    "Vil bruke bestillingId $bestillingId for donning",
+            )
             return
         }
-
-        val bestillingId =
-            inntektsmelding.statusHistorikk.first { it.status == StatusVerdi.BRUKERNOTIFIKSJON_MANGLER_INNTEKTSMELDING_SENDT }.id
 
         brukernotifikasjon.sendDonemelding(
             fnr = inntektsmelding.fnr,
@@ -73,13 +76,16 @@ class Opprydning(
         inntektsmelding: VedtaksperiodeMedStatusHistorikk,
         dbId: String,
     ) {
+        val bestillingId =
+            inntektsmelding.statusHistorikk.last { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }.id
+
         if (inntektsmelding.harMeldingDonet()) {
-            log.info("Inntektsmelding ${inntektsmelding.eksternId} har allerede donet ditt sykefravær melding")
+            log.info(
+                "Inntektsmelding ${inntektsmelding.eksternId} har allerede donet ditt sykefravær melding. " +
+                    "Vil bruke bestillingId $bestillingId for donning",
+            )
             return
         }
-
-        val bestillingId =
-            inntektsmelding.statusHistorikk.first { it.status == StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT }.id
 
         meldingKafkaProducer.produserMelding(
             meldingUuid = bestillingId,
