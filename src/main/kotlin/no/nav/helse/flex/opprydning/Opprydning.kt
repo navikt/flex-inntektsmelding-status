@@ -52,7 +52,6 @@ class Opprydning(
                 "Inntektsmelding ${inntektsmelding.eksternId} har allerede donet brukernotifikasjon beskjed. " +
                     "Vil bruke bestillingId $bestillingId for donning",
             )
-            return
         }
 
         brukernotifikasjon.sendDonemelding(
@@ -84,7 +83,6 @@ class Opprydning(
                 "Inntektsmelding ${inntektsmelding.eksternId} har allerede donet ditt sykefravær melding. " +
                     "Vil bruke bestillingId $bestillingId for donning",
             )
-            return
         }
 
         meldingKafkaProducer.produserMelding(
