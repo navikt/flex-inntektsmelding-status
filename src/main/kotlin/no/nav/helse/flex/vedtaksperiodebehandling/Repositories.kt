@@ -1,8 +1,10 @@
 package no.nav.helse.flex.vedtaksperiodebehandling
 
 import org.springframework.data.annotation.Id
+import org.springframework.data.jdbc.repository.query.Query
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.CrudRepository
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.Instant
 
@@ -60,3 +62,24 @@ enum class StatusVerdi {
     DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_LUKKET,
     DITT_SYKEFRAVAER_MOTTATT_INNTEKTSMELDING_DONE_SENDT,
 }
+
+@Repository
+interface PeriodeStatusRepository : org.springframework.data.repository.Repository<StatusQueryResult, String> {
+    @Query(
+        "SELECT s.sykepengesoknad_uuid, s.fnr, s.sendt FROM vedtaksperiode_behandling v, " +
+            "sykepengesoknad s " +
+            "WHERE v.sykepengesoknad_uuid = s.sykepengesoknad_uuid " +
+            "AND v.siste_spleisstatus =  'VENTER_PÅ_ARBEIDSGIVER'" +
+            "AND v.siste_varslingstatus is null " +
+            "AND s.sendt < :sendtFoer",
+    )
+    fun finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
+        @Param("sendtFoer") sendtFoer: Instant,
+    ): List<StatusQueryResult>
+}
+
+data class StatusQueryResult(
+    val sykepengesoknadUuid: String,
+    val fnr: String,
+    val sendt: Instant,
+)

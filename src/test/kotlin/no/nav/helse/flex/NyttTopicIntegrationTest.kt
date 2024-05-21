@@ -10,6 +10,7 @@ import no.nav.helse.flex.vedtaksperiodebehandling.FullVedtaksperiodeBehandling
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.FERDIG
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.VENTER_PÅ_ARBEIDSGIVER
+import org.amshove.kluent.shouldBeEmpty
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldHaveSize
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -22,6 +23,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.testcontainers.shaded.org.awaitility.Awaitility.await
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -41,6 +43,7 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
+        periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now()).shouldBeEmpty()
         val soknad =
             SykepengesoknadDTO(
                 fnr = fnr,
@@ -82,6 +85,8 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
     @Test
     @Order(1)
     fun `Vi får beskjed at perioden venter på arbeidsgiver`() {
+        periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now()).shouldBeEmpty()
+
         val tidspunkt = OffsetDateTime.now()
         val behandlingstatusmelding =
             Behandlingstatusmelding(
@@ -120,6 +125,14 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
                 vedtaksperiode.sisteSpleisstatus == VENTER_PÅ_ARBEIDSGIVER
             }
         }
+        val perioderSomVenterPaaArbeidsgiver =
+            periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+        perioderSomVenterPaaArbeidsgiver.shouldHaveSize(1)
+        perioderSomVenterPaaArbeidsgiver.first().fnr shouldBeEqualTo fnr
+        perioderSomVenterPaaArbeidsgiver.first().sykepengesoknadUuid shouldBeEqualTo soknadId
+
+        periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(OffsetDateTime.now().minusHours(3).toInstant())
+            .shouldBeEmpty()
     }
 
     @Test

@@ -12,6 +12,7 @@ import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
 import no.nav.helse.flex.vedtaksperiode.StatusRepository
 import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeRepository
 import no.nav.helse.flex.vedtaksperiode.VedtaksperiodeStatusRepository
+import no.nav.helse.flex.vedtaksperiodebehandling.PeriodeStatusRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusRepository
 import no.nav.security.mock.oauth2.MockOAuth2Server
@@ -73,6 +74,9 @@ abstract class FellesTestOppsett {
 
     @Autowired
     lateinit var jdbcTemplate: JdbcTemplate
+
+    @Autowired
+    lateinit var periodeStatusRepository: PeriodeStatusRepository
 
     @Autowired
     lateinit var lockRepository: LockRepository
