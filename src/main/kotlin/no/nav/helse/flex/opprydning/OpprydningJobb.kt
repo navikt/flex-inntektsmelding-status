@@ -10,10 +10,11 @@ import java.util.concurrent.TimeUnit
 @Component
 class OpprydningJobb(
     private val statusRepository: StatusRepository,
+    private val opprydning: Opprydning,
 ) {
     private val log = logger()
 
-    @Scheduled(initialDelay = 2, fixedDelay = 30, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 2, fixedDelay = 180, timeUnit = TimeUnit.MINUTES)
     fun job() {
         jobMedParameter()
     }
@@ -24,5 +25,19 @@ class OpprydningJobb(
                 .hentAlleMedNyesteStatus(StatusVerdi.DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT)
 
         log.info("Fant ${manglerImSendt.size} perioder med siste status DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT")
+
+        var oppryddet = 0
+
+        manglerImSendt
+            .take(200).forEach {
+                opprydning.fjernVarsler(it)
+                oppryddet++
+            }
+
+        if (oppryddet > 0) {
+            log.info("Behandlet $oppryddet antall perioder med siste status DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT")
+        } else {
+            log.info("Ingen perioder med siste status DITT_SYKEFRAVAER_MANGLER_INNTEKTSMELDING_SENDT ble behandlet")
+        }
     }
 }
