@@ -11,11 +11,14 @@ import java.time.Instant
 class ProsseserKafkaMeldingFraSpleiselaget(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
+    private val vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository,
     private val sykepengesoknadRepository: SykepengesoknadRepository,
     private val lockRepository: LockRepository,
 ) {
     val log = logger()
 
+
+    // vi trenger en ny offset eller noe for å kunne lese dette: https://nav-it.slack.com/archives/G0112C98QG3/p1716890417948589?thread_ts=1716798509.520179&cid=G0112C98QG3, nils jørgen foreslår å bytte consumer navn
     @Transactional
     fun prosesserKafkaMelding(kafkaDto: Behandlingstatusmelding) {
         lockRepository.settAdvisoryTransactionLock(kafkaDto.vedtaksperiodeId)
@@ -34,7 +37,7 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                         message,
                     )
                 }
-
+                // det er denne vi nå skal sende andre ting til
                 val vedtaksperiodeBehandlingDbRecord =
                     vedtaksperiodeBehandlingRepository.save(
                         VedtaksperiodeBehandlingDbRecord(
@@ -44,9 +47,15 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                             oppdatert = Instant.now(),
                             sisteSpleisstatus = kafkaDto.status.tilStatusVerdi(),
                             sisteVarslingstatus = null,
-                            sykepengesoknadUuid = kafkaDto.eksternSøknadId,
+                            // sykepengesoknadUuid = kafkaDto.eksternSøknadId, // dette er nå et set
                         ),
                     )
+
+                vedtaksperiodeBehandlingSykepengesoknadRepository.save(
+                        vedtaksperiodeBehandlingId = vedtaksperiodeBehandlingDbRecord.id!!,
+                        sykepengesoknadUuid = kafkaDto.eksternSøknadId,
+                )
+
                 vedtaksperiodeBehandlingStatusRepository.save(
                     VedtaksperiodeBehandlingStatusDbRecord(
                         vedtaksperiodeBehandlingId = vedtaksperiodeBehandlingDbRecord.id!!,
@@ -68,6 +77,8 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             return
         }
 
+
+        // her har du ikke det du trenger
         val soknad = sykepengesoknadRepository.findBySykepengesoknadUuid(vedtaksperiodeBehandling.sykepengesoknadUuid)
         soknad?.let {
             // Låser fødselsnummeret hvis vi har en søknad

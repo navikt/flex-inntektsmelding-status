@@ -7,7 +7,7 @@ CREATE TABLE vedtaksperiode_behandling
     siste_varslingstatus VARCHAR                  NULL,
     vedtaksperiode_id    VARCHAR(36)              NOT NULL,
     behandling_id        VARCHAR(36)              NOT NULL UNIQUE,
-    sykepengesoknad_uuid VARCHAR(36)              NOT NULL
+    sykepengesoknad_uuid VARCHAR(36)              NOT NULL -- denne skal utvides til en 0 til n relasjon, slett tabellen
 );
 
 

@@ -28,8 +28,24 @@ data class VedtaksperiodeBehandlingDbRecord(
     val sisteVarslingstatus: StatusVerdi?,
     val vedtaksperiodeId: String,
     val behandlingId: String,
-    val sykepengesoknadUuid: String,
+    // val sykepengesoknadUuid: String,
 )
+
+@Table("vedtaksperiode_behandling_sykepengesoknad")
+data class VedtaksperiodeBehandlingSykepengesoknadDbRecord(
+    @Id
+    val id: String? = null,
+    val vedtaksperiodeBehandlingId: String,
+    val sykepengesoknadUuid: String
+)
+
+@Repository
+interface VedtaksperiodeBehandlingSykepengesoknadRepository : CrudRepository<VedtaksperiodeBehandlingSykepengesoknadDbRecord, String> {
+        fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
+
+}
+
+
 
 @Repository
 interface VedtaksperiodeBehandlingStatusRepository : CrudRepository<VedtaksperiodeBehandlingStatusDbRecord, String> {

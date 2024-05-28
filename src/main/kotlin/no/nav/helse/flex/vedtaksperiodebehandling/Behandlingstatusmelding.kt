@@ -7,7 +7,8 @@ data class Behandlingstatusmelding(
     val behandlingId: String,
     val tidspunkt: OffsetDateTime,
     val status: Behandlingstatustype,
-    val eksternSøknadId: String? = null,
+    val
+    //  val eksternSøknadId: String? = null,
 ) {
     val versjon = "1.0.0-beta"
 }
