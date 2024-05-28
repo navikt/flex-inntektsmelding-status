@@ -42,7 +42,6 @@ data class VedtaksperiodeBehandlingSykepengesoknadDbRecord(
 @Repository
 interface VedtaksperiodeBehandlingSykepengesoknadRepository : CrudRepository<VedtaksperiodeBehandlingSykepengesoknadDbRecord, String> {
         fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
-
 }
 
 
