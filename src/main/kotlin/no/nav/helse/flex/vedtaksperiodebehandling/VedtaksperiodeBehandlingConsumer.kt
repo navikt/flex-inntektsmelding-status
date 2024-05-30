@@ -24,9 +24,13 @@ class VedtaksperiodeBehandlingConsumer(
         cr: ConsumerRecord<String, String>,
         acknowledgment: Acknowledgment,
     ) {
-        val kafkaDto: Behandlingstatusmelding = objectMapper.readValue(cr.value())
+        val versjonsmelding: MeldingMedVersjon = objectMapper.readValue(cr.value())
 
-        prosseserKafkaMeldingFraSpleiselaget.prosesserKafkaMelding(kafkaDto)
+        if (versjonsmelding.versjon == "2.0.0") {
+            val kafkaDto: Behandlingstatusmelding = objectMapper.readValue(cr.value())
+            prosseserKafkaMeldingFraSpleiselaget.prosesserKafkaMelding(kafkaDto)
+        }
+
         acknowledgment.acknowledge()
     }
 }

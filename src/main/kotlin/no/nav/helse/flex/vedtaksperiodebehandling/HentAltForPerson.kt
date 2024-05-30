@@ -17,7 +17,6 @@ class HentAltForPerson(
     fun hentAltForPerson(fnr: String): List<FullVedtaksperiodeBehandling> {
         val soknader = sykepengesoknadRepository.findByFnr(fnr)
 
-
         val vedtaksperiodeBehandlingerSykepengesoknad: List<VedtaksperiodeBehandlingSykepengesoknadDbRecord> =
             vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(
                 soknader.map {
@@ -32,23 +31,26 @@ class HentAltForPerson(
                 },
             )
 
-        val statuser = vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(
-            vedtaksperiodeBehandlinger.map {
-                it.id!!
-            },
-        )
+        val statuser =
+            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(
+                vedtaksperiodeBehandlinger.map {
+                    it.id!!
+                },
+            )
 
         return vedtaksperiodeBehandlinger.map { vb ->
 
-            val soknadIdErForBehandling = vedtaksperiodeBehandlingerSykepengesoknad.filter { it.vedtaksperiodeBehandlingId == vb.id }.map { it.sykepengesoknadUuid }
+            val soknadIdErForBehandling =
+                vedtaksperiodeBehandlingerSykepengesoknad.filter {
+                    it.vedtaksperiodeBehandlingId == vb.id
+                }.map { it.sykepengesoknadUuid }
             val soknaderForBehandling = soknader.filter { soknadIdErForBehandling.contains(it.sykepengesoknadUuid) }
             FullVedtaksperiodeBehandling(
                 vb,
                 soknaderForBehandling,
-                statuser.filter { it.vedtaksperiodeBehandlingId == vb.id }
+                statuser.filter { it.vedtaksperiodeBehandlingId == vb.id },
             )
         }
-
     }
 }
 
@@ -57,4 +59,3 @@ data class FullVedtaksperiodeBehandling(
     val soknader: List<Sykepengesoknad>,
     val statuser: List<VedtaksperiodeBehandlingStatusDbRecord>,
 )
-

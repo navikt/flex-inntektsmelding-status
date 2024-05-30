@@ -29,13 +29,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             )
         if (vedtaksperiodeBehandling == null) {
             if (kafkaDto.status == Behandlingstatustype.OPPRETTET) {
-                if (kafkaDto.eksterneSøknadIder == null) {
-                    val message =
-                        "Mangler søknad ider for behandlingId ${kafkaDto.behandlingId} og vedtaksperiodeId ${kafkaDto.vedtaksperiodeId}"
-                    throw RuntimeException(
-                        message,
-                    )
-                }
                 // det er denne vi nå skal sende andre ting til
                 val vedtaksperiodeBehandlingDbRecord =
                     vedtaksperiodeBehandlingRepository.save(
@@ -56,14 +49,14 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                 for (eksternSøknadId in kafkaDto.eksterneSøknadIder) {
                     val eksternSøknadIdExists =
                         vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingIdIn(
-                            listOf(kafkaDto.vedtaksperiodeId),
+                            listOf(vedtaksperiodeBehandlingDbRecord.id!!),
                         ).isNotEmpty()
                     if (eksternSøknadIdExists) {
                         continue
                     } else {
                         vedtaksperiodeBehandlingSykepengesoknadRepository.save(
                             VedtaksperiodeBehandlingSykepengesoknadDbRecord(
-                                vedtaksperiodeBehandlingId = vedtaksperiodeBehandlingDbRecord.id!!,
+                                vedtaksperiodeBehandlingId = vedtaksperiodeBehandlingDbRecord.id,
                                 sykepengesoknadUuid = eksternSøknadId,
                             ),
                         )
@@ -91,13 +84,17 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             return
         }
 
-// todo greit å fjerne disse?
-        // her har du ikke det du trenger
-        // val soknad = sykepengesoknadRepository.findBySykepengesoknadUuid(vedtaksperiodeBehandling.sykepengesoknadUuid)
-//        soknad?.let {
-//            // Låser fødselsnummeret hvis vi har en søknad
-//            lockRepository.settAdvisoryTransactionLock(soknad.fnr)
-//        }
+        val soknadIder =
+            vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingIdIn(
+                listOf(vedtaksperiodeBehandling.id!!),
+            ).map { it.sykepengesoknadUuid }
+
+        val soknad = sykepengesoknadRepository.findBySykepengesoknadUuidIn(soknadIder).firstOrNull()
+
+        soknad?.let {
+            // Låser fødselsnummeret hvis vi har en søknad
+            lockRepository.settAdvisoryTransactionLock(soknad.fnr)
+        }
 
         fun oppdaterdatabaseMedSisteStatus() {
             vedtaksperiodeBehandlingRepository.save(
@@ -108,7 +105,7 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             )
             vedtaksperiodeBehandlingStatusRepository.save(
                 VedtaksperiodeBehandlingStatusDbRecord(
-                    vedtaksperiodeBehandlingId = vedtaksperiodeBehandling.id!!,
+                    vedtaksperiodeBehandlingId = vedtaksperiodeBehandling.id,
                     opprettetDatabase = Instant.now(),
                     tidspunkt = kafkaDto.tidspunkt.toInstant(),
                     status = kafkaDto.status.tilStatusVerdi(),
