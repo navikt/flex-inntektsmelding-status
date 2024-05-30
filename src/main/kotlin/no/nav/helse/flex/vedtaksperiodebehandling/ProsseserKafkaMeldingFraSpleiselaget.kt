@@ -17,7 +17,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
 ) {
     val log = logger()
 
-
     // vi trenger en ny offset eller noe for å kunne lese dette: https://nav-it.slack.com/archives/G0112C98QG3/p1716890417948589?thread_ts=1716798509.520179&cid=G0112C98QG3, nils jørgen foreslår å bytte consumer navn
     @Transactional
     fun prosesserKafkaMelding(kafkaDto: Behandlingstatusmelding) {
@@ -51,27 +50,25 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                         ),
                     )
 
-
                 // for loop ... og sjekk om de var der fra før av
 
                 // for loop for eksterneSøknadIDer
                 for (eksternSøknadId in kafkaDto.eksterneSøknadIder) {
-                    val eksternSøknadIdExists = vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingIdIn(listOf(kafkaDto.vedtaksperiodeId)).isNotEmpty()
+                    val eksternSøknadIdExists =
+                        vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingIdIn(
+                            listOf(kafkaDto.vedtaksperiodeId),
+                        ).isNotEmpty()
                     if (eksternSøknadIdExists) {
                         continue
                     } else {
-
-                    vedtaksperiodeBehandlingSykepengesoknadRepository.save(
-                        VedtaksperiodeBehandlingSykepengesoknadDbRecord(
-                            vedtaksperiodeBehandlingId = vedtaksperiodeBehandlingDbRecord.id!!,
-                            sykepengesoknadUuid = eksternSøknadId,
-                        ))
+                        vedtaksperiodeBehandlingSykepengesoknadRepository.save(
+                            VedtaksperiodeBehandlingSykepengesoknadDbRecord(
+                                vedtaksperiodeBehandlingId = vedtaksperiodeBehandlingDbRecord.id!!,
+                                sykepengesoknadUuid = eksternSøknadId,
+                            ),
+                        )
                     }
-
                 }
-
-
-
 
                 vedtaksperiodeBehandlingStatusRepository.save(
                     VedtaksperiodeBehandlingStatusDbRecord(

@@ -15,7 +15,7 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
         behandlingId: String,
     ): VedtaksperiodeBehandlingDbRecord?
 
-    fun findBySykepengesoknadUuidIn(sykepengesoknadUuids: List<String>): List<VedtaksperiodeBehandlingDbRecord>
+   // fun findBySykepengesoknadUuidIn(sykepengesoknadUuids: List<String>): List<VedtaksperiodeBehandlingDbRecord>
 }
 
 @Table("vedtaksperiode_behandling")
@@ -36,15 +36,15 @@ data class VedtaksperiodeBehandlingSykepengesoknadDbRecord(
     @Id
     val id: String? = null,
     val vedtaksperiodeBehandlingId: String,
-    val sykepengesoknadUuid: String
+    val sykepengesoknadUuid: String,
 )
 
 @Repository
 interface VedtaksperiodeBehandlingSykepengesoknadRepository : CrudRepository<VedtaksperiodeBehandlingSykepengesoknadDbRecord, String> {
-        fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
+    fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
+
+    fun findBySykepengesoknadUuid(sykepengesoknadUuid: String): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
 }
-
-
 
 @Repository
 interface VedtaksperiodeBehandlingStatusRepository : CrudRepository<VedtaksperiodeBehandlingStatusDbRecord, String> {
