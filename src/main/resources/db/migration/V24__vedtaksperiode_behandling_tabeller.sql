@@ -1,6 +1,3 @@
-DROP TABLE vedtaksperiode_behandling_status;
-DROP TABLE vedtaksperiode_behandling;
-
 CREATE TABLE vedtaksperiode_behandling
 (
     id                   VARCHAR(36) DEFAULT uuid_generate_v4() PRIMARY KEY,
