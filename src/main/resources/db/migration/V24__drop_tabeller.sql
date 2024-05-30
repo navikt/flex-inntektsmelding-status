@@ -1,0 +1,2 @@
+DROP TABLE vedtaksperiode_behandling_status;
+DROP TABLE vedtaksperiode_behandling;
