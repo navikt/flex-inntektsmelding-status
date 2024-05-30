@@ -32,7 +32,6 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-@Disabled
 class NyttTopicIntegrationTest : FellesTestOppsett() {
     private final val fnr = "12345678901"
     private final val vedtaksperiodeId = UUID.randomUUID().toString()
