@@ -17,26 +17,40 @@ class HentAltForPerson(
     fun hentAltForPerson(fnr: String): List<FullVedtaksperiodeBehandling> {
         val soknader = sykepengesoknadRepository.findByFnr(fnr)
 
-
         // dette henter ut en liste med vedtaksperioder og sykepengesoknader ider
-         // var vedtaksperiodeBehandlingerSykepengesoknad  = vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(soknader.map { it.sykepengesoknadUuid })
-        val vedtaksperiodeBehandlingerSykepengesoknad : List<VedtaksperiodeBehandlingSykepengesoknadDbRecord> = vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(soknader.map { it.sykepengesoknadUuid })
+        // var vedtaksperiodeBehandlingerSykepengesoknad  = vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(soknader.map { it.sykepengesoknadUuid })
+        val vedtaksperiodeBehandlingerSykepengesoknad: List<VedtaksperiodeBehandlingSykepengesoknadDbRecord> =
+            vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(
+                soknader.map {
+                    it.sykepengesoknadUuid
+                },
+            )
 
         // denne henter ut
-        val vedtaksperiodeBehandlinger : List<VedtaksperiodeBehandlingDbRecord> = vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdIn(vedtaksperiodeBehandlingerSykepengesoknad.map { it.vedtaksperiodeBehandlingId })
+        val vedtaksperiodeBehandlinger: List<VedtaksperiodeBehandlingDbRecord> =
+            vedtaksperiodeBehandlingRepository.findByIdIn(
+                vedtaksperiodeBehandlingerSykepengesoknad.map {
+                    it.vedtaksperiodeBehandlingId
+                },
+            )
 
         // val vedtaksperiodeBehandlingStatuser : List<VedtaksperiodeBehandlingStatusDbRecord> = vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(vedtaksperiodeBehandlinger.map { it.id!! })
 
         var fullSoknadsBehandlingListe = mutableListOf<FullVedtaksperiodeBehandling>()
 
         for (vedtaksperiodeBehandling in vedtaksperiodeBehandlinger) {
+            val vedtaksperiodeId = vedtaksperiodeBehandling.id
+            val soknaderIder =
+                vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingId(vedtaksperiodeId!!).map {
+                    it.sykepengesoknadUuid
+                }
 
-            val vedtaksperiodeId = vedtaksperiodeBehandling.vedtaksperiodeId
-            val soknaderIder = vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingId(vedtaksperiodeId).map { it.sykepengesoknadUuid }
+            val soknaderForPeriode: List<Sykepengesoknad> = sykepengesoknadRepository.findBySykepengesoknadUuidIn(soknaderIder)
 
-            val soknaderForPeriode : List<Sykepengesoknad> = sykepengesoknadRepository.findBySykepengesoknadUuidIn(soknaderIder)
-
-            val statuser : List<VedtaksperiodeBehandlingStatusDbRecord> = vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(vedtaksperiodeId))
+            val statuser: List<VedtaksperiodeBehandlingStatusDbRecord> =
+                vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(
+                    listOf(vedtaksperiodeId),
+                )
 
             val objekt = FullVedtaksperiodeBehandling(vedtaksperiodeBehandling, soknaderForPeriode, statuser)
 
@@ -44,10 +58,8 @@ class HentAltForPerson(
         }
 
         return fullSoknadsBehandlingListe
-
     }
 }
-
 
 data class FullVedtaksperiodeBehandling(
     val vedtaksperiode: VedtaksperiodeBehandlingDbRecord,
@@ -55,18 +67,14 @@ data class FullVedtaksperiodeBehandling(
     val statuser: List<VedtaksperiodeBehandlingStatusDbRecord>,
 )
 
-//data class FullVedtaksperiodeBehandling(
+// data class FullVedtaksperiodeBehandling(
 //    val soknadBehandling: FullVedtaksperiodeBehandling,
-//)
+// )
 //
-//data class FullVedtaksperiodeBehandling(
+// data class FullVedtaksperiodeBehandling(
 //    val soknad: Sykepengesoknad,
 //    val vedtaksperioder: List<FullVedtaksperiodeBehandling>,
-//)
-
-
-
-
+// )
 
 /*
 FullVedtaksperiodeBehandling(

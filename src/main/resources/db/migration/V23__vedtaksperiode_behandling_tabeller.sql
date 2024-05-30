@@ -9,7 +9,7 @@ CREATE TABLE vedtaksperiode_behandling
     siste_spleisstatus   VARCHAR                  NOT NULL,
     siste_varslingstatus VARCHAR                  NULL,
     vedtaksperiode_id    VARCHAR(36)              NOT NULL,
-    behandling_id        VARCHAR(36)              NOT NULL UNIQUE,
+    behandling_id        VARCHAR(36)              NOT NULL UNIQUE
     -- 0 til n her sykepengesoknad_
 );
 
@@ -35,6 +35,5 @@ CREATE TABLE vedtaksperiode_behandling_status
     ditt_sykefravaer_melding_id  VARCHAR(36)              NULL
 );
 
-CREATE INDEX vedtaksperiode_behandling_sykepengesoknad_uuid_idx ON vedtaksperiode_behandling (sykepengesoknad_uuid);
 CREATE INDEX vedtaksperiode_behandling_siste_statuser ON vedtaksperiode_behandling (siste_spleisstatus, siste_varslingstatus);
 

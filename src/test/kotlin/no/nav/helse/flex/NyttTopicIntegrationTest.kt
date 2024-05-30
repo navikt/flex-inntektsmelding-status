@@ -155,7 +155,7 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
         val response: List<FullVedtaksperiodeBehandling> = objectMapper.readValue(responseString)
         response shouldHaveSize 1
         response[0].soknader.first().orgnummer shouldBeEqualTo orgNr
-        //response[0].vedtaksperioder[0].status shouldHaveSize 2
+        // response[0].vedtaksperioder[0].status shouldHaveSize 2
         response[0].statuser shouldHaveSize 2
         response[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_ARBEIDSGIVER
     }

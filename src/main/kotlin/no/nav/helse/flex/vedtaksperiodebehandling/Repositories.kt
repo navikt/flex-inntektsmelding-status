@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.Instant
 
-
 @Repository
 interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBehandlingDbRecord, String> {
     fun findByVedtaksperiodeIdAndBehandlingId(
@@ -16,7 +15,8 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
         behandlingId: String,
     ): VedtaksperiodeBehandlingDbRecord?
 
-   fun findByVedtaksperiodeIdIn(ider: List<String>): List<VedtaksperiodeBehandlingDbRecord>
+    // fun findByVedtaksperiodeIdIn(ider: List<String>): List<VedtaksperiodeBehandlingDbRecord> // todo slett
+    fun findByIdIn(id: List<String>): List<VedtaksperiodeBehandlingDbRecord>
 }
 
 @Table("vedtaksperiode_behandling")
@@ -43,8 +43,11 @@ data class VedtaksperiodeBehandlingSykepengesoknadDbRecord(
 @Repository
 interface VedtaksperiodeBehandlingSykepengesoknadRepository : CrudRepository<VedtaksperiodeBehandlingSykepengesoknadDbRecord, String> {
     fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
-    fun findByVedtaksperiodeBehandlingId(id : String): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
+
+    fun findByVedtaksperiodeBehandlingId(id: String): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
+
     fun findBySykepengesoknadUuid(id: String): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
+
     fun findBySykepengesoknadUuidIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord> // må kansjke
 }
 
@@ -83,12 +86,16 @@ enum class StatusVerdi {
 @Repository
 interface PeriodeStatusRepository : org.springframework.data.repository.Repository<StatusQueryResult, String> {
     @Query(
-        "SELECT s.sykepengesoknad_uuid, s.fnr, s.sendt FROM vedtaksperiode_behandling v, " +
-            "sykepengesoknad s " +
-            "WHERE v.sykepengesoknad_uuid = s.sykepengesoknad_uuid " +
-            "AND v.siste_spleisstatus =  'VENTER_PÅ_ARBEIDSGIVER'" +
-            "AND v.siste_varslingstatus is null " +
-            "AND s.sendt < :sendtFoer",
+        """
+            SELECT s.sykepengesoknad_uuid, s.fnr, s.sendt 
+            FROM vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
+            WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
+            AND vbs.vedtaksperiode_behandling_id = v.id
+            AND v.siste_spleisstatus = 'VENTER_PÅ_ARBEIDSGIVER' 
+            AND v.siste_varslingstatus is null 
+            AND s.sendt < :sendtFoer
+
+        """,
     )
     fun finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
         @Param("sendtFoer") sendtFoer: Instant,
