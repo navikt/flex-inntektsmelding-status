@@ -1,2 +1,0 @@
-DELETE FROM vedtaksperiode_behandling_status;
-DELETE FROM vedtaksperiode_behandling;
