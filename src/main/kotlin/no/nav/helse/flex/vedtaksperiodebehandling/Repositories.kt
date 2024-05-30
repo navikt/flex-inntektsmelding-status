@@ -15,7 +15,6 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
         behandlingId: String,
     ): VedtaksperiodeBehandlingDbRecord?
 
-    // fun findByVedtaksperiodeIdIn(ider: List<String>): List<VedtaksperiodeBehandlingDbRecord> // todo slett
     fun findByIdIn(id: List<String>): List<VedtaksperiodeBehandlingDbRecord>
 }
 
@@ -43,10 +42,6 @@ data class VedtaksperiodeBehandlingSykepengesoknadDbRecord(
 @Repository
 interface VedtaksperiodeBehandlingSykepengesoknadRepository : CrudRepository<VedtaksperiodeBehandlingSykepengesoknadDbRecord, String> {
     fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
-
-    fun findByVedtaksperiodeBehandlingId(id: String): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
-
-    fun findBySykepengesoknadUuid(id: String): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
 
     fun findBySykepengesoknadUuidIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord> // må kansjke
 }

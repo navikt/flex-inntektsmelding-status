@@ -7,7 +7,6 @@ CREATE TABLE vedtaksperiode_behandling
     siste_varslingstatus VARCHAR                  NULL,
     vedtaksperiode_id    VARCHAR(36)              NOT NULL,
     behandling_id        VARCHAR(36)              NOT NULL UNIQUE
-    -- 0 til n her sykepengesoknad_
 );
 
 -- https://github.com/navikt/helse-sporbar/blob/f0f36b543182aba531e81cc2850f3e2fe9c32207/src/main/kotlin/no/nav/helse/sporbar/sis/SisPublisher.kt#L15
