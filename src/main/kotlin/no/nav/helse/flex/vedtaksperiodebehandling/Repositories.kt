@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.Instant
 
+
 @Repository
 interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBehandlingDbRecord, String> {
     fun findByVedtaksperiodeIdAndBehandlingId(
@@ -15,7 +16,7 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
         behandlingId: String,
     ): VedtaksperiodeBehandlingDbRecord?
 
-   // fun findBySykepengesoknadUuidIn(sykepengesoknadUuids: List<String>): List<VedtaksperiodeBehandlingDbRecord>
+   fun findByVedtaksperiodeIdIn(ider: List<String>): List<VedtaksperiodeBehandlingDbRecord>
 }
 
 @Table("vedtaksperiode_behandling")
@@ -42,8 +43,9 @@ data class VedtaksperiodeBehandlingSykepengesoknadDbRecord(
 @Repository
 interface VedtaksperiodeBehandlingSykepengesoknadRepository : CrudRepository<VedtaksperiodeBehandlingSykepengesoknadDbRecord, String> {
     fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
-
-    fun findBySykepengesoknadUuid(sykepengesoknadUuid: String): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
+    fun findByVedtaksperiodeBehandlingId(id : String): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
+    fun findBySykepengesoknadUuid(id: String): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
+    fun findBySykepengesoknadUuidIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord> // må kansjke
 }
 
 @Repository

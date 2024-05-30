@@ -6,7 +6,7 @@ import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
 import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.FullSoknadBehandling
+import no.nav.helse.flex.vedtaksperiodebehandling.FullVedtaksperiodeBehandling
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.FERDIG
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.VENTER_PÅ_ARBEIDSGIVER
@@ -152,11 +152,12 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
                 )
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful).andReturn().response.contentAsString
 
-        val response: List<FullSoknadBehandling> = objectMapper.readValue(responseString)
+        val response: List<FullVedtaksperiodeBehandling> = objectMapper.readValue(responseString)
         response shouldHaveSize 1
-        response[0].soknad.orgnummer shouldBeEqualTo orgNr
-        response[0].vedtaksperioder[0].status shouldHaveSize 2
-        response[0].vedtaksperioder[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_ARBEIDSGIVER
+        response[0].soknader.first().orgnummer shouldBeEqualTo orgNr
+        //response[0].vedtaksperioder[0].status shouldHaveSize 2
+        response[0].statuser shouldHaveSize 2
+        response[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_ARBEIDSGIVER
     }
 
     @Test
@@ -243,18 +244,31 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
                 )
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful).andReturn().response.contentAsString
 
-        val response: List<FullSoknadBehandling> = objectMapper.readValue(responseString)
+        val response: List<FullVedtaksperiodeBehandling> = objectMapper.readValue(responseString)
         response shouldHaveSize 1
-        response[0].soknad.orgnummer shouldBeEqualTo orgNr
-        response[0].vedtaksperioder[0].status shouldHaveSize 4
-        response[0].vedtaksperioder[0].status.map { it.status.name } shouldBeEqualTo
+        response.first().soknader.first().orgnummer shouldBeEqualTo orgNr
+        // response[0].soknad.orgnummer shouldBeEqualTo orgNr
+        response.first().statuser shouldHaveSize 4
+        // response[0].vedtaksperioder[0].status shouldHaveSize 4
+
+        response.first().statuser.map { it.status.name } shouldBeEqualTo
             listOf(
                 "OPPRETTET",
                 "VENTER_PÅ_ARBEIDSGIVER",
                 "VENTER_PÅ_SAKSBEHANDLER",
                 "FERDIG",
             )
-        response[0].vedtaksperioder[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
+
+//        response[0].vedtaksperioder[0].status.map { it.status.name } shouldBeEqualTo
+//            listOf(
+//                "OPPRETTET",
+//                "VENTER_PÅ_ARBEIDSGIVER",
+//                "VENTER_PÅ_SAKSBEHANDLER",
+//                "FERDIG",
+//            )
+
+        response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
+        // response[0].vedtaksperioder[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
     }
 
     @Test
