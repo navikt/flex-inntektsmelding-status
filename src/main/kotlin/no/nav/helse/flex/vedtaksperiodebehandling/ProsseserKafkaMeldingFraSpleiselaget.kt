@@ -11,6 +11,7 @@ import java.time.Instant
 class ProsseserKafkaMeldingFraSpleiselaget(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
+    private val vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository,
     private val sykepengesoknadRepository: SykepengesoknadRepository,
     private val lockRepository: LockRepository,
 ) {
@@ -27,14 +28,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             )
         if (vedtaksperiodeBehandling == null) {
             if (kafkaDto.status == Behandlingstatustype.OPPRETTET) {
-                if (kafkaDto.eksternSøknadId == null) {
-                    val message =
-                        "Mangler søknad id for behandlingId ${kafkaDto.behandlingId} og vedtaksperiodeId ${kafkaDto.vedtaksperiodeId}"
-                    throw RuntimeException(
-                        message,
-                    )
-                }
-
                 val vedtaksperiodeBehandlingDbRecord =
                     vedtaksperiodeBehandlingRepository.save(
                         VedtaksperiodeBehandlingDbRecord(
@@ -44,9 +37,24 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                             oppdatert = Instant.now(),
                             sisteSpleisstatus = kafkaDto.status.tilStatusVerdi(),
                             sisteVarslingstatus = null,
-                            sykepengesoknadUuid = kafkaDto.eksternSøknadId,
                         ),
                     )
+
+                for (eksternSøknadId in kafkaDto.eksterneSøknadIder) {
+                    val eksternSøknadIdExists =
+                        vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingIdIn(
+                            listOf(vedtaksperiodeBehandlingDbRecord.id!!),
+                        ).isNotEmpty()
+                    if (!eksternSøknadIdExists) {
+                        vedtaksperiodeBehandlingSykepengesoknadRepository.save(
+                            VedtaksperiodeBehandlingSykepengesoknadDbRecord(
+                                vedtaksperiodeBehandlingId = vedtaksperiodeBehandlingDbRecord.id,
+                                sykepengesoknadUuid = eksternSøknadId,
+                            ),
+                        )
+                    }
+                }
+
                 vedtaksperiodeBehandlingStatusRepository.save(
                     VedtaksperiodeBehandlingStatusDbRecord(
                         vedtaksperiodeBehandlingId = vedtaksperiodeBehandlingDbRecord.id!!,
@@ -68,7 +76,13 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             return
         }
 
-        val soknad = sykepengesoknadRepository.findBySykepengesoknadUuid(vedtaksperiodeBehandling.sykepengesoknadUuid)
+        val soknadIder =
+            vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingIdIn(
+                listOf(vedtaksperiodeBehandling.id!!),
+            ).map { it.sykepengesoknadUuid }
+
+        val soknad = sykepengesoknadRepository.findBySykepengesoknadUuidIn(soknadIder).firstOrNull()
+
         soknad?.let {
             // Låser fødselsnummeret hvis vi har en søknad
             lockRepository.settAdvisoryTransactionLock(soknad.fnr)
@@ -83,7 +97,7 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             )
             vedtaksperiodeBehandlingStatusRepository.save(
                 VedtaksperiodeBehandlingStatusDbRecord(
-                    vedtaksperiodeBehandlingId = vedtaksperiodeBehandling.id!!,
+                    vedtaksperiodeBehandlingId = vedtaksperiodeBehandling.id,
                     opprettetDatabase = Instant.now(),
                     tidspunkt = kafkaDto.tidspunkt.toInstant(),
                     status = kafkaDto.status.tilStatusVerdi(),

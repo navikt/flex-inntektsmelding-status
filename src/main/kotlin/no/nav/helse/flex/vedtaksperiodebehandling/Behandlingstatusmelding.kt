@@ -7,10 +7,13 @@ data class Behandlingstatusmelding(
     val behandlingId: String,
     val tidspunkt: OffsetDateTime,
     val status: Behandlingstatustype,
-    val eksternSøknadId: String? = null,
-) {
-    val versjon = "1.0.0-beta"
-}
+    val eksterneSøknadIder: List<String>,
+    val versjon: String = "2.0.0",
+)
+
+data class MeldingMedVersjon(
+    val versjon: String,
+)
 
 enum class Behandlingstatustype {
     OPPRETTET,

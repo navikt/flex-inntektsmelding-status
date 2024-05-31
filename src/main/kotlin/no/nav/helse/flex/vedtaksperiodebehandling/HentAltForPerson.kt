@@ -10,33 +10,52 @@ import org.springframework.transaction.annotation.Transactional
 class HentAltForPerson(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
+    private val vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository,
     private val sykepengesoknadRepository: SykepengesoknadRepository,
 ) {
     @Transactional(propagation = Propagation.REQUIRED)
     fun hentAltForPerson(fnr: String): List<FullVedtaksperiodeBehandling> {
         val soknader = sykepengesoknadRepository.findByFnr(fnr)
 
-        val vedtaksperiodeBehandlinger =
-            vedtaksperiodeBehandlingRepository.findBySykepengesoknadUuidIn(soknader.map { it.sykepengesoknadUuid })
-        val statuser =
-            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(vedtaksperiodeBehandlinger.map { it.id!! })
+        val vedtaksperiodeBehandlingerSykepengesoknad: List<VedtaksperiodeBehandlingSykepengesoknadDbRecord> =
+            vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(
+                soknader.map {
+                    it.sykepengesoknadUuid
+                },
+            )
 
-        return soknader.map { soknad ->
-            val vedtaksperiodeBehandlingerMedStatus =
-                vedtaksperiodeBehandlinger
-                    .filter { it.sykepengesoknadUuid == soknad.sykepengesoknadUuid }
-                    .map { VedtaksperiodeMedStatuser(it, statuser.filter { status -> status.vedtaksperiodeBehandlingId == it.id }) }
-            FullVedtaksperiodeBehandling(soknad, vedtaksperiodeBehandlingerMedStatus)
+        val vedtaksperiodeBehandlinger: List<VedtaksperiodeBehandlingDbRecord> =
+            vedtaksperiodeBehandlingRepository.findByIdIn(
+                vedtaksperiodeBehandlingerSykepengesoknad.map {
+                    it.vedtaksperiodeBehandlingId
+                },
+            )
+
+        val statuser =
+            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(
+                vedtaksperiodeBehandlinger.map {
+                    it.id!!
+                },
+            )
+
+        return vedtaksperiodeBehandlinger.map { vb ->
+
+            val soknadIdErForBehandling =
+                vedtaksperiodeBehandlingerSykepengesoknad.filter {
+                    it.vedtaksperiodeBehandlingId == vb.id
+                }.map { it.sykepengesoknadUuid }
+            val soknaderForBehandling = soknader.filter { soknadIdErForBehandling.contains(it.sykepengesoknadUuid) }
+            FullVedtaksperiodeBehandling(
+                vb,
+                soknaderForBehandling,
+                statuser.filter { it.vedtaksperiodeBehandlingId == vb.id },
+            )
         }
     }
 }
 
-data class VedtaksperiodeMedStatuser(
-    val vedtaksperiode: VedtaksperiodeBehandlingDbRecord,
-    val status: List<VedtaksperiodeBehandlingStatusDbRecord>,
-)
-
 data class FullVedtaksperiodeBehandling(
-    val soknad: Sykepengesoknad,
-    val vedtaksperioder: List<VedtaksperiodeMedStatuser>,
+    val vedtaksperiode: VedtaksperiodeBehandlingDbRecord,
+    val soknader: List<Sykepengesoknad>,
+    val statuser: List<VedtaksperiodeBehandlingStatusDbRecord>,
 )

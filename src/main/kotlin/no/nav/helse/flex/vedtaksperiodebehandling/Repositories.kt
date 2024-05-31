@@ -15,7 +15,7 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
         behandlingId: String,
     ): VedtaksperiodeBehandlingDbRecord?
 
-    fun findBySykepengesoknadUuidIn(sykepengesoknadUuids: List<String>): List<VedtaksperiodeBehandlingDbRecord>
+    fun findByIdIn(id: List<String>): List<VedtaksperiodeBehandlingDbRecord>
 }
 
 @Table("vedtaksperiode_behandling")
@@ -28,8 +28,22 @@ data class VedtaksperiodeBehandlingDbRecord(
     val sisteVarslingstatus: StatusVerdi?,
     val vedtaksperiodeId: String,
     val behandlingId: String,
+)
+
+@Table("vedtaksperiode_behandling_sykepengesoknad")
+data class VedtaksperiodeBehandlingSykepengesoknadDbRecord(
+    @Id
+    val id: String? = null,
+    val vedtaksperiodeBehandlingId: String,
     val sykepengesoknadUuid: String,
 )
+
+@Repository
+interface VedtaksperiodeBehandlingSykepengesoknadRepository : CrudRepository<VedtaksperiodeBehandlingSykepengesoknadDbRecord, String> {
+    fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
+
+    fun findBySykepengesoknadUuidIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
+}
 
 @Repository
 interface VedtaksperiodeBehandlingStatusRepository : CrudRepository<VedtaksperiodeBehandlingStatusDbRecord, String> {
@@ -66,12 +80,16 @@ enum class StatusVerdi {
 @Repository
 interface PeriodeStatusRepository : org.springframework.data.repository.Repository<StatusQueryResult, String> {
     @Query(
-        "SELECT s.sykepengesoknad_uuid, s.fnr, s.sendt FROM vedtaksperiode_behandling v, " +
-            "sykepengesoknad s " +
-            "WHERE v.sykepengesoknad_uuid = s.sykepengesoknad_uuid " +
-            "AND v.siste_spleisstatus =  'VENTER_PÅ_ARBEIDSGIVER'" +
-            "AND v.siste_varslingstatus is null " +
-            "AND s.sendt < :sendtFoer",
+        """
+            SELECT s.sykepengesoknad_uuid, s.fnr, s.sendt 
+            FROM vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
+            WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
+            AND vbs.vedtaksperiode_behandling_id = v.id
+            AND v.siste_spleisstatus = 'VENTER_PÅ_ARBEIDSGIVER' 
+            AND v.siste_varslingstatus is null 
+            AND s.sendt < :sendtFoer
+
+        """,
     )
     fun finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
         @Param("sendtFoer") sendtFoer: Instant,
