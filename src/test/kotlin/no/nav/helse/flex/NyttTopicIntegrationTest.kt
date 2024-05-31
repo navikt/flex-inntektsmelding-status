@@ -153,7 +153,6 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
         val response: List<FullVedtaksperiodeBehandling> = objectMapper.readValue(responseString)
         response shouldHaveSize 1
         response[0].soknader.first().orgnummer shouldBeEqualTo orgNr
-        // response[0].vedtaksperioder[0].status shouldHaveSize 2
         response[0].statuser shouldHaveSize 2
         response[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_ARBEIDSGIVER
     }
@@ -169,7 +168,7 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
                 status = Behandlingstatustype.VENTER_PÅ_SAKSBEHANDLER,
                 tidspunkt = tidspunkt,
                 eksterneSøknadIder = listOf(soknadId),
-            ) // eksternSøknadId = soknadId,
+            )
 
         kafkaProducer.send(
             ProducerRecord(
@@ -245,9 +244,7 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
         val response: List<FullVedtaksperiodeBehandling> = objectMapper.readValue(responseString)
         response shouldHaveSize 1
         response.first().soknader.first().orgnummer shouldBeEqualTo orgNr
-        // response[0].soknad.orgnummer shouldBeEqualTo orgNr
         response.first().statuser shouldHaveSize 4
-        // response[0].vedtaksperioder[0].status shouldHaveSize 4
 
         response.first().statuser.map { it.status.name } shouldBeEqualTo
             listOf(
@@ -257,16 +254,8 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
                 "FERDIG",
             )
 
-//        response[0].vedtaksperioder[0].status.map { it.status.name } shouldBeEqualTo
-//            listOf(
-//                "OPPRETTET",
-//                "VENTER_PÅ_ARBEIDSGIVER",
-//                "VENTER_PÅ_SAKSBEHANDLER",
-//                "FERDIG",
-//            )
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
-        // response[0].vedtaksperioder[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
     }
 
     @Test
