@@ -19,6 +19,7 @@ enum class Behandlingstatustype {
     OPPRETTET,
     VENTER_PÅ_ARBEIDSGIVER,
     VENTER_PÅ_SAKSBEHANDLER,
+    VENTER_PÅ_ANNEN_PERIODE,
     FERDIG,
     BEHANDLES_UTENFOR_SPEIL,
 }
@@ -30,5 +31,6 @@ fun Behandlingstatustype.tilStatusVerdi(): StatusVerdi {
         Behandlingstatustype.VENTER_PÅ_SAKSBEHANDLER -> StatusVerdi.VENTER_PÅ_SAKSBEHANDLER
         Behandlingstatustype.FERDIG -> StatusVerdi.FERDIG
         Behandlingstatustype.BEHANDLES_UTENFOR_SPEIL -> StatusVerdi.BEHANDLES_UTENFOR_SPEIL
+        Behandlingstatustype.VENTER_PÅ_ANNEN_PERIODE -> StatusVerdi.VENTER_PÅ_ANNEN_PERIODE
     }
 }
