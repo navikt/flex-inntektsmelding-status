@@ -28,7 +28,6 @@ data class VedtaksperiodeBehandlingDbRecord(
     val sisteVarslingstatus: StatusVerdi?,
     val vedtaksperiodeId: String,
     val behandlingId: String,
-    // val sykepengesoknadUuid: String,
 )
 
 @Table("vedtaksperiode_behandling_sykepengesoknad")
