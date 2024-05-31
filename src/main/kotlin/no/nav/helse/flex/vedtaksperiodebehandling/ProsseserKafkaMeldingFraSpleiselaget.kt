@@ -40,7 +40,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                         ),
                     )
 
-
                 for (eksternSøknadId in kafkaDto.eksterneSøknadIder) {
                     val eksternSøknadIdExists =
                         vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingIdIn(

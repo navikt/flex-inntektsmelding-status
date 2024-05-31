@@ -254,7 +254,6 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
                 "FERDIG",
             )
 
-
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
     }
 
