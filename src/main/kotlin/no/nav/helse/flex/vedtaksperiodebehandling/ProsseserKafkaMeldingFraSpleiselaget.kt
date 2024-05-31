@@ -17,7 +17,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
 ) {
     val log = logger()
 
-    // vi trenger en ny offset eller noe for å kunne lese dette: https://nav-it.slack.com/archives/G0112C98QG3/p1716890417948589?thread_ts=1716798509.520179&cid=G0112C98QG3, nils jørgen foreslår å bytte consumer navn
     @Transactional
     fun prosesserKafkaMelding(kafkaDto: Behandlingstatusmelding) {
         lockRepository.settAdvisoryTransactionLock(kafkaDto.vedtaksperiodeId)
@@ -29,7 +28,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             )
         if (vedtaksperiodeBehandling == null) {
             if (kafkaDto.status == Behandlingstatustype.OPPRETTET) {
-                // det er denne vi nå skal sende andre ting til
                 val vedtaksperiodeBehandlingDbRecord =
                     vedtaksperiodeBehandlingRepository.save(
                         VedtaksperiodeBehandlingDbRecord(
@@ -39,12 +37,10 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                             oppdatert = Instant.now(),
                             sisteSpleisstatus = kafkaDto.status.tilStatusVerdi(),
                             sisteVarslingstatus = null,
-                            // sykepengesoknadUuid = kafkaDto.eksternSøknadId, // dette er nå et set
                         ),
                     )
 
                 // for loop ... og sjekk om de var der fra før av
-
                 // for loop for eksterneSøknadIDer
                 for (eksternSøknadId in kafkaDto.eksterneSøknadIder) {
                     val eksternSøknadIdExists =
@@ -92,7 +88,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
         val soknad = sykepengesoknadRepository.findBySykepengesoknadUuidIn(soknadIder).firstOrNull()
 
         soknad?.let {
-            // Låser fødselsnummeret hvis vi har en søknad
             lockRepository.settAdvisoryTransactionLock(soknad.fnr)
         }
 
