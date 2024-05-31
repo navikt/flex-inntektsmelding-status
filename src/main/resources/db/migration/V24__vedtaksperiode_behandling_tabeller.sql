@@ -9,10 +9,6 @@ CREATE TABLE vedtaksperiode_behandling
     behandling_id        VARCHAR(36)              NOT NULL UNIQUE
 );
 
--- https://github.com/navikt/helse-sporbar/blob/f0f36b543182aba531e81cc2850f3e2fe9c32207/src/main/kotlin/no/nav/helse/sporbar/sis/SisPublisher.kt#L15
--- her er koden til det de sender
--- https://github.com/navikt/helse-sporbar/blob/master/src/main/kotlin/no/nav/helse/sporbar/sis/Behandlingstatusmelding.kt#L31
--- sjekk, gpt
 CREATE TABLE vedtaksperiode_behandling_sykepengesoknad
 (
     id                           VARCHAR(36) DEFAULT uuid_generate_v4() PRIMARY KEY,

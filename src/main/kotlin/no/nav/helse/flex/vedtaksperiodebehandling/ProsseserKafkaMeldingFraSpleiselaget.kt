@@ -40,16 +40,13 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                         ),
                     )
 
-                // for loop ... og sjekk om de var der fra før av
-                // for loop for eksterneSøknadIDer
+
                 for (eksternSøknadId in kafkaDto.eksterneSøknadIder) {
                     val eksternSøknadIdExists =
                         vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingIdIn(
                             listOf(vedtaksperiodeBehandlingDbRecord.id!!),
                         ).isNotEmpty()
-                    if (eksternSøknadIdExists) {
-                        continue
-                    } else {
+                    if (!eksternSøknadIdExists) {
                         vedtaksperiodeBehandlingSykepengesoknadRepository.save(
                             VedtaksperiodeBehandlingSykepengesoknadDbRecord(
                                 vedtaksperiodeBehandlingId = vedtaksperiodeBehandlingDbRecord.id,
@@ -88,6 +85,7 @@ class ProsseserKafkaMeldingFraSpleiselaget(
         val soknad = sykepengesoknadRepository.findBySykepengesoknadUuidIn(soknadIder).firstOrNull()
 
         soknad?.let {
+            // Låser fødselsnummeret hvis vi har en søknad
             lockRepository.settAdvisoryTransactionLock(soknad.fnr)
         }
 
