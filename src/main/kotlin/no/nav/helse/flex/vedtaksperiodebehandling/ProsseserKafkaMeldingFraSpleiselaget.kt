@@ -122,6 +122,10 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                 oppdaterdatabaseMedSisteStatus()
                 // TODO fjern sendte mangler im varsler
             }
+            Behandlingstatustype.VENTER_PÅ_ANNEN_PERIODE -> {
+                oppdaterdatabaseMedSisteStatus()
+                // TODO  tenk igjennom hva vi skal gjøre her
+            }
 
             Behandlingstatustype.BEHANDLES_UTENFOR_SPEIL -> {
                 oppdaterdatabaseMedSisteStatus()
