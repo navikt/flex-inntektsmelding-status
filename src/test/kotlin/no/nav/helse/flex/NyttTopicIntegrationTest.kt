@@ -8,8 +8,7 @@ import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.FullVedtaksperiodeBehandling
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.FERDIG
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.VENTER_PÅ_ARBEIDSGIVER
+import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
 import org.amshove.kluent.shouldBeEmpty
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldHaveSize
@@ -39,23 +38,23 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
     private final val orgNr = "123456547"
     private final val fom = LocalDate.of(2022, 6, 1)
     private final val tom = LocalDate.of(2022, 6, 30)
+    val soknad =
+        SykepengesoknadDTO(
+            fnr = fnr,
+            id = soknadId,
+            type = SoknadstypeDTO.ARBEIDSTAKERE,
+            status = SoknadsstatusDTO.NY,
+            startSyketilfelle = fom,
+            fom = fom,
+            tom = tom,
+            arbeidssituasjon = ArbeidssituasjonDTO.ARBEIDSTAKER,
+            arbeidsgiver = ArbeidsgiverDTO(navn = "Flex AS", orgnummer = orgNr),
+        )
 
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
         periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now()).shouldBeEmpty()
-        val soknad =
-            SykepengesoknadDTO(
-                fnr = fnr,
-                id = soknadId,
-                type = SoknadstypeDTO.ARBEIDSTAKERE,
-                status = SoknadsstatusDTO.NY,
-                startSyketilfelle = fom,
-                fom = fom,
-                tom = tom,
-                arbeidssituasjon = ArbeidssituasjonDTO.ARBEIDSTAKER,
-                arbeidsgiver = ArbeidsgiverDTO(navn = "Flex AS", orgnummer = orgNr),
-            )
 
         kafkaProducer.send(
             ProducerRecord(
@@ -131,7 +130,9 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
         perioderSomVenterPaaArbeidsgiver.first().fnr shouldBeEqualTo fnr
         perioderSomVenterPaaArbeidsgiver.first().sykepengesoknadUuid shouldBeEqualTo soknadId
 
-        periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(OffsetDateTime.now().minusHours(3).toInstant())
+        periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
+            OffsetDateTime.now().minusHours(3).toInstant(),
+        )
             .shouldBeEmpty()
     }
 
@@ -255,6 +256,94 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
             )
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
+    }
+
+    @Test
+    @Order(6)
+    fun `Vi får beskjed at perioden venter på saksbehandling igjen med enda en ny søknad id`() {
+        val korrigerendeSoknadId = UUID.randomUUID().toString()
+        kafkaProducer.send(
+            ProducerRecord(
+                SYKEPENGESOKNAD_TOPIC,
+                soknad.id,
+                soknad
+                    .copy(
+                        status = SoknadsstatusDTO.SENDT,
+                        sendtNav = LocalDateTime.now(),
+                        id = korrigerendeSoknadId,
+                        korrigerer = soknadId,
+                    )
+                    .serialisertTilString(),
+            ),
+        ).get()
+
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
+            sykepengesoknadRepository.findBySykepengesoknadUuid(korrigerendeSoknadId) != null
+        }
+
+        val tidspunkt = OffsetDateTime.now()
+        val behandlingstatusmelding =
+            Behandlingstatusmelding(
+                vedtaksperiodeId = vedtaksperiodeId,
+                behandlingId = behandlingId,
+                status = Behandlingstatustype.VENTER_PÅ_SAKSBEHANDLER,
+                tidspunkt = tidspunkt,
+                eksterneSøknadIder = listOf(soknadId, korrigerendeSoknadId),
+            )
+
+        kafkaProducer.send(
+            ProducerRecord(
+                SIS_TOPIC,
+                vedtaksperiodeId,
+                behandlingstatusmelding.serialisertTilString(),
+            ),
+        ).get()
+
+        await().atMost(5, TimeUnit.SECONDS).until {
+            val vedtaksperiode =
+                vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
+                    vedtaksperiodeId,
+                    behandlingId,
+                )
+            if (vedtaksperiode == null) {
+                false
+            } else {
+                vedtaksperiode.sisteSpleisstatus == StatusVerdi.VENTER_PÅ_SAKSBEHANDLER
+            }
+        }
+    }
+
+    @Test
+    @Order(7)
+    fun `Vi kan enda en gang hente ut historikken fra flex internal frontend`() {
+        val responseString =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/api/v1/vedtaksperioder")
+                        .header("Authorization", "Bearer ${skapAzureJwt("flex-internal-frontend-client-id")}")
+                        .header("fnr", fnr)
+                        .accept("application/json; charset=UTF-8")
+                        .contentType(MediaType.APPLICATION_JSON),
+                )
+                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful).andReturn().response.contentAsString
+
+        val response: List<FullVedtaksperiodeBehandling> = objectMapper.readValue(responseString)
+        response shouldHaveSize 1
+        response.first().soknader.shouldHaveSize(2)
+        response.first().soknader.first().orgnummer shouldBeEqualTo orgNr
+        response.first().statuser shouldHaveSize 5
+
+        response.first().statuser.map { it.status.name } shouldBeEqualTo
+            listOf(
+                "OPPRETTET",
+                "VENTER_PÅ_ARBEIDSGIVER",
+                "VENTER_PÅ_SAKSBEHANDLER",
+                "FERDIG",
+                "VENTER_PÅ_SAKSBEHANDLER",
+            )
+
+        response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_SAKSBEHANDLER
     }
 
     @Test
