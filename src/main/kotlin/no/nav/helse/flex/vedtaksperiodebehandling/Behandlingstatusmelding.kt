@@ -12,7 +12,7 @@ data class Behandlingstatusmelding(
 )
 
 data class MeldingMedVersjon(
-    val versjon: String,
+    val versjon: String? = null,
 )
 
 enum class Behandlingstatustype {
