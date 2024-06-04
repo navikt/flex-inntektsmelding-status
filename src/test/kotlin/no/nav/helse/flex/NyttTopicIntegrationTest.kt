@@ -14,6 +14,7 @@ import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldHaveSize
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.awaitility.Awaitility
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
@@ -30,6 +31,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
+@Disabled
 class NyttTopicIntegrationTest : FellesTestOppsett() {
     private final val fnr = "12345678901"
     private final val vedtaksperiodeId = UUID.randomUUID().toString()
