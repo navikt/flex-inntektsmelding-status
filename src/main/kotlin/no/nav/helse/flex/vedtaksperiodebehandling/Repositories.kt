@@ -23,9 +23,11 @@ data class VedtaksperiodeBehandlingDbRecord(
     @Id
     val id: String? = null,
     val opprettetDatabase: Instant,
-    val oppdatert: Instant,
+    val oppdatertDatabase: Instant,
     val sisteSpleisstatus: StatusVerdi,
+    val sisteSpleisstatusTidspunkt: Instant,
     val sisteVarslingstatus: StatusVerdi?,
+    val sisteVarslingstatusTidspunkt: Instant?,
     val vedtaksperiodeId: String,
     val behandlingId: String,
 )
