@@ -12,7 +12,7 @@ INNTEKTSMELDING_MANGLER_VENTETID: 0
 spring:
   main.banner-mode: 'off'
   profiles:
-    active: test, bomlo
+    active: test, siskonsumer
   flyway:
     enabled: true
   datasource:

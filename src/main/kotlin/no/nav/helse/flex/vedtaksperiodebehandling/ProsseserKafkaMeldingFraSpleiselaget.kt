@@ -51,9 +51,11 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                             behandlingId = kafkaDto.behandlingId,
                             vedtaksperiodeId = kafkaDto.vedtaksperiodeId,
                             opprettetDatabase = Instant.now(),
-                            oppdatert = Instant.now(),
+                            oppdatertDatabase = Instant.now(),
                             sisteSpleisstatus = kafkaDto.status.tilStatusVerdi(),
+                            sisteSpleisstatusTidspunkt = kafkaDto.tidspunkt.toInstant(),
                             sisteVarslingstatus = null,
+                            sisteVarslingstatusTidspunkt = null,
                         ),
                     )
 
@@ -97,7 +99,8 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             vedtaksperiodeBehandlingRepository.save(
                 vedtaksperiodeBehandling.copy(
                     sisteSpleisstatus = kafkaDto.status.tilStatusVerdi(),
-                    oppdatert = Instant.now(),
+                    sisteSpleisstatusTidspunkt = kafkaDto.tidspunkt.toInstant(),
+                    oppdatertDatabase = Instant.now(),
                 ),
             )
             vedtaksperiodeBehandlingStatusRepository.save(
