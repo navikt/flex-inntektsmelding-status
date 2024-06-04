@@ -124,8 +124,6 @@ abstract class FellesTestOppsett {
     }
 
     fun slettFraDatabase() {
-        jdbcTemplate.update("DELETE FROM vedtaksperiode_status")
-        jdbcTemplate.update("DELETE FROM vedtaksperiode")
         jdbcTemplate.update("DELETE FROM organisasjon")
     }
 
