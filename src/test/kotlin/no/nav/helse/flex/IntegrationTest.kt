@@ -10,6 +10,8 @@ import no.nav.helse.flex.Testdata.vedtaksperiodeId
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.sykepengesoknad.kafka.*
+import no.nav.helse.flex.varselutsending.CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15
+import no.nav.helse.flex.varselutsending.CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.FullVedtaksperiodeBehandling
@@ -35,7 +37,7 @@ class IntegrationTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
-        periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now()).shouldBeEmpty()
+        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now()).shouldBeEmpty()
         sendSoknad(soknad)
         sendSoknad(
             soknad.copy(
@@ -52,7 +54,7 @@ class IntegrationTest : FellesTestOppsett() {
     @Test
     @Order(1)
     fun `Vi får beskjed at perioden venter på arbeidsgiver`() {
-        periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now()).shouldBeEmpty()
+        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now()).shouldBeEmpty()
 
         val tidspunkt = OffsetDateTime.now()
         val behandlingstatusmelding =
@@ -73,12 +75,11 @@ class IntegrationTest : FellesTestOppsett() {
         awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
 
         val perioderSomVenterPaaArbeidsgiver =
-            periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+            vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
         perioderSomVenterPaaArbeidsgiver.shouldHaveSize(1)
-        perioderSomVenterPaaArbeidsgiver.first().fnr shouldBeEqualTo fnr
-        perioderSomVenterPaaArbeidsgiver.first().sykepengesoknadUuid shouldBeEqualTo soknadId
+        perioderSomVenterPaaArbeidsgiver.first() shouldBeEqualTo fnr
 
-        periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
+        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
             OffsetDateTime.now().minusHours(3).toInstant(),
         )
             .shouldBeEmpty()
@@ -110,16 +111,16 @@ class IntegrationTest : FellesTestOppsett() {
     @Order(3)
     fun `Vi sender ikke ut mangler inntektsmelding varsel etter 14 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(14))
-        cronjobResultat["antallUnikeFnrInntektsmeldingVarsling"] shouldBeEqualTo 0
-        cronjobResultat.containsKey("VARSLET_MANGLER_INNTEKTSMELDING").`should be false`()
+        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
+        cronjobResultat.containsKey(SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15).`should be false`()
     }
 
     @Test
     @Order(4)
     fun `Vi sender ut mangler inntektsmelding varsel etter 15 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
-        cronjobResultat["VARSLET_MANGLER_INNTEKTSMELDING"] shouldBeEqualTo 1
-        cronjobResultat["antallUnikeFnrInntektsmeldingVarsling"] shouldBeEqualTo 1
+        cronjobResultat[SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15] shouldBeEqualTo 1
+        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 1
 
         val beskjedCR = varslingConsumer.ventPåRecords(1).first()
         val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()

@@ -68,9 +68,6 @@ abstract class FellesTestOppsett {
     lateinit var jdbcTemplate: JdbcTemplate
 
     @Autowired
-    lateinit var periodeStatusRepository: PeriodeStatusRepository
-
-    @Autowired
     lateinit var lockRepository: LockRepository
 
     @Autowired

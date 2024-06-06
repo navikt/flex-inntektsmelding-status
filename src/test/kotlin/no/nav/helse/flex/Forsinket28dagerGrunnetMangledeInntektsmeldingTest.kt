@@ -1,6 +1,7 @@
 package no.nav.helse.flex
 
 import no.nav.helse.flex.sykepengesoknad.kafka.*
+import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
@@ -21,7 +22,7 @@ class Forsinket28dagerGrunnetMangledeInntektsmeldingTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
-        periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now()).shouldBeEmpty()
+        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now()).shouldBeEmpty()
         sendSoknad(Testdata.soknad)
         sendSoknad(
             Testdata.soknad.copy(
@@ -62,9 +63,9 @@ class Forsinket28dagerGrunnetMangledeInntektsmeldingTest : FellesTestOppsett() {
     fun `Vi sender ut mangler inntektsmelding varsel etter 15 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
         cronjobResultat.shouldHaveSize(3)
-        cronjobResultat["VARSLET_MANGLER_INNTEKTSMELDING"] shouldBeEqualTo 1
-        cronjobResultat["antallUnikeFnrInntektsmeldingVarsling"] shouldBeEqualTo 1
-        cronjobResultat["antallUnikeFnrForForsinketSbGrunnetManlendeInntektsmelding"] shouldBeEqualTo 0
+        cronjobResultat[SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15] shouldBeEqualTo 1
+        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 1
+        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 0
 
         varslingConsumer.ventPåRecords(1)
         meldingKafkaConsumer.ventPåRecords(1)
@@ -75,16 +76,16 @@ class Forsinket28dagerGrunnetMangledeInntektsmeldingTest : FellesTestOppsett() {
     fun `Ingenting skjer etter 20 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(20))
         cronjobResultat.shouldHaveSize(2)
-        cronjobResultat["antallUnikeFnrInntektsmeldingVarsling"] shouldBeEqualTo 0
-        cronjobResultat["antallUnikeFnrForForsinketSbGrunnetManlendeInntektsmelding"] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 0
     }
 
     @Test
     @Order(4)
     fun `Noe skjer etter 28 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(28))
-        cronjobResultat.shouldHaveSize(2)
-        cronjobResultat["antallUnikeFnrInntektsmeldingVarsling"] shouldBeEqualTo 0
-        cronjobResultat["antallUnikeFnrForForsinketSbGrunnetManlendeInntektsmelding"] shouldBeEqualTo 1
+        cronjobResultat.shouldHaveSize(3)
+        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 1
     }
 }
