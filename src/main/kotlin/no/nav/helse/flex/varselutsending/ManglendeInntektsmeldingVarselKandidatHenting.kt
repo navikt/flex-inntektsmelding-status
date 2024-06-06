@@ -35,10 +35,9 @@ class ManglendeInntektsmeldingVarselKandidatHenting(
             val resultat =
                 manglendeInntektsmeldingVarsling.prosseserManglendeInntektsmeldingKandidat(it, sendtFoer)
 
-            if (returMap.containsKey(resultat))
-                {
-                    returMap[resultat] = returMap[resultat]!! + 1
-                } else {
+            if (returMap.containsKey(resultat)) {
+                returMap[resultat] = returMap[resultat]!! + 1
+            } else {
                 returMap[resultat] = 1
             }
         }
