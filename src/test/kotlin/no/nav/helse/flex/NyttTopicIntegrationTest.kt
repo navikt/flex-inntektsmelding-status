@@ -3,15 +3,16 @@ package no.nav.helse.flex
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.kafka.SIS_TOPIC
 import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
+import no.nav.helse.flex.melding.MeldingKafkaDto
+import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.FullVedtaksperiodeBehandling
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
-import org.amshove.kluent.shouldBeEmpty
-import org.amshove.kluent.shouldBeEqualTo
-import org.amshove.kluent.shouldHaveSize
+import no.nav.tms.varsel.action.Sensitivitet
+import org.amshove.kluent.*
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.awaitility.Awaitility
 import org.junit.jupiter.api.MethodOrderer
@@ -36,7 +37,7 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
     private final val behandlingId = UUID.randomUUID().toString()
     private final val soknadId = UUID.randomUUID().toString()
     private final val orgNr = "123456547"
-    private final val fom = LocalDate.of(2022, 6, 1)
+    private final val fom = LocalDate.of(2022, 5, 29)
     private final val tom = LocalDate.of(2022, 6, 30)
     val soknad =
         SykepengesoknadDTO(
@@ -160,6 +161,45 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
 
     @Test
     @Order(3)
+    fun `Vi sender ikke ut mangler inntektsmelding varsel etter 14 dager`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(14))
+        cronjobResultat["antallUnikeFnrInntektsmeldingVarsling"] shouldBeEqualTo 0
+        cronjobResultat.containsKey("VARSLET_MANGLER_INNTEKTSMELDING").`should be false`()
+    }
+
+    @Test
+    @Order(4)
+    fun `Vi sender ut mangler inntektsmelding varsel etter 15 dager`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
+        cronjobResultat["VARSLET_MANGLER_INNTEKTSMELDING"] shouldBeEqualTo 1
+        cronjobResultat["antallUnikeFnrInntektsmeldingVarsling"] shouldBeEqualTo 1
+
+        val beskjedCR = varslingConsumer.ventPåRecords(1).first()
+        val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
+        beskjedInput.ident shouldBeEqualTo fnr
+        beskjedInput.eksternVarsling.shouldNotBeNull()
+        beskjedInput.link shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
+        beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
+        beskjedInput.tekster.first().tekst shouldBeEqualTo
+            "Du har gjort din del. Nå venter vi på inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
+
+        val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
+        val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
+        melding.fnr shouldBeEqualTo fnr
+        melding.lukkMelding.shouldBeNull()
+
+        val opprettMelding = melding.opprettMelding.shouldNotBeNull()
+        opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING"
+        opprettMelding.tekst shouldBeEqualTo
+            "Du har gjort din del. Nå venter vi på inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
+        opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
+        opprettMelding.lukkbar shouldBeEqualTo false
+        opprettMelding.variant shouldBeEqualTo Variant.INFO
+        opprettMelding.synligFremTil.shouldNotBeNull()
+    }
+
+    @Test
+    @Order(5)
     fun `Vi får beskjed at perioden venter på saksbehandling`() {
         val tidspunkt = OffsetDateTime.now()
         val behandlingstatusmelding =
@@ -194,7 +234,7 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
     }
 
     @Test
-    @Order(4)
+    @Order(6)
     fun `Vi får beskjed at perioden er ferdig`() {
         val tidspunkt = OffsetDateTime.now()
         val behandlingstatusmelding =
@@ -228,7 +268,7 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
     }
 
     @Test
-    @Order(5)
+    @Order(7)
     fun `Vi kan hente ut historikken fra flex internal frontend igjen`() {
         val responseString =
             mockMvc
@@ -245,21 +285,23 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
         val response: List<FullVedtaksperiodeBehandling> = objectMapper.readValue(responseString)
         response shouldHaveSize 1
         response.first().soknader.first().orgnummer shouldBeEqualTo orgNr
-        response.first().statuser shouldHaveSize 4
+        response.first().statuser shouldHaveSize 5
 
         response.first().statuser.map { it.status.name } shouldBeEqualTo
             listOf(
                 "OPPRETTET",
                 "VENTER_PÅ_ARBEIDSGIVER",
+                "VARSLET_MANGLER_INNTEKTSMELDING",
                 "VENTER_PÅ_SAKSBEHANDLER",
                 "FERDIG",
             )
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
+        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING
     }
 
     @Test
-    @Order(6)
+    @Order(8)
     fun `Vi får beskjed at perioden venter på saksbehandling igjen med enda en ny søknad id`() {
         val korrigerendeSoknadId = UUID.randomUUID().toString()
         kafkaProducer.send(
@@ -314,7 +356,7 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
     }
 
     @Test
-    @Order(7)
+    @Order(9)
     fun `Vi kan enda en gang hente ut historikken fra flex internal frontend`() {
         val responseString =
             mockMvc
@@ -332,18 +374,20 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
         response shouldHaveSize 1
         response.first().soknader.shouldHaveSize(2)
         response.first().soknader.first().orgnummer shouldBeEqualTo orgNr
-        response.first().statuser shouldHaveSize 5
+        response.first().statuser shouldHaveSize 6
 
         response.first().statuser.map { it.status.name } shouldBeEqualTo
             listOf(
                 "OPPRETTET",
                 "VENTER_PÅ_ARBEIDSGIVER",
+                "VARSLET_MANGLER_INNTEKTSMELDING",
                 "VENTER_PÅ_SAKSBEHANDLER",
                 "FERDIG",
                 "VENTER_PÅ_SAKSBEHANDLER",
             )
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_SAKSBEHANDLER
+        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING
     }
 
     @Test
