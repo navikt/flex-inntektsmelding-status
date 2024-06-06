@@ -1,4 +1,4 @@
-package no.nav.helse.flex.brukernotifikasjon
+package no.nav.helse.flex.brukervarsel
 
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
@@ -15,7 +15,7 @@ import java.time.LocalDate
 import java.time.ZoneOffset.UTC
 
 @Component
-class Brukernotifikasjon(
+class Brukervarsel(
     private val kafkaProducer: KafkaProducer<String, String>,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
     private val registry: MeterRegistry,
@@ -29,7 +29,7 @@ class Brukernotifikasjon(
         fom: LocalDate,
         synligFremTil: Instant,
     ) {
-        registry.counter("brukernotifikasjon_mangler_inntektsmelding_beskjed_sendt").increment()
+        registry.counter("brukervarsel_mangler_inntektsmelding_beskjed_sendt").increment()
 
         val opprettVarsel =
             VarselActionBuilder.opprett {
@@ -56,7 +56,7 @@ class Brukernotifikasjon(
         fnr: String,
         bestillingId: String,
     ) {
-        registry.counter("brukernotifikasjon_done_sendt").increment()
+        registry.counter("brukervarsel_done_sendt").increment()
 
         val inaktiverVarsel =
             VarselActionBuilder.inaktiver {

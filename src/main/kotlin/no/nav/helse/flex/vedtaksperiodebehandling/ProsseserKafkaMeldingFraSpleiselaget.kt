@@ -1,6 +1,6 @@
 package no.nav.helse.flex.vedtaksperiodebehandling
 
-import no.nav.helse.flex.brukernotifikasjon.Brukernotifikasjon
+import no.nav.helse.flex.brukervarsel.Brukervarsel
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.LukkMelding
@@ -17,7 +17,7 @@ class ProsseserKafkaMeldingFraSpleiselaget(
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
     private val vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository,
     private val sykepengesoknadRepository: SykepengesoknadRepository,
-    private val brukernotifikasjon: Brukernotifikasjon,
+    private val brukervarsel: Brukervarsel,
     private val meldingKafkaProducer: MeldingKafkaProducer,
     private val lockRepository: LockRepository,
 ) {
@@ -230,7 +230,7 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                 .firstOrNull { it.status == StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING }
                 ?: throw RuntimeException("Fant ikke varslet mangler im status, den skal være her")
 
-        brukernotifikasjon.sendDonemelding(
+        brukervarsel.sendDonemelding(
             fnr = fnr,
             bestillingId = varsletManglerImStatus.brukervarselId!!,
         )

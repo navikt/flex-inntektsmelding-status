@@ -1,6 +1,6 @@
 package no.nav.helse.flex.varselutsending
 
-import no.nav.helse.flex.brukernotifikasjon.Brukernotifikasjon
+import no.nav.helse.flex.brukervarsel.Brukervarsel
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.MeldingKafkaDto
@@ -25,7 +25,7 @@ class ManglendeInntektsmeldingVarsling(
     private val hentAltForPerson: HentAltForPerson,
     private val lockRepository: LockRepository,
     private val environmentToggles: EnvironmentToggles,
-    private val brukernotifikasjon: Brukernotifikasjon,
+    private val brukervarsel: Brukervarsel,
     private val organisasjonRepository: OrganisasjonRepository,
     private val meldingKafkaProducer: MeldingKafkaProducer,
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
@@ -75,7 +75,7 @@ class ManglendeInntektsmeldingVarsling(
         val orgnavn = organisasjonRepository.findByOrgnummer(soknaden.orgnummer!!)?.navn ?: soknaden.orgnummer
 
         val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
-        brukernotifikasjon.beskjedManglerInntektsmelding(
+        brukervarsel.beskjedManglerInntektsmelding(
             fnr = fnr,
             bestillingId = brukervarslId,
             orgNavn = orgnavn,
