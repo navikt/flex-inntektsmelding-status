@@ -58,6 +58,7 @@ class InntektsmeldingTest : FellesTestOppsett() {
         val melding = inntektsmeldingRepository.findByFnrIn(listOf(fnr)).first()
         melding.arbeidsgivertype `should be equal to` "VIRKSOMHET"
         melding.fullRefusjon `should be equal to` true
+        melding.vedtaksperiodeId `should be equal to` "ffcf0c28-dd35-4b5d-b518-3d3cbda9329a"
     }
 
     @Test
@@ -154,5 +155,6 @@ fun skapInntektsmelding(
         innsenderFulltNavn = "",
         innsenderTelefon = "",
         virksomhetsnummer = virksomhetsnummer,
+        vedtaksperiodeId = UUID.fromString("ffcf0c28-dd35-4b5d-b518-3d3cbda9329a"),
     )
 }
