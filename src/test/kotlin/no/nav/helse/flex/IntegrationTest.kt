@@ -242,12 +242,12 @@ class IntegrationTest : FellesTestOppsett() {
                 listOf(vedtaksperiode!!.id!!),
             ).first { it.status == VARSLET_MANGLER_INNTEKTSMELDING }
 
-        val doneBrukernotifikasjon =
+        val doneBrukervarsel =
             varslingConsumer
                 .ventPåRecords(1)
                 .first()
-        doneBrukernotifikasjon.key() shouldBeEqualTo statusManglerIm.brukervarselId!!
-        doneBrukernotifikasjon.value().tilInaktiverVarselInstance().varselId shouldBeEqualTo statusManglerIm.brukervarselId!!
+        doneBrukervarsel.key() shouldBeEqualTo statusManglerIm.brukervarselId!!
+        doneBrukervarsel.value().tilInaktiverVarselInstance().varselId shouldBeEqualTo statusManglerIm.brukervarselId!!
 
         val cr = meldingKafkaConsumer.ventPåRecords(1).first()
         val doneDittSykefravaer: MeldingKafkaDto = cr.value().let { objectMapper.readValue(it) }
