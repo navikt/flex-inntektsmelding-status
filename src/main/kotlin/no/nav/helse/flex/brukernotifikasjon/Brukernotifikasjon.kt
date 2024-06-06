@@ -24,7 +24,6 @@ class Brukernotifikasjon(
 
     fun beskjedManglerInntektsmelding(
         fnr: String,
-        eksternId: String,
         bestillingId: String,
         orgNavn: String,
         fom: LocalDate,
@@ -50,7 +49,7 @@ class Brukernotifikasjon(
             }
 
         kafkaProducer.send(ProducerRecord(MINSIDE_BRUKERVARSEL, bestillingId, opprettVarsel)).get()
-        log.info("Bestilte beskjed for manglende inntektsmelding $eksternId")
+        log.info("Bestilte beskjed for manglende inntektsmelding $bestillingId")
     }
 
     fun sendDonemelding(

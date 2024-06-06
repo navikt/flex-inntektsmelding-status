@@ -8,6 +8,7 @@ import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
+import no.nav.helse.flex.varselutsending.VarselutsendingCronJob
 import no.nav.helse.flex.vedtaksperiodebehandling.PeriodeStatusRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusRepository
@@ -49,6 +50,9 @@ abstract class FellesTestOppsett {
 
     @Autowired
     lateinit var organisasjonRepository: OrganisasjonRepository
+
+    @Autowired
+    lateinit var varselutsendingCronJob: VarselutsendingCronJob
 
     @Autowired
     lateinit var sykepengesoknadRepository: SykepengesoknadRepository

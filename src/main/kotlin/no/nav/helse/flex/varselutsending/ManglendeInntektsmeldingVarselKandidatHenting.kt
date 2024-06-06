@@ -14,7 +14,7 @@ class ManglendeInntektsmeldingVarselKandidatHenting(
 ) {
     private val log = logger()
 
-    fun finnOgProsseserKandidater(now: OffsetDateTime = OffsetDateTime.now()): Map<String, Int> {
+    fun finnOgProsseserKandidater(now: OffsetDateTime): Map<String, Int> {
         val sendtFoer =
             if (environmentToggles.isDevGcp()) {
                 now.minusMinutes(2).toInstant()
@@ -26,14 +26,23 @@ class ManglendeInntektsmeldingVarselKandidatHenting(
             periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtFoer = sendtFoer)
 
         val unikeFnr = kandidater.map { it.fnr }.distinct()
-        unikeFnr.forEach {
-            manglendeInntektsmeldingVarsling.prosseserManglendeInntektsmeldingKandidat(it, sendtFoer)
-        }
-        log.info("Fant ${kandidater.size} kandidater for varselutsending for manglende inntektsmelding")
+        val returMap = mutableMapOf<String, Int>()
         log.info("Fant ${unikeFnr.size} unike fnr for varselutsending for manglende inntektsmelding")
-        return mapOf(
-            "antallKandidaterInntektsmeldingVarsling" to kandidater.size,
-            "antallUnikeFnrInntektsmeldingVarsling" to unikeFnr.size,
-        )
+
+        returMap["antallUnikeFnrInntektsmeldingVarsling"] = unikeFnr.size
+
+        unikeFnr.forEach {
+            val resultat =
+                manglendeInntektsmeldingVarsling.prosseserManglendeInntektsmeldingKandidat(it, sendtFoer)
+
+            if (returMap.containsKey(resultat))
+                {
+                    returMap[resultat] = returMap[resultat]!! + 1
+                } else {
+                returMap[resultat] = 1
+            }
+        }
+
+        return returMap
     }
 }
