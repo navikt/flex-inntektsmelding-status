@@ -54,7 +54,6 @@ class Brukernotifikasjon(
 
     fun sendDonemelding(
         fnr: String,
-        eksternId: String,
         bestillingId: String,
     ) {
         registry.counter("brukernotifikasjon_done_sendt").increment()
