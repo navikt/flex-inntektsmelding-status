@@ -17,4 +17,5 @@ data class InntektsmeldingDbRecord(
     val opprettet: Instant,
     val mottattDato: Instant,
     val foersteFravaersdag: LocalDate?,
+    val vedtaksperiodeId: String?,
 )

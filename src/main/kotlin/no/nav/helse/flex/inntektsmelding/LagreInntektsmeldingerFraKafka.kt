@@ -35,6 +35,7 @@ class LagreInntektsmeldingerFraKafka(
                 fullRefusjon = fullRefusjon,
                 virksomhetsnummer = inntektsmelding.virksomhetsnummer,
                 foersteFravaersdag = inntektsmelding.foersteFravaersdag,
+                vedtaksperiodeId = inntektsmelding.vedtaksperiodeId?.toString(),
             ),
         )
         log.info("Lagret inntektsmelding med id ${inntektsmelding.inntektsmeldingId} i databasen")
