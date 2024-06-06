@@ -13,7 +13,6 @@ import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.FullVedtaksperiodeBehandling
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
 import no.nav.tms.varsel.action.Sensitivitet
 import org.amshove.kluent.*
@@ -71,18 +70,8 @@ class IntegrationTest : FellesTestOppsett() {
             ),
         )
 
-        await().atMost(5, TimeUnit.SECONDS).until {
-            val vedtaksperiode =
-                vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
-                    vedtaksperiodeId,
-                    behandlingId,
-                )
-            if (vedtaksperiode == null) {
-                false
-            } else {
-                vedtaksperiode.sisteSpleisstatus == VENTER_PÅ_ARBEIDSGIVER
-            }
-        }
+        awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
+
         val perioderSomVenterPaaArbeidsgiver =
             periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
         perioderSomVenterPaaArbeidsgiver.shouldHaveSize(1)
@@ -171,27 +160,11 @@ class IntegrationTest : FellesTestOppsett() {
 
         sendBehandlingsstatusMelding(behandlingstatusmelding)
 
-        await().atMost(5, TimeUnit.SECONDS).until {
-            val vedtaksperiode =
-                vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
-                    vedtaksperiodeId,
-                    behandlingId,
-                )
-            if (vedtaksperiode == null) {
-                false
-            } else {
-                vedtaksperiode.sisteSpleisstatus == VENTER_PÅ_SAKSBEHANDLER
-            }
-        }
+        val vedtaksperiode = awaitOppdatertStatus(VENTER_PÅ_SAKSBEHANDLER)
 
-        val vedtaksperiode =
-            vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
-                vedtaksperiodeId,
-                behandlingId,
-            )
         val statusManglerIm =
             vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(
-                listOf(vedtaksperiode!!.id!!),
+                listOf(vedtaksperiode.id!!),
             ).first { it.status == VARSLET_MANGLER_INNTEKTSMELDING }
 
         val doneBrukervarsel =
@@ -222,18 +195,7 @@ class IntegrationTest : FellesTestOppsett() {
             )
         sendBehandlingsstatusMelding(behandlingstatusmelding)
 
-        await().atMost(5, TimeUnit.SECONDS).until {
-            val vedtaksperiode =
-                vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
-                    vedtaksperiodeId,
-                    behandlingId,
-                )
-            if (vedtaksperiode == null) {
-                false
-            } else {
-                vedtaksperiode.sisteSpleisstatus == FERDIG
-            }
-        }
+        awaitOppdatertStatus(FERDIG)
     }
 
     @Test
@@ -301,18 +263,7 @@ class IntegrationTest : FellesTestOppsett() {
 
         sendBehandlingsstatusMelding(behandlingstatusmelding)
 
-        await().atMost(5, TimeUnit.SECONDS).until {
-            val vedtaksperiode =
-                vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
-                    vedtaksperiodeId,
-                    behandlingId,
-                )
-            if (vedtaksperiode == null) {
-                false
-            } else {
-                vedtaksperiode.sisteSpleisstatus == StatusVerdi.VENTER_PÅ_SAKSBEHANDLER
-            }
-        }
+        awaitOppdatertStatus(VENTER_PÅ_SAKSBEHANDLER)
     }
 
     @Test
