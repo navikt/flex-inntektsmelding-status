@@ -1,7 +1,11 @@
 package no.nav.helse.flex.vedtaksperiodebehandling
 
+import no.nav.helse.flex.brukernotifikasjon.Brukernotifikasjon
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.logger
+import no.nav.helse.flex.melding.LukkMelding
+import no.nav.helse.flex.melding.MeldingKafkaDto
+import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -13,6 +17,8 @@ class ProsseserKafkaMeldingFraSpleiselaget(
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
     private val vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository,
     private val sykepengesoknadRepository: SykepengesoknadRepository,
+    private val brukernotifikasjon: Brukernotifikasjon,
+    private val meldingKafkaProducer: MeldingKafkaProducer,
     private val lockRepository: LockRepository,
 ) {
     val log = logger()
@@ -95,14 +101,7 @@ class ProsseserKafkaMeldingFraSpleiselaget(
         }
         lagreSøknadIder(vedtaksperiodeBehandling)
 
-        fun oppdaterdatabaseMedSisteStatus() {
-            vedtaksperiodeBehandlingRepository.save(
-                vedtaksperiodeBehandling.copy(
-                    sisteSpleisstatus = kafkaDto.status.tilStatusVerdi(),
-                    sisteSpleisstatusTidspunkt = kafkaDto.tidspunkt.toInstant(),
-                    oppdatertDatabase = Instant.now(),
-                ),
-            )
+        fun oppdaterdatabaseMedSisteStatus(): VedtaksperiodeBehandlingDbRecord {
             vedtaksperiodeBehandlingStatusRepository.save(
                 VedtaksperiodeBehandlingStatusDbRecord(
                     vedtaksperiodeBehandlingId = vedtaksperiodeBehandling.id,
@@ -113,39 +112,50 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                     brukervarselId = null,
                 ),
             )
+            return vedtaksperiodeBehandlingRepository.save(
+                vedtaksperiodeBehandling.copy(
+                    sisteSpleisstatus = kafkaDto.status.tilStatusVerdi(),
+                    sisteSpleisstatusTidspunkt = kafkaDto.tidspunkt.toInstant(),
+                    oppdatertDatabase = Instant.now(),
+                ),
+            )
         }
         kafkaDto.erTillattStatusEndring(vedtaksperiodeBehandling.sisteSpleisstatus)
-        when (kafkaDto.status) {
-            Behandlingstatustype.OPPRETTET -> {
-                log.warn(
-                    "Skal ikke motta status OPPRETTET for vedtaksperiodeId ${kafkaDto.vedtaksperiodeId} Den skal allerede være opprettet",
-                )
-            }
+        if (kafkaDto.status == Behandlingstatustype.OPPRETTET) {
+            log.warn(
+                "Skal ikke motta status OPPRETTET for vedtaksperiodeId ${kafkaDto.vedtaksperiodeId} Den skal allerede være opprettet",
+            )
+            return
+        }
 
+        val oppdatertStatusVedtaksperiodeBehandling = oppdaterdatabaseMedSisteStatus()
+
+        when (kafkaDto.status) {
             Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER -> {
-                oppdaterdatabaseMedSisteStatus()
+                // Ingenting spesielt å gjøre synkront
             }
 
             Behandlingstatustype.VENTER_PÅ_SAKSBEHANDLER -> {
-                oppdaterdatabaseMedSisteStatus()
-                // TODO fjern sendte mangler im varsler
+                doneSendteManglerImVarsler(oppdatertStatusVedtaksperiodeBehandling, soknad?.fnr)
             }
 
             Behandlingstatustype.VENTER_PÅ_ANNEN_PERIODE -> {
-                oppdaterdatabaseMedSisteStatus()
+                doneSendteManglerImVarsler(oppdatertStatusVedtaksperiodeBehandling, soknad?.fnr)
                 // TODO  tenk igjennom hva vi skal gjøre her
             }
 
             Behandlingstatustype.BEHANDLES_UTENFOR_SPEIL -> {
-                oppdaterdatabaseMedSisteStatus()
-                // TODO fjern sendte mangler im varsler
+                doneSendteManglerImVarsler(oppdatertStatusVedtaksperiodeBehandling, soknad?.fnr)
                 // TODO fjern sendte forsinket saksbehandlingsvarsler
             }
 
             Behandlingstatustype.FERDIG -> {
-                oppdaterdatabaseMedSisteStatus()
-                // TODO fjern sendte mangler im varsler
+                doneSendteManglerImVarsler(oppdatertStatusVedtaksperiodeBehandling, soknad?.fnr)
                 // TODO fjern sendte forsinket saksbehandlingsvarsler
+            }
+
+            Behandlingstatustype.OPPRETTET -> {
+                throw IllegalStateException()
             }
         }
     }
@@ -167,7 +177,11 @@ class ProsseserKafkaMeldingFraSpleiselaget(
 
             Behandlingstatustype.VENTER_PÅ_SAKSBEHANDLER -> {
                 sjekkStatus(
-                    listOf(StatusVerdi.VENTER_PÅ_ARBEIDSGIVER, StatusVerdi.VENTER_PÅ_SAKSBEHANDLER, StatusVerdi.VENTER_PÅ_ANNEN_PERIODE),
+                    listOf(
+                        StatusVerdi.VENTER_PÅ_ARBEIDSGIVER,
+                        StatusVerdi.VENTER_PÅ_SAKSBEHANDLER,
+                        StatusVerdi.VENTER_PÅ_ANNEN_PERIODE,
+                    ),
                 )
             }
 
@@ -182,5 +196,57 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             else -> {
             }
         }
+    }
+
+    fun doneSendteManglerImVarsler(
+        vedtaksperiodeBehandling: VedtaksperiodeBehandlingDbRecord,
+        fnr: String?,
+    ) {
+        if (vedtaksperiodeBehandling.sisteVarslingstatus != StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING) {
+            return
+        }
+        if (fnr == null) {
+            return
+        }
+        vedtaksperiodeBehandlingStatusRepository.save(
+            VedtaksperiodeBehandlingStatusDbRecord(
+                vedtaksperiodeBehandlingId = vedtaksperiodeBehandling.id!!,
+                opprettetDatabase = Instant.now(),
+                tidspunkt = Instant.now(),
+                status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_DONE,
+                dittSykefravaerMeldingId = null,
+                brukervarselId = null,
+            ),
+        )
+        vedtaksperiodeBehandlingRepository.save(
+            vedtaksperiodeBehandling.copy(
+                sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_DONE,
+                sisteVarslingstatusTidspunkt = Instant.now(),
+                oppdatertDatabase = Instant.now(),
+            ),
+        )
+        val varsletManglerImStatus =
+            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(vedtaksperiodeBehandling.id))
+                .firstOrNull { it.status == StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING }
+                ?: throw RuntimeException("Fant ikke varslet mangler im status, den skal være her")
+
+        brukernotifikasjon.sendDonemelding(
+            fnr = fnr,
+            bestillingId = varsletManglerImStatus.brukervarselId!!,
+        )
+        log.info("Donet brukervarsel om manglende inntektsmelding ${varsletManglerImStatus.brukervarselId}")
+
+        meldingKafkaProducer.produserMelding(
+            meldingUuid = varsletManglerImStatus.dittSykefravaerMeldingId!!,
+            meldingKafkaDto =
+                MeldingKafkaDto(
+                    fnr = fnr,
+                    lukkMelding =
+                        LukkMelding(
+                            timestamp = Instant.now(),
+                        ),
+                ),
+        )
+        log.info("Donet ditt sykefravær melding om manglende inntektsmelding ${varsletManglerImStatus.dittSykefravaerMeldingId}")
     }
 }

@@ -31,7 +31,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class NyttTopicIntegrationTest : FellesTestOppsett() {
+class IntegrationTest : FellesTestOppsett() {
     private final val fnr = "12345678901"
     private final val vedtaksperiodeId = UUID.randomUUID().toString()
     private final val behandlingId = UUID.randomUUID().toString()
@@ -228,9 +228,32 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
             if (vedtaksperiode == null) {
                 false
             } else {
-                vedtaksperiode.sisteSpleisstatus == StatusVerdi.VENTER_PÅ_SAKSBEHANDLER
+                vedtaksperiode.sisteSpleisstatus == VENTER_PÅ_SAKSBEHANDLER
             }
         }
+
+        val vedtaksperiode =
+            vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
+                vedtaksperiodeId,
+                behandlingId,
+            )
+        val statusManglerIm =
+            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(
+                listOf(vedtaksperiode!!.id!!),
+            ).first { it.status == VARSLET_MANGLER_INNTEKTSMELDING }
+
+        val doneBrukernotifikasjon =
+            varslingConsumer
+                .ventPåRecords(1)
+                .first()
+        doneBrukernotifikasjon.key() shouldBeEqualTo statusManglerIm.brukervarselId!!
+        doneBrukernotifikasjon.value().tilInaktiverVarselInstance().varselId shouldBeEqualTo statusManglerIm.brukervarselId!!
+
+        val cr = meldingKafkaConsumer.ventPåRecords(1).first()
+        val doneDittSykefravaer: MeldingKafkaDto = cr.value().let { objectMapper.readValue(it) }
+
+        cr.key() shouldBeEqualTo statusManglerIm.dittSykefravaerMeldingId!!
+        doneDittSykefravaer.lukkMelding.shouldNotBeNull()
     }
 
     @Test
@@ -285,7 +308,7 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
         val response: List<FullVedtaksperiodeBehandling> = objectMapper.readValue(responseString)
         response shouldHaveSize 1
         response.first().soknader.first().orgnummer shouldBeEqualTo orgNr
-        response.first().statuser shouldHaveSize 5
+        response.first().statuser shouldHaveSize 6
 
         response.first().statuser.map { it.status.name } shouldBeEqualTo
             listOf(
@@ -293,11 +316,12 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
                 "VENTER_PÅ_ARBEIDSGIVER",
                 "VARSLET_MANGLER_INNTEKTSMELDING",
                 "VENTER_PÅ_SAKSBEHANDLER",
+                "VARSLET_MANGLER_INNTEKTSMELDING_DONE",
                 "FERDIG",
             )
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
-        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING
+        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_DONE
     }
 
     @Test
@@ -374,7 +398,7 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
         response shouldHaveSize 1
         response.first().soknader.shouldHaveSize(2)
         response.first().soknader.first().orgnummer shouldBeEqualTo orgNr
-        response.first().statuser shouldHaveSize 6
+        response.first().statuser shouldHaveSize 7
 
         response.first().statuser.map { it.status.name } shouldBeEqualTo
             listOf(
@@ -382,12 +406,13 @@ class NyttTopicIntegrationTest : FellesTestOppsett() {
                 "VENTER_PÅ_ARBEIDSGIVER",
                 "VARSLET_MANGLER_INNTEKTSMELDING",
                 "VENTER_PÅ_SAKSBEHANDLER",
+                "VARSLET_MANGLER_INNTEKTSMELDING_DONE",
                 "FERDIG",
                 "VENTER_PÅ_SAKSBEHANDLER",
             )
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_SAKSBEHANDLER
-        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING
+        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_DONE
     }
 
     @Test
