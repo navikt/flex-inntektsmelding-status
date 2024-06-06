@@ -22,16 +22,18 @@ class ManglendeInntektsmeldingVarselKandidatHenting(
                 now.minusDays(15).toInstant()
             }
 
-        val kandidater =
-            periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtFoer = sendtFoer)
+        val fnr =
+            periodeStatusRepository
+                .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtFoer = sendtFoer)
+                .map { it.fnr }
+                .distinct()
 
-        val unikeFnr = kandidater.map { it.fnr }.distinct()
         val returMap = mutableMapOf<String, Int>()
-        log.info("Fant ${unikeFnr.size} unike fnr for varselutsending for manglende inntektsmelding")
+        log.info("Fant ${fnr.size} unike fnr for varselutsending for manglende inntektsmelding")
 
-        returMap["antallUnikeFnrInntektsmeldingVarsling"] = unikeFnr.size
+        returMap["antallUnikeFnrInntektsmeldingVarsling"] = fnr.size
 
-        unikeFnr.forEach {
+        fnr.forEach {
             val resultat =
                 manglendeInntektsmeldingVarsling.prosseserManglendeInntektsmeldingKandidat(it, sendtFoer)
 

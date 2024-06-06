@@ -5,11 +5,11 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
-import kotlin.time.measureTime
 
 @Component
 class VarselutsendingCronJob(
     private val manglendeInntektsmeldingVarselKandidatHenting: ManglendeInntektsmeldingVarselKandidatHenting,
+    private val forsinketSaksbehandlingVarselKandidatHenting: ForsinketSaksbehandlingVarselKandidatHenting,
 ) {
     private val log = logger()
 
@@ -21,11 +21,10 @@ class VarselutsendingCronJob(
     fun runMedParameter(now: OffsetDateTime): HashMap<String, Int> {
         log.info("Starter VarselutsendingCronJob")
         val resultat = HashMap<String, Int>()
-        val tid =
-            measureTime {
-                manglendeInntektsmeldingVarselKandidatHenting.finnOgProsseserKandidater(now).also { resultat.putAll(it) }
-            }
-        log.info("manglendeInntektsmeldingVarselKandidatHenting kjørte på $tid")
+
+        manglendeInntektsmeldingVarselKandidatHenting.finnOgProsseserKandidater(now).also { resultat.putAll(it) }
+        forsinketSaksbehandlingVarselKandidatHenting.finnOgProsseserKandidater(now).also { resultat.putAll(it) }
+
         log.info("Resultat fra VarselutsendingCronJob: $resultat")
         return resultat
     }
