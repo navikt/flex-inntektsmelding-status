@@ -21,7 +21,7 @@ import java.util.UUID
 import kotlin.random.Random
 
 @Component
-class ManglendeInntektsmeldingVarsling(
+class ManglendeInntektsmeldingVarsling15(
     private val hentAltForPerson: HentAltForPerson,
     private val lockRepository: LockRepository,
     private val environmentToggles: EnvironmentToggles,
@@ -38,9 +38,9 @@ class ManglendeInntektsmeldingVarsling(
     fun prosseserManglendeInntektsmeldingKandidat(
         fnr: String,
         sendtFoer: Instant,
-    ): String {
+    ): CronJobStatus {
         if (environmentToggles.isProduction()) {
-            return "manglende inntektsmelding kandidat togglet av i prod"
+            return CronJobStatus.MANGLENDE_INNTEKTSMELDING_VARSEL_15_DISABLET_I_PROD
         }
         lockRepository.settAdvisoryTransactionLock(fnr)
 
@@ -53,7 +53,7 @@ class ManglendeInntektsmeldingVarsling(
                 .filter { periode -> periode.soknader.all { it.sendt.isBefore(sendtFoer) } }
 
         if (venterPaaArbeidsgiver.size != 1) {
-            return "varsler for flere perioder ikke implementert"
+            return CronJobStatus.FLERE_PERIODER_IKKE_IMPLEMENTERT
         }
         // TODO sjekk om vi nettop har sendt noe annet?
 
@@ -120,6 +120,6 @@ class ManglendeInntektsmeldingVarsling(
             ),
         )
 
-        return "VARSLET_MANGLER_INNTEKTSMELDING"
+        return CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15
     }
 }

@@ -42,6 +42,6 @@ class FlexInternalFrontendController(
     @PostMapping("/api/v1/cronjob", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun startCronjob(): HashMap<String, Int> {
         clientIdValidation.validateClientId(NamespaceAndApp(namespace = "flex", app = "flex-internal-frontend"))
-        return varselutsendingCronJob.run()
+        return varselutsendingCronJob.run().map { it.key.name to it.value }.toMap() as HashMap<String, Int>
     }
 }

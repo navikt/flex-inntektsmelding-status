@@ -16,6 +16,58 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
     ): VedtaksperiodeBehandlingDbRecord?
 
     fun findByIdIn(id: List<String>): List<VedtaksperiodeBehandlingDbRecord>
+
+    @Query(
+        """
+            SELECT distinct s.fnr
+            FROM vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
+            WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
+            AND vbs.vedtaksperiode_behandling_id = v.id
+            AND v.siste_spleisstatus = 'VENTER_PÅ_ARBEIDSGIVER' 
+            AND v.siste_varslingstatus is null 
+            AND s.sendt < :sendtFoer
+
+        """,
+    )
+    fun finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
+        @Param("sendtFoer") sendtFoer: Instant,
+    ): List<String>
+
+    @Query(
+        """
+            SELECT distinct s.fnr
+            FROM vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
+            WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
+            AND vbs.vedtaksperiode_behandling_id = v.id
+            AND v.siste_spleisstatus = 'VENTER_PÅ_ARBEIDSGIVER' 
+            AND v.siste_varslingstatus = 'VARSLET_MANGLER_INNTEKTSMELDING' 
+            AND s.sendt < :sendtFoer
+
+        """,
+    )
+    fun finnPersonerMedForsinketSaksbehandlingGrunnetManglendeInntektsmelding(
+        @Param("sendtFoer") sendtFoer: Instant,
+    ): List<String>
+
+    @Query(
+        """
+            SELECT distinct s.fnr 
+            FROM vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
+            WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
+            AND vbs.vedtaksperiode_behandling_id = v.id
+            AND v.siste_spleisstatus = 'VENTER_PÅ_SAKSBEHANDLER' 
+            AND v.siste_varslingstatus not in (
+                'VARSLET_VENTER_PÅ_SAKSBEHANDLER', 
+                'REVARSLET_VENTER_PÅ_SAKSBEHANDLER',
+                'VARSLER_IKKE_GRUNNET_FULL_REFUSJON'
+            ) 
+            AND s.sendt < :sendtFoer
+
+        """,
+    )
+    fun finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(
+        @Param("sendtFoer") sendtFoer: Instant,
+    ): List<String>
 }
 
 @Table("vedtaksperiode_behandling")
@@ -74,64 +126,3 @@ enum class StatusVerdi {
     VARSLET_MANGLER_INNTEKTSMELDING,
     VARSLET_MANGLER_INNTEKTSMELDING_DONE,
 }
-
-@Repository
-interface PeriodeStatusRepository : org.springframework.data.repository.Repository<StatusQueryResult, String> {
-    @Query(
-        """
-            SELECT s.sykepengesoknad_uuid, s.fnr, s.sendt 
-            FROM vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
-            WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
-            AND vbs.vedtaksperiode_behandling_id = v.id
-            AND v.siste_spleisstatus = 'VENTER_PÅ_ARBEIDSGIVER' 
-            AND v.siste_varslingstatus is null 
-            AND s.sendt < :sendtFoer
-
-        """,
-    )
-    fun finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
-        @Param("sendtFoer") sendtFoer: Instant,
-    ): List<StatusQueryResult>
-
-    @Query(
-        """
-            SELECT s.sykepengesoknad_uuid, s.fnr, s.sendt 
-            FROM vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
-            WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
-            AND vbs.vedtaksperiode_behandling_id = v.id
-            AND v.siste_spleisstatus = 'VENTER_PÅ_ARBEIDSGIVER' 
-            AND v.siste_varslingstatus = 'VARSLET_MANGLER_INNTEKTSMELDING' 
-            AND s.sendt < :sendtFoer
-
-        """,
-    )
-    fun finnPersonerMedForsinketSaksbehandlingGrunnetManglendeInntektsmelding(
-        @Param("sendtFoer") sendtFoer: Instant,
-    ): List<StatusQueryResult>
-
-    @Query(
-        """
-            SELECT distinct s.fnr 
-            FROM vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
-            WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
-            AND vbs.vedtaksperiode_behandling_id = v.id
-            AND v.siste_spleisstatus = 'VENTER_PÅ_SAKSBEHANDLER' 
-            AND v.siste_varslingstatus not in (
-                'VARSLET_VENTER_PÅ_SAKSBEHANDLER', 
-                'REVARSLET_VENTER_PÅ_SAKSBEHANDLER',
-                'VARSLER_IKKE_GRUNNET_FULL_REFUSJON'
-            ) 
-            AND s.sendt < :sendtFoer
-
-        """,
-    )
-    fun finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(
-        @Param("sendtFoer") sendtFoer: Instant,
-    ): List<String>
-}
-
-data class StatusQueryResult(
-    val sykepengesoknadUuid: String,
-    val fnr: String,
-    val sendt: Instant,
-)
