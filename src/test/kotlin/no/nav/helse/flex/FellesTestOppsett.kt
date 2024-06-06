@@ -4,11 +4,13 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.kafka.DITT_SYKEFRAVAER_MELDING_TOPIC
 import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
+import no.nav.helse.flex.kafka.SIS_TOPIC
 import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
 import no.nav.helse.flex.varselutsending.VarselutsendingCronJob
+import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.PeriodeStatusRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusRepository
@@ -125,6 +127,26 @@ abstract class FellesTestOppsett {
     @BeforeAll
     fun forAlleTester() {
         slettFraDatabase()
+    }
+
+    fun sendSoknad(soknad: SykepengesoknadDTO) {
+        kafkaProducer.send(
+            ProducerRecord(
+                SYKEPENGESOKNAD_TOPIC,
+                soknad.id,
+                soknad.serialisertTilString(),
+            ),
+        ).get()
+    }
+
+    fun sendBehandlingsstatusMelding(behandlingstatusmelding: Behandlingstatusmelding) {
+        kafkaProducer.send(
+            ProducerRecord(
+                SIS_TOPIC,
+                behandlingstatusmelding.vedtaksperiodeId,
+                behandlingstatusmelding.serialisertTilString(),
+            ),
+        ).get()
     }
 
     fun slettFraDatabase() {

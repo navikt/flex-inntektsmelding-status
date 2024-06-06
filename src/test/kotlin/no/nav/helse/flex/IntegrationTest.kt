@@ -1,8 +1,12 @@
 package no.nav.helse.flex
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.helse.flex.kafka.SIS_TOPIC
-import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
+import no.nav.helse.flex.Testdata.behandlingId
+import no.nav.helse.flex.Testdata.fnr
+import no.nav.helse.flex.Testdata.orgNr
+import no.nav.helse.flex.Testdata.soknad
+import no.nav.helse.flex.Testdata.soknadId
+import no.nav.helse.flex.Testdata.vedtaksperiodeId
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.sykepengesoknad.kafka.*
@@ -13,8 +17,7 @@ import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
 import no.nav.tms.varsel.action.Sensitivitet
 import org.amshove.kluent.*
-import org.apache.kafka.clients.producer.ProducerRecord
-import org.awaitility.Awaitility
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
@@ -22,9 +25,7 @@ import org.junit.jupiter.api.TestMethodOrder
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.testcontainers.shaded.org.awaitility.Awaitility.await
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
@@ -32,52 +33,19 @@ import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class IntegrationTest : FellesTestOppsett() {
-    private final val fnr = "12345678901"
-    private final val vedtaksperiodeId = UUID.randomUUID().toString()
-    private final val behandlingId = UUID.randomUUID().toString()
-    private final val soknadId = UUID.randomUUID().toString()
-    private final val orgNr = "123456547"
-    private final val fom = LocalDate.of(2022, 5, 29)
-    private final val tom = LocalDate.of(2022, 6, 30)
-    val soknad =
-        SykepengesoknadDTO(
-            fnr = fnr,
-            id = soknadId,
-            type = SoknadstypeDTO.ARBEIDSTAKERE,
-            status = SoknadsstatusDTO.NY,
-            startSyketilfelle = fom,
-            fom = fom,
-            tom = tom,
-            arbeidssituasjon = ArbeidssituasjonDTO.ARBEIDSTAKER,
-            arbeidsgiver = ArbeidsgiverDTO(navn = "Flex AS", orgnummer = orgNr),
-        )
-
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
         periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now()).shouldBeEmpty()
-
-        kafkaProducer.send(
-            ProducerRecord(
-                SYKEPENGESOKNAD_TOPIC,
-                soknad.id,
-                soknad
-                    .copy(
-                        status = SoknadsstatusDTO.SENDT,
-                        sendtNav = LocalDateTime.now(),
-                    )
-                    .serialisertTilString(),
+        sendSoknad(soknad)
+        sendSoknad(
+            soknad.copy(
+                status = SoknadsstatusDTO.SENDT,
+                sendtNav = LocalDateTime.now(),
             ),
-        ).get()
-        kafkaProducer.send(
-            ProducerRecord(
-                SYKEPENGESOKNAD_TOPIC,
-                soknad.id,
-                soknad.serialisertTilString(),
-            ),
-        ).get()
+        )
 
-        Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
+        await().atMost(5, TimeUnit.SECONDS).until {
             organisasjonRepository.findByOrgnummer(orgNr)?.navn == "Flex AS"
         }
     }
@@ -96,22 +64,12 @@ class IntegrationTest : FellesTestOppsett() {
                 tidspunkt = tidspunkt,
                 eksterneSøknadIder = listOf(soknadId),
             )
-        kafkaProducer.send(
-            ProducerRecord(
-                SIS_TOPIC,
-                vedtaksperiodeId,
-                behandlingstatusmelding.serialisertTilString(),
+        sendBehandlingsstatusMelding(behandlingstatusmelding)
+        sendBehandlingsstatusMelding(
+            behandlingstatusmelding.copy(
+                status = Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER,
             ),
-        ).get()
-        kafkaProducer.send(
-            ProducerRecord(
-                SIS_TOPIC,
-                vedtaksperiodeId,
-                behandlingstatusmelding.copy(
-                    status = Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER,
-                ).serialisertTilString(),
-            ),
-        ).get()
+        )
 
         await().atMost(5, TimeUnit.SECONDS).until {
             val vedtaksperiode =
@@ -211,13 +169,7 @@ class IntegrationTest : FellesTestOppsett() {
                 eksterneSøknadIder = listOf(soknadId),
             )
 
-        kafkaProducer.send(
-            ProducerRecord(
-                SIS_TOPIC,
-                vedtaksperiodeId,
-                behandlingstatusmelding.serialisertTilString(),
-            ),
-        ).get()
+        sendBehandlingsstatusMelding(behandlingstatusmelding)
 
         await().atMost(5, TimeUnit.SECONDS).until {
             val vedtaksperiode =
@@ -268,13 +220,7 @@ class IntegrationTest : FellesTestOppsett() {
                 tidspunkt = tidspunkt,
                 eksterneSøknadIder = listOf(soknadId),
             )
-        kafkaProducer.send(
-            ProducerRecord(
-                SIS_TOPIC,
-                vedtaksperiodeId,
-                behandlingstatusmelding.serialisertTilString(),
-            ),
-        ).get()
+        sendBehandlingsstatusMelding(behandlingstatusmelding)
 
         await().atMost(5, TimeUnit.SECONDS).until {
             val vedtaksperiode =
@@ -328,22 +274,18 @@ class IntegrationTest : FellesTestOppsett() {
     @Order(8)
     fun `Vi får beskjed at perioden venter på saksbehandling igjen med enda en ny søknad id`() {
         val korrigerendeSoknadId = UUID.randomUUID().toString()
-        kafkaProducer.send(
-            ProducerRecord(
-                SYKEPENGESOKNAD_TOPIC,
-                soknad.id,
-                soknad
-                    .copy(
-                        status = SoknadsstatusDTO.SENDT,
-                        sendtNav = LocalDateTime.now(),
-                        id = korrigerendeSoknadId,
-                        korrigerer = soknadId,
-                    )
-                    .serialisertTilString(),
-            ),
-        ).get()
 
-        Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
+        sendSoknad(
+            soknad
+                .copy(
+                    status = SoknadsstatusDTO.SENDT,
+                    sendtNav = LocalDateTime.now(),
+                    id = korrigerendeSoknadId,
+                    korrigerer = soknadId,
+                ),
+        )
+
+        await().atMost(5, TimeUnit.SECONDS).until {
             sykepengesoknadRepository.findBySykepengesoknadUuid(korrigerendeSoknadId) != null
         }
 
@@ -357,13 +299,7 @@ class IntegrationTest : FellesTestOppsett() {
                 eksterneSøknadIder = listOf(soknadId, korrigerendeSoknadId),
             )
 
-        kafkaProducer.send(
-            ProducerRecord(
-                SIS_TOPIC,
-                vedtaksperiodeId,
-                behandlingstatusmelding.serialisertTilString(),
-            ),
-        ).get()
+        sendBehandlingsstatusMelding(behandlingstatusmelding)
 
         await().atMost(5, TimeUnit.SECONDS).until {
             val vedtaksperiode =
@@ -413,28 +349,5 @@ class IntegrationTest : FellesTestOppsett() {
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_SAKSBEHANDLER
         response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_DONE
-    }
-
-    @Test
-    @Order(99)
-    fun `Trenger riktig auth for å hente data med api`() {
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .get("/api/v1/vedtaksperioder")
-                    .header("Authorization", "Bearer ${skapAzureJwt("en-annen-client-id")}")
-                    .header("fnr", fnr)
-                    .contentType(MediaType.APPLICATION_JSON),
-            )
-            .andExpect(MockMvcResultMatchers.status().is4xxClientError)
-
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .get("/api/v1/vedtaksperioder")
-                    .header("fnr", fnr)
-                    .contentType(MediaType.APPLICATION_JSON),
-            )
-            .andExpect(MockMvcResultMatchers.status().is4xxClientError)
     }
 }
