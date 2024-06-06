@@ -10,10 +10,7 @@ import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
 import no.nav.helse.flex.varselutsending.VarselutsendingCronJob
-import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
-import no.nav.helse.flex.vedtaksperiodebehandling.PeriodeStatusRepository
-import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
-import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusRepository
+import no.nav.helse.flex.vedtaksperiodebehandling.*
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.tms.varsel.builder.VarselActionBuilder
@@ -21,6 +18,7 @@ import org.amshove.kluent.shouldBeEmpty
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.awaitility.Awaitility
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
@@ -34,6 +32,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 private class PostgreSQLContainer14 : PostgreSQLContainer<PostgreSQLContainer14>("postgres:14-alpine")
@@ -149,8 +148,36 @@ abstract class FellesTestOppsett {
         ).get()
     }
 
+    fun awaitOppdatertStatus(
+        forventetStatusVerdi: StatusVerdi,
+        vedtaksperiodeId: String = Testdata.vedtaksperiodeId,
+        behandlingId: String = Testdata.behandlingId,
+    ): VedtaksperiodeBehandlingDbRecord {
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
+            val vedtaksperiode =
+                vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
+                    Testdata.vedtaksperiodeId,
+                    Testdata.behandlingId,
+                )
+            if (vedtaksperiode == null) {
+                false
+            } else {
+                vedtaksperiode.sisteSpleisstatus == forventetStatusVerdi
+            }
+        }
+        return vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
+            Testdata.vedtaksperiodeId,
+            Testdata.behandlingId,
+        )!!
+    }
+
     fun slettFraDatabase() {
         jdbcTemplate.update("DELETE FROM organisasjon")
+        jdbcTemplate.update("DELETE FROM sykepengesoknad")
+        jdbcTemplate.update("DELETE FROM inntektsmelding")
+        jdbcTemplate.update("DELETE FROM vedtaksperiode_behandling_status")
+        jdbcTemplate.update("DELETE FROM vedtaksperiode_behandling_sykepengesoknad")
+        jdbcTemplate.update("DELETE FROM vedtaksperiode_behandling")
     }
 
     fun sendSykepengesoknad(soknad: SykepengesoknadDTO) {
