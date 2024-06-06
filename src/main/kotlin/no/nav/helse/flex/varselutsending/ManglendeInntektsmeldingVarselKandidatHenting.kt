@@ -4,29 +4,36 @@ import no.nav.helse.flex.logger
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.vedtaksperiodebehandling.PeriodeStatusRepository
 import org.springframework.stereotype.Component
-import java.time.Instant
 import java.time.OffsetDateTime
 
 @Component
 class ManglendeInntektsmeldingVarselKandidatHenting(
     private val environmentToggles: EnvironmentToggles,
     private val periodeStatusRepository: PeriodeStatusRepository,
+    private val manglendeInntektsmeldingVarsling: ManglendeInntektsmeldingVarsling,
 ) {
     private val log = logger()
 
     fun finnOgProsseserKandidater(now: OffsetDateTime = OffsetDateTime.now()): Map<String, Int> {
-        fun sendtFoer(): Instant {
+        val sendtFoer =
             if (environmentToggles.isDevGcp()) {
-                return now.minusMinutes(2).toInstant()
+                now.minusMinutes(2).toInstant()
+            } else {
+                now.minusDays(15).toInstant()
             }
-            return now.minusDays(15).toInstant()
-        }
 
         val kandidater =
-            periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtFoer = sendtFoer())
+            periodeStatusRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtFoer = sendtFoer)
 
+        val unikeFnr = kandidater.map { it.fnr }.distinct()
+        unikeFnr.forEach {
+            manglendeInntektsmeldingVarsling.prosseserManglendeInntektsmeldingKandidat(it, sendtFoer)
+        }
         log.info("Fant ${kandidater.size} kandidater for varselutsending for manglende inntektsmelding")
-
-        return mapOf("antallKandidaterInntektsmeldingVarsling" to kandidater.size)
+        log.info("Fant ${unikeFnr.size} unike fnr for varselutsending for manglende inntektsmelding")
+        return mapOf(
+            "antallKandidaterInntektsmeldingVarsling" to kandidater.size,
+            "antallUnikeFnrInntektsmeldingVarsling" to unikeFnr.size,
+        )
     }
 }
