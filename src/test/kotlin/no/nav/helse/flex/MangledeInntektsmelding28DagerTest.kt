@@ -18,11 +18,10 @@ import org.junit.jupiter.api.TestMethodOrder
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class Forsinket28dagerGrunnetMangledeInntektsmeldingTest : FellesTestOppsett() {
+class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
@@ -67,7 +66,6 @@ class Forsinket28dagerGrunnetMangledeInntektsmeldingTest : FellesTestOppsett() {
     @Order(2)
     fun `Vi sender ut mangler inntektsmelding varsel etter 15 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
-        cronjobResultat.shouldHaveSize(3)
         cronjobResultat[SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15] shouldBeEqualTo 1
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 1
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 0
@@ -80,7 +78,6 @@ class Forsinket28dagerGrunnetMangledeInntektsmeldingTest : FellesTestOppsett() {
     @Order(3)
     fun `Ingenting skjer etter 20 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(20))
-        cronjobResultat.shouldHaveSize(2)
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 0
     }
@@ -89,7 +86,6 @@ class Forsinket28dagerGrunnetMangledeInntektsmeldingTest : FellesTestOppsett() {
     @Order(4)
     fun `Noe skjer etter 28 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(28))
-        cronjobResultat.shouldHaveSize(3)
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 1
 

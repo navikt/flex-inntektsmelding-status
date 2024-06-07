@@ -2,6 +2,8 @@ package no.nav.helse.flex
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.database.LockRepository
+import no.nav.helse.flex.inntektsmelding.INNTEKTSMELDING_TOPIC
+import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.kafka.DITT_SYKEFRAVAER_MELDING_TOPIC
 import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
 import no.nav.helse.flex.kafka.SIS_TOPIC
@@ -11,6 +13,7 @@ import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
 import no.nav.helse.flex.varselutsending.VarselutsendingCronJob
 import no.nav.helse.flex.vedtaksperiodebehandling.*
+import no.nav.inntektsmeldingkontrakt.Inntektsmelding
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.tms.varsel.builder.VarselActionBuilder
@@ -18,6 +21,7 @@ import org.amshove.kluent.shouldBeEmpty
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.clients.producer.RecordMetadata
 import org.awaitility.Awaitility
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -32,6 +36,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
+import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
@@ -57,6 +62,9 @@ abstract class FellesTestOppsett {
 
     @Autowired
     lateinit var sykepengesoknadRepository: SykepengesoknadRepository
+
+    @Autowired
+    lateinit var inntektsmeldingRepository: InntektsmeldingRepository
 
     @Autowired
     lateinit var vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository
@@ -135,6 +143,16 @@ abstract class FellesTestOppsett {
         ).get()
     }
 
+    fun sendInntektsmelding(inntektsmelding: Inntektsmelding): RecordMetadata {
+        return kafkaProducer.send(
+            ProducerRecord(
+                INNTEKTSMELDING_TOPIC,
+                UUID.randomUUID().toString(),
+                inntektsmelding.serialisertTilString(),
+            ),
+        ).get()
+    }
+
     fun sendBehandlingsstatusMelding(behandlingstatusmelding: Behandlingstatusmelding) {
         kafkaProducer.send(
             ProducerRecord(
@@ -146,7 +164,7 @@ abstract class FellesTestOppsett {
     }
 
     fun awaitOppdatertStatus(
-        forventetStatusVerdi: StatusVerdi,
+        forventetSisteSpleisstatus: StatusVerdi,
         vedtaksperiodeId: String = Testdata.vedtaksperiodeId,
         behandlingId: String = Testdata.behandlingId,
     ): VedtaksperiodeBehandlingDbRecord {
@@ -159,7 +177,32 @@ abstract class FellesTestOppsett {
             if (vedtaksperiode == null) {
                 false
             } else {
-                vedtaksperiode.sisteSpleisstatus == forventetStatusVerdi
+                vedtaksperiode.sisteSpleisstatus == forventetSisteSpleisstatus
+            }
+        }
+        return vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
+            Testdata.vedtaksperiodeId,
+            Testdata.behandlingId,
+        )!!
+    }
+
+    fun awaitOppdatertStatus(
+        forventetSisteSpleisstatus: StatusVerdi,
+        forventetSisteVarselstatus: StatusVerdi,
+        vedtaksperiodeId: String = Testdata.vedtaksperiodeId,
+        behandlingId: String = Testdata.behandlingId,
+    ): VedtaksperiodeBehandlingDbRecord {
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
+            val vedtaksperiode =
+                vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
+                    Testdata.vedtaksperiodeId,
+                    Testdata.behandlingId,
+                )
+            if (vedtaksperiode == null) {
+                false
+            } else {
+                vedtaksperiode.sisteSpleisstatus == forventetSisteSpleisstatus &&
+                    vedtaksperiode.sisteVarslingstatus == forventetSisteVarselstatus
             }
         }
         return vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(

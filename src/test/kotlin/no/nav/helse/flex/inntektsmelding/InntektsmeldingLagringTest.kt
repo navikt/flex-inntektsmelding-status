@@ -2,12 +2,7 @@ package no.nav.helse.flex.inntektsmelding
 
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.serialisertTilString
-import no.nav.inntektsmeldingkontrakt.Arbeidsgivertype
-import no.nav.inntektsmeldingkontrakt.AvsenderSystem
-import no.nav.inntektsmeldingkontrakt.Inntektsmelding
-import no.nav.inntektsmeldingkontrakt.Periode
-import no.nav.inntektsmeldingkontrakt.Refusjon
-import no.nav.inntektsmeldingkontrakt.Status
+import no.nav.helse.flex.skapInntektsmelding
 import org.amshove.kluent.`should be equal to`
 import org.amshove.kluent.shouldHaveSize
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -18,15 +13,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.Month
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class InntektsmeldingTest : FellesTestOppsett() {
-    @Autowired
-    lateinit var inntektsmeldingRepository: InntektsmeldingRepository
-
+class InntektsmeldingLagringTest : FellesTestOppsett() {
     @Autowired
     lateinit var producer: KafkaProducer<String, String>
 
@@ -47,6 +37,7 @@ class InntektsmeldingTest : FellesTestOppsett() {
                 virksomhetsnummer = "123456789",
                 refusjonBelopPerMnd = BigDecimal(10000),
                 beregnetInntekt = BigDecimal(10000),
+                vedtaksperiodeId = UUID.fromString("ffcf0c28-dd35-4b5d-b518-3d3cbda9329a"),
             ).serialisertTilString(),
         )
 
@@ -123,38 +114,4 @@ class InntektsmeldingTest : FellesTestOppsett() {
             ),
         ).get()
     }
-}
-
-fun skapInntektsmelding(
-    fnr: String,
-    virksomhetsnummer: String?,
-    refusjonBelopPerMnd: BigDecimal?,
-    beregnetInntekt: BigDecimal?,
-): Inntektsmelding {
-    val foersteJanuar = LocalDate.of(2019, 1, 1)
-    val andreJanuar = LocalDate.of(2019, 1, 2)
-    return Inntektsmelding(
-        inntektsmeldingId = UUID.randomUUID().toString(),
-        arbeidstakerFnr = fnr,
-        arbeidstakerAktorId = "00000000000",
-        refusjon = Refusjon(beloepPrMnd = refusjonBelopPerMnd),
-        endringIRefusjoner = emptyList(),
-        opphoerAvNaturalytelser = emptyList(),
-        gjenopptakelseNaturalytelser = emptyList(),
-        status = Status.GYLDIG,
-        arbeidsgivertype = Arbeidsgivertype.VIRKSOMHET,
-        arbeidsgiverperioder = listOf(Periode(foersteJanuar, andreJanuar)),
-        beregnetInntekt = beregnetInntekt,
-        inntektsdato = LocalDate.of(2023, Month.OCTOBER, 13),
-        arkivreferanse = "AR123",
-        ferieperioder = emptyList(),
-        mottattDato = foersteJanuar.atStartOfDay(),
-        foersteFravaersdag = foersteJanuar,
-        naerRelasjon = true,
-        avsenderSystem = AvsenderSystem("AltinnPortal", "1.0"),
-        innsenderFulltNavn = "",
-        innsenderTelefon = "",
-        virksomhetsnummer = virksomhetsnummer,
-        vedtaksperiodeId = UUID.fromString("ffcf0c28-dd35-4b5d-b518-3d3cbda9329a"),
-    )
 }

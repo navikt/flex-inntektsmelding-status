@@ -2,6 +2,7 @@ package no.nav.helse.flex.brukervarsel
 
 import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
 import no.nav.helse.flex.logger
+import no.nav.helse.flex.varseltekst.skapForsinketSaksbehandling28Tekst
 import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding15Tekst
 import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding28Tekst
 import no.nav.tms.varsel.action.*
@@ -53,6 +54,33 @@ class Brukervarsel(
 
         kafkaProducer.send(ProducerRecord(MINSIDE_BRUKERVARSEL, bestillingId, opprettVarsel)).get()
         log.info("Bestilte beskjed for manglende inntektsmelding $bestillingId")
+    }
+
+    fun beskjedForsinketSaksbehandling(
+        fnr: String,
+        bestillingId: String,
+        orgNavn: String,
+        synligFremTil: Instant,
+    ) {
+        val opprettVarsel =
+            VarselActionBuilder.opprett {
+                type = Varseltype.Beskjed
+                varselId = bestillingId
+                sensitivitet = Sensitivitet.High
+                ident = fnr
+                tekst =
+                    Tekst(
+                        spraakkode = "nb",
+                        tekst = skapForsinketSaksbehandling28Tekst(),
+                        default = true,
+                    )
+                aktivFremTil = synligFremTil.atZone(UTC)
+                link = null
+                eksternVarsling = EksternVarslingBestilling()
+            }
+
+        kafkaProducer.send(ProducerRecord(MINSIDE_BRUKERVARSEL, bestillingId, opprettVarsel)).get()
+        log.info("Bestilte beskjed for forsinket saksbehandling $bestillingId")
     }
 
     fun sendDonemelding(

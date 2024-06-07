@@ -15,7 +15,7 @@ class ManglendeInntektsmelding28VarselKandidatHenting(
 ) {
     private val log = logger()
 
-    fun finnOgProsseserKandidater(now: OffsetDateTime): Map<CronJobStatus, Int> {
+    fun hentOgProsseser(now: OffsetDateTime): Map<CronJobStatus, Int> {
         val sendtFoer =
             if (environmentToggles.isDevGcp()) {
                 now.minusMinutes(4).toInstant()
