@@ -9,7 +9,8 @@ import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.util.EnvironmentToggles
-import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmeldingTekst
+import no.nav.helse.flex.util.SeededUuid
+import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding15Tekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -17,8 +18,6 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.OffsetDateTime
-import java.util.UUID
-import kotlin.random.Random
 
 @Component
 class ManglendeInntektsmeldingVarsling15(
@@ -57,33 +56,26 @@ class ManglendeInntektsmeldingVarsling15(
         }
         // TODO sjekk om vi nettop har sendt noe annet?
 
-        val soknaden = venterPaaArbeidsgiver.first().soknader.sortedBy { it.sendt }.last()
         val perioden = venterPaaArbeidsgiver.first()
+        val soknaden = perioden.soknader.sortedBy { it.sendt }.last()
 
-        val seedUUID = UUID.fromString(perioden.statuser.first { it.status == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }.id)
+        val randomGenerator = SeededUuid(perioden.statuser.first { it.status == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }.id!!)
 
-        val randomGenerator = Random(seedUUID.mostSignificantBits xor seedUUID.leastSignificantBits)
-
-        fun nextUUID(): UUID {
-            val mostSigBits = randomGenerator.nextLong()
-            val leastSigBits = randomGenerator.nextLong()
-            return UUID(mostSigBits, leastSigBits)
-        }
-
-        val brukervarslId = nextUUID().toString()
+        val brukervarselId = randomGenerator.nextUUID()
 
         val orgnavn = organisasjonRepository.findByOrgnummer(soknaden.orgnummer!!)?.navn ?: soknaden.orgnummer
 
         val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
         brukervarsel.beskjedManglerInntektsmelding(
             fnr = fnr,
-            bestillingId = brukervarslId,
+            bestillingId = brukervarselId,
             orgNavn = orgnavn,
             fom = soknaden.startSyketilfelle,
             synligFremTil = synligFremTil,
+            forsinketSaksbehandling = false,
         )
 
-        val meldingBestillingId = nextUUID().toString()
+        val meldingBestillingId = randomGenerator.nextUUID()
         meldingKafkaProducer.produserMelding(
             meldingUuid = meldingBestillingId,
             meldingKafkaDto =
@@ -91,7 +83,7 @@ class ManglendeInntektsmeldingVarsling15(
                     fnr = fnr,
                     opprettMelding =
                         OpprettMelding(
-                            tekst = skapVenterPåInntektsmeldingTekst(soknaden.startSyketilfelle, orgnavn),
+                            tekst = skapVenterPåInntektsmelding15Tekst(soknaden.startSyketilfelle, orgnavn),
                             lenke = inntektsmeldingManglerUrl,
                             variant = Variant.INFO,
                             lukkbar = false,
@@ -106,15 +98,15 @@ class ManglendeInntektsmeldingVarsling15(
                 vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
                 opprettetDatabase = Instant.now(),
                 tidspunkt = Instant.now(),
-                status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING,
-                brukervarselId = brukervarslId,
+                status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15,
+                brukervarselId = brukervarselId,
                 dittSykefravaerMeldingId = meldingBestillingId,
             ),
         )
 
         vedtaksperiodeBehandlingRepository.save(
             perioden.vedtaksperiode.copy(
-                sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING,
+                sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15,
                 sisteVarslingstatusTidspunkt = Instant.now(),
                 oppdatertDatabase = Instant.now(),
             ),
