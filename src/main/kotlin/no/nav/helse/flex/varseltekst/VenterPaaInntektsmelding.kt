@@ -20,3 +20,8 @@ fun skapVenterPåInntektsmelding28Tekst(
 
     return "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen fra $orgnavn for sykefraværet som startet $dato."
 }
+
+fun skapForsinketSaksbehandling28Tekst(): String {
+    return "Behandlingen av søknaden din tar lengre tid enn forventet. " +
+        "Vi beklager eventuelle ulemper dette medfører. Vi vil normalt behandle saken din innen 4 uker."
+}

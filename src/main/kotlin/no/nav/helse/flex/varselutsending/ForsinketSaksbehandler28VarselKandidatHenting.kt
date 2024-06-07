@@ -8,32 +8,32 @@ import org.springframework.stereotype.Component
 import java.time.OffsetDateTime
 
 @Component
-class ManglendeInntektsmelding15VarselKandidatHenting(
+class ForsinketSaksbehandler28VarselKandidatHenting(
     private val environmentToggles: EnvironmentToggles,
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
-    private val manglendeInntektsmeldingVarsling15: ManglendeInntektsmeldingVarsling15,
+    private val forsinketSaksbehandlingVarsling28: ForsinketSaksbehandlingVarsling28,
 ) {
     private val log = logger()
 
     fun hentOgProsseser(now: OffsetDateTime): Map<CronJobStatus, Int> {
         val sendtFoer =
             if (environmentToggles.isDevGcp()) {
-                now.minusMinutes(2).toInstant()
+                now.minusMinutes(4).toInstant()
             } else {
-                now.minusDays(15).toInstant()
+                now.minusDays(28).toInstant()
             }
 
         val fnrListe =
             vedtaksperiodeBehandlingRepository
-                .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtFoer = sendtFoer)
+                .finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(sendtFoer = sendtFoer)
 
         val returMap = mutableMapOf<CronJobStatus, Int>()
-        log.info("Fant ${fnrListe.size} unike fnr for varselutsending for manglende inntektsmelding")
+        log.info("Fant ${fnrListe.size} unike fnr for varselutsending for forsinket saksbehandling grunnet manglende inntektsmelding")
 
-        returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] = fnrListe.size
+        returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_FORSINKET_SAKSBEHANDLING_28] = fnrListe.size
 
         fnrListe.forEach { fnr ->
-            manglendeInntektsmeldingVarsling15.prosseserManglendeInntektsmeldingKandidat(fnr, sendtFoer)
+            forsinketSaksbehandlingVarsling28.prosseserManglendeInntektsmelding28(fnr, sendtFoer)
                 .also {
                     returMap.increment(it)
                 }
