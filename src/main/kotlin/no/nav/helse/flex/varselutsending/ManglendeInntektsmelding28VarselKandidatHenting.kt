@@ -24,7 +24,8 @@ class ManglendeInntektsmelding28VarselKandidatHenting(
             }
 
         val fnrListe =
-            vedtaksperiodeBehandlingRepository.finnPersonerMedForsinketSaksbehandlingGrunnetManglendeInntektsmelding(sendtFoer = sendtFoer)
+            vedtaksperiodeBehandlingRepository
+                .finnPersonerMedForsinketSaksbehandlingGrunnetManglendeInntektsmelding(sendtFoer = sendtFoer)
 
         val returMap = mutableMapOf<CronJobStatus, Int>()
         log.info("Fant ${fnrListe.size} unike fnr for varselutsending for forsinket saksbehandling grunnet manglende inntektsmelding")
@@ -32,7 +33,7 @@ class ManglendeInntektsmelding28VarselKandidatHenting(
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] = fnrListe.size
 
         fnrListe.forEach { fnr ->
-            manglendeInntektsmeldingVarsling28.prosseserManglendeInntektsmeldingKandidat(fnr, sendtFoer)
+            manglendeInntektsmeldingVarsling28.prosseserManglendeInntektsmelding28(fnr, sendtFoer)
                 .also {
                     returMap.increment(it)
                 }

@@ -1,10 +1,14 @@
 package no.nav.helse.flex
 
+import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.helse.flex.melding.MeldingKafkaDto
+import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
+import no.nav.tms.varsel.action.Sensitivitet
 import org.amshove.kluent.*
 import org.awaitility.Awaitility
 import org.junit.jupiter.api.MethodOrderer
@@ -22,7 +26,8 @@ class Forsinket28dagerGrunnetMangledeInntektsmeldingTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now()).shouldBeEmpty()
+        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+            .shouldBeEmpty()
         sendSoknad(Testdata.soknad)
         sendSoknad(
             Testdata.soknad.copy(
@@ -87,5 +92,47 @@ class Forsinket28dagerGrunnetMangledeInntektsmeldingTest : FellesTestOppsett() {
         cronjobResultat.shouldHaveSize(3)
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 1
+
+        val status = awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
+        val varselStatusen =
+            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
+                .first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_28 }
+
+        val varslingRecords = varslingConsumer.ventPåRecords(2)
+        val meldingRecords = meldingKafkaConsumer.ventPåRecords(2)
+
+        val doneBrukervarsel = varslingRecords.first()
+        doneBrukervarsel.value().tilInaktiverVarselInstance().varselId shouldBeEqualTo doneBrukervarsel.key()
+        doneBrukervarsel.value().tilInaktiverVarselInstance().varselId shouldBeEqualTo varselStatusen.brukervarselId
+
+        val cr = meldingRecords.first()
+        val doneDittSykefravaer: MeldingKafkaDto = cr.value().let { objectMapper.readValue(it) }
+
+        cr.key() shouldBeEqualTo varselStatusen.dittSykefravaerMeldingId
+
+        doneDittSykefravaer.lukkMelding.shouldNotBeNull()
+
+        val beskjedCR = varslingRecords.last()
+        val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
+        beskjedInput.ident shouldBeEqualTo Testdata.fnr
+        beskjedInput.eksternVarsling.shouldNotBeNull()
+        beskjedInput.link shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
+        beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
+        beskjedInput.tekster.first().tekst shouldBeEqualTo
+            "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
+
+        val meldingCR = meldingRecords.last()
+        val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
+        melding.fnr shouldBeEqualTo Testdata.fnr
+        melding.lukkMelding.shouldBeNull()
+
+        val opprettMelding = melding.opprettMelding.shouldNotBeNull()
+        opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING_28"
+        opprettMelding.tekst shouldBeEqualTo
+            "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
+        opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
+        opprettMelding.lukkbar shouldBeEqualTo false
+        opprettMelding.variant shouldBeEqualTo Variant.INFO
+        opprettMelding.synligFremTil.shouldNotBeNull()
     }
 }

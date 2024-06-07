@@ -40,7 +40,7 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
             WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
             AND vbs.vedtaksperiode_behandling_id = v.id
             AND v.siste_spleisstatus = 'VENTER_PÅ_ARBEIDSGIVER' 
-            AND v.siste_varslingstatus = 'VARSLET_MANGLER_INNTEKTSMELDING' 
+            AND v.siste_varslingstatus = 'VARSLET_MANGLER_INNTEKTSMELDING_15' 
             AND s.sendt < :sendtFoer
 
         """,
@@ -123,6 +123,7 @@ enum class StatusVerdi {
     VENTER_PÅ_ANNEN_PERIODE,
     FERDIG,
     BEHANDLES_UTENFOR_SPEIL,
-    VARSLET_MANGLER_INNTEKTSMELDING,
-    VARSLET_MANGLER_INNTEKTSMELDING_DONE,
+    VARSLET_MANGLER_INNTEKTSMELDING_15,
+    VARSLET_MANGLER_INNTEKTSMELDING_15_DONE,
+    VARSLET_MANGLER_INNTEKTSMELDING_28,
 }

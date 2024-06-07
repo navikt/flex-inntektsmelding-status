@@ -166,7 +166,7 @@ class IntegrationTest : FellesTestOppsett() {
         val statusManglerIm =
             vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(
                 listOf(vedtaksperiode.id!!),
-            ).first { it.status == VARSLET_MANGLER_INNTEKTSMELDING }
+            ).first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_15 }
 
         val doneBrukervarsel =
             varslingConsumer
@@ -223,14 +223,14 @@ class IntegrationTest : FellesTestOppsett() {
             listOf(
                 "OPPRETTET",
                 "VENTER_PÅ_ARBEIDSGIVER",
-                "VARSLET_MANGLER_INNTEKTSMELDING",
+                "VARSLET_MANGLER_INNTEKTSMELDING_15",
                 "VENTER_PÅ_SAKSBEHANDLER",
-                "VARSLET_MANGLER_INNTEKTSMELDING_DONE",
+                "VARSLET_MANGLER_INNTEKTSMELDING_15_DONE",
                 "FERDIG",
             )
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
-        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_DONE
+        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_15_DONE
     }
 
     @Test
@@ -292,14 +292,14 @@ class IntegrationTest : FellesTestOppsett() {
             listOf(
                 "OPPRETTET",
                 "VENTER_PÅ_ARBEIDSGIVER",
-                "VARSLET_MANGLER_INNTEKTSMELDING",
+                "VARSLET_MANGLER_INNTEKTSMELDING_15",
                 "VENTER_PÅ_SAKSBEHANDLER",
-                "VARSLET_MANGLER_INNTEKTSMELDING_DONE",
+                "VARSLET_MANGLER_INNTEKTSMELDING_15_DONE",
                 "FERDIG",
                 "VENTER_PÅ_SAKSBEHANDLER",
             )
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_SAKSBEHANDLER
-        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_DONE
+        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_15_DONE
     }
 }

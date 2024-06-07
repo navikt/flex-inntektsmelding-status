@@ -1,9 +1,9 @@
 package no.nav.helse.flex.brukervarsel
 
-import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
 import no.nav.helse.flex.logger
-import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmeldingTekst
+import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding15Tekst
+import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding28Tekst
 import no.nav.tms.varsel.action.*
 import no.nav.tms.varsel.builder.VarselActionBuilder
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -18,7 +18,6 @@ import java.time.ZoneOffset.UTC
 class Brukervarsel(
     private val kafkaProducer: KafkaProducer<String, String>,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
-    private val registry: MeterRegistry,
 ) {
     val log = logger()
 
@@ -28,9 +27,8 @@ class Brukervarsel(
         orgNavn: String,
         fom: LocalDate,
         synligFremTil: Instant,
+        forsinketSaksbehandling: Boolean,
     ) {
-        registry.counter("brukervarsel_mangler_inntektsmelding_beskjed_sendt").increment()
-
         val opprettVarsel =
             VarselActionBuilder.opprett {
                 type = Varseltype.Beskjed
@@ -40,7 +38,12 @@ class Brukervarsel(
                 tekst =
                     Tekst(
                         spraakkode = "nb",
-                        tekst = skapVenterPåInntektsmeldingTekst(fom, orgNavn),
+                        tekst =
+                            if (forsinketSaksbehandling) {
+                                skapVenterPåInntektsmelding28Tekst(fom, orgNavn)
+                            } else {
+                                skapVenterPåInntektsmelding15Tekst(fom, orgNavn)
+                            },
                         default = true,
                     )
                 aktivFremTil = synligFremTil.atZone(UTC)
@@ -56,8 +59,6 @@ class Brukervarsel(
         fnr: String,
         bestillingId: String,
     ) {
-        registry.counter("brukervarsel_done_sendt").increment()
-
         val inaktiverVarsel =
             VarselActionBuilder.inaktiver {
                 varselId = bestillingId
