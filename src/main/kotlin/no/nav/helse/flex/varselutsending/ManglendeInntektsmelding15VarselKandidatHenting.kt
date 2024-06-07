@@ -1,7 +1,6 @@
 package no.nav.helse.flex.varselutsending
 
 import no.nav.helse.flex.logger
-import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.increment
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
 import org.springframework.stereotype.Component
@@ -9,19 +8,13 @@ import java.time.OffsetDateTime
 
 @Component
 class ManglendeInntektsmelding15VarselKandidatHenting(
-    private val environmentToggles: EnvironmentToggles,
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val manglendeInntektsmeldingVarsling15: ManglendeInntektsmeldingVarsling15,
 ) {
     private val log = logger()
 
     fun hentOgProsseser(now: OffsetDateTime): Map<CronJobStatus, Int> {
-        val sendtFoer =
-            if (environmentToggles.isDevGcp()) {
-                now.minusMinutes(2).toInstant()
-            } else {
-                now.minusDays(15).toInstant()
-            }
+        val sendtFoer = now.minusDays(15).toInstant()
 
         val fnrListe =
             vedtaksperiodeBehandlingRepository
