@@ -90,37 +90,41 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 1
 
         val status = awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
-        val varselStatusen =
+        val denNyeVarselstatusen =
             vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
                 .first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_28 }
+
+        val denForrigeVarselstatusen =
+            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
+                .first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_15 }
 
         val varslingRecords = varslingConsumer.ventPåRecords(2)
         val meldingRecords = meldingKafkaConsumer.ventPåRecords(2)
 
         val doneBrukervarsel = varslingRecords.first()
-        doneBrukervarsel.value().tilInaktiverVarselInstance().varselId shouldBeEqualTo doneBrukervarsel.key()
-        doneBrukervarsel.value().tilInaktiverVarselInstance().varselId shouldBeEqualTo varselStatusen.brukervarselId
+        doneBrukervarsel.value().tilInaktiverVarselInstance().varselId shouldBeEqualTo denForrigeVarselstatusen.brukervarselId
 
-        val cr = meldingRecords.first()
-        val doneDittSykefravaer: MeldingKafkaDto = cr.value().let { objectMapper.readValue(it) }
+        val doneMeldingDittSykefravar = meldingRecords.first()
+        val doneDittSykefravaer: MeldingKafkaDto = doneMeldingDittSykefravar.value().let { objectMapper.readValue(it) }
 
-        cr.key() shouldBeEqualTo varselStatusen.dittSykefravaerMeldingId
-
+        doneMeldingDittSykefravar.key() shouldBeEqualTo denForrigeVarselstatusen.dittSykefravaerMeldingId
         doneDittSykefravaer.lukkMelding.shouldNotBeNull()
 
-        val beskjedCR = varslingRecords.last()
-        val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
+        val beskjedOpprettVarsel = varslingRecords.last()
+        val beskjedInput = beskjedOpprettVarsel.value().tilOpprettVarselInstance()
         beskjedInput.ident shouldBeEqualTo Testdata.fnr
         beskjedInput.eksternVarsling.shouldNotBeNull()
+        beskjedInput.varselId shouldBeEqualTo denNyeVarselstatusen.brukervarselId
         beskjedInput.link shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         beskjedInput.tekster.first().tekst shouldBeEqualTo
             "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
 
-        val meldingCR = meldingRecords.last()
-        val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
+        val opprettMeldingCr = meldingRecords.last()
+        val melding = objectMapper.readValue<MeldingKafkaDto>(opprettMeldingCr.value())
         melding.fnr shouldBeEqualTo Testdata.fnr
         melding.lukkMelding.shouldBeNull()
+        opprettMeldingCr.key() shouldBeEqualTo denNyeVarselstatusen.dittSykefravaerMeldingId
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING_28"
@@ -130,5 +134,9 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
         opprettMelding.synligFremTil.shouldNotBeNull()
+
+        // Forskjellige IDer
+        doneMeldingDittSykefravar.key() shouldNotBeEqualTo opprettMeldingCr.key()
+        beskjedOpprettVarsel.key() shouldNotBeEqualTo doneBrukervarsel.key()
     }
 }

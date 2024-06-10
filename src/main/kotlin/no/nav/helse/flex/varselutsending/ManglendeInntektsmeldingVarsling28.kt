@@ -62,7 +62,7 @@ class ManglendeInntektsmeldingVarsling28(
 
         meldingOgBrukervarselDone.doneSendteManglerImVarsler(perioden.vedtaksperiode, fnr)
 
-        val randomGenerator = SeededUuid(perioden.statuser.first { it.status == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }.id!!)
+        val randomGenerator = SeededUuid(perioden.statuser.first { it.status == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }.id!!, 2)
 
         val brukervarselId = randomGenerator.nextUUID()
 
