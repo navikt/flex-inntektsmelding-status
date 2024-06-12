@@ -23,5 +23,5 @@ fun skapVenterPåInntektsmelding28Tekst(
 
 fun skapForsinketSaksbehandling28Tekst(): String {
     @Suppress("ktlint:standard:max-line-length")
-    return "Behandlingen av søknaden din om sykepenger din tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Vi vil normalt behandle søknaden din innen 4 uker."
+    return "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Vi vil normalt behandle søknaden din innen 4 uker."
 }
