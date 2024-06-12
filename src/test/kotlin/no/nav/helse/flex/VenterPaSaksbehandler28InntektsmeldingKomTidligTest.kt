@@ -134,9 +134,9 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
         beskjedInput.eksternVarsling.shouldNotBeNull()
         beskjedInput.link.shouldBeNull()
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
+        @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Behandlingen av søknaden din tar lengre tid enn forventet. " +
-            "Vi beklager eventuelle ulemper dette medfører. Vi vil normalt behandle saken din innen 4 uker."
+            "Behandlingen av søknaden din om sykepenger din tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Vi vil normalt behandle søknaden din innen 4 uker."
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
@@ -145,9 +145,9 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_28"
+        @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
-            "Behandlingen av søknaden din tar lengre tid enn forventet. " +
-            "Vi beklager eventuelle ulemper dette medfører. Vi vil normalt behandle saken din innen 4 uker."
+            "Behandlingen av søknaden din om sykepenger din tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Vi vil normalt behandle søknaden din innen 4 uker."
         opprettMelding.lenke.shouldBeNull()
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
