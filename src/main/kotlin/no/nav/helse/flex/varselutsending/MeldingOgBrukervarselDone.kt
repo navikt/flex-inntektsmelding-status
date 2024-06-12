@@ -25,7 +25,40 @@ class MeldingOgBrukervarselDone(
         vedtaksperiodeBehandling: VedtaksperiodeBehandlingDbRecord,
         fnr: String?,
     ) {
-        if (vedtaksperiodeBehandling.sisteVarslingstatus != StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15) {
+        doneVarselMedStatus(
+            vedtaksperiodeBehandling = vedtaksperiodeBehandling,
+            statusVerdiSok = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15,
+            statusVerdiDone = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15_DONE,
+            fnr = fnr,
+        )
+        doneVarselMedStatus(
+            vedtaksperiodeBehandling = vedtaksperiodeBehandling,
+            statusVerdiSok = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_28,
+            statusVerdiDone = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_28_DONE,
+            fnr = fnr,
+        )
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    fun doneForsinketSbVarsel(
+        vedtaksperiodeBehandling: VedtaksperiodeBehandlingDbRecord,
+        fnr: String?,
+    ) {
+        doneVarselMedStatus(
+            vedtaksperiodeBehandling = vedtaksperiodeBehandling,
+            statusVerdiSok = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_28,
+            statusVerdiDone = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_28_DONE,
+            fnr = fnr,
+        )
+    }
+
+    fun doneVarselMedStatus(
+        vedtaksperiodeBehandling: VedtaksperiodeBehandlingDbRecord,
+        statusVerdiSok: StatusVerdi,
+        statusVerdiDone: StatusVerdi,
+        fnr: String?,
+    ) {
+        if (vedtaksperiodeBehandling.sisteVarslingstatus != statusVerdiSok) {
             return
         }
         if (fnr == null) {
@@ -36,28 +69,28 @@ class MeldingOgBrukervarselDone(
                 vedtaksperiodeBehandlingId = vedtaksperiodeBehandling.id!!,
                 opprettetDatabase = Instant.now(),
                 tidspunkt = Instant.now(),
-                status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15_DONE,
+                status = statusVerdiDone,
                 dittSykefravaerMeldingId = null,
                 brukervarselId = null,
             ),
         )
         vedtaksperiodeBehandlingRepository.save(
             vedtaksperiodeBehandling.copy(
-                sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15_DONE,
+                sisteVarslingstatus = statusVerdiDone,
                 sisteVarslingstatusTidspunkt = Instant.now(),
                 oppdatertDatabase = Instant.now(),
             ),
         )
         val varsletManglerImStatus =
             vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(vedtaksperiodeBehandling.id))
-                .firstOrNull { it.status == StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15 }
+                .firstOrNull { it.status == statusVerdiSok }
                 ?: throw RuntimeException("Fant ikke varslet mangler im status, den skal være her")
 
         brukervarsel.sendDonemelding(
             fnr = fnr,
             bestillingId = varsletManglerImStatus.brukervarselId!!,
         )
-        log.info("Donet brukervarsel om manglende inntektsmelding ${varsletManglerImStatus.brukervarselId}")
+        log.info("Donet brukervarsel ${varsletManglerImStatus.brukervarselId}")
 
         meldingKafkaProducer.produserMelding(
             meldingUuid = varsletManglerImStatus.dittSykefravaerMeldingId!!,
@@ -70,6 +103,6 @@ class MeldingOgBrukervarselDone(
                         ),
                 ),
         )
-        log.info("Donet ditt sykefravær melding om manglende inntektsmelding ${varsletManglerImStatus.dittSykefravaerMeldingId}")
+        log.info("Donet ditt sykefravær melding ${varsletManglerImStatus.dittSykefravaerMeldingId}")
     }
 }

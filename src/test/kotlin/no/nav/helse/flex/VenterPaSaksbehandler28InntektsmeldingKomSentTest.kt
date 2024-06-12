@@ -126,11 +126,11 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
         val status =
             awaitOppdatertStatus(
                 forventetSisteSpleisstatus = VENTER_PÅ_SAKSBEHANDLER,
-                forventetSisteVarselstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER,
+                forventetSisteVarselstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_28,
             )
         val varselStatusen =
             vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
-                .first { it.status == VARSLET_VENTER_PÅ_SAKSBEHANDLER }
+                .first { it.status == VARSLET_VENTER_PÅ_SAKSBEHANDLER_28 }
         val beskjedCR = varslingConsumer.ventPåRecords(1).first()
         val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
         beskjedInput.ident shouldBeEqualTo fnr

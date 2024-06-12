@@ -53,7 +53,7 @@ class ForsinketSaksbehandlingVarsling28(
                 .filter { it.vedtaksperiode.sisteSpleisstatus == StatusVerdi.VENTER_PÅ_SAKSBEHANDLER }
                 .filter { p ->
                     listOf(
-                        StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER,
+                        StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_28,
                         StatusVerdi.REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
                         StatusVerdi.VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
                     )
@@ -77,7 +77,8 @@ class ForsinketSaksbehandlingVarsling28(
         val inntektsmeldinger = inntektesmeldingRepository.findByFnrIn(listOf(fnr))
         val inntektsmelding =
             inntektsmeldinger
-                .filter { it.vedtaksperiodeId == perioden.vedtaksperiode.vedtaksperiodeId }.firstOrNull()
+                .filter { it.vedtaksperiodeId == perioden.vedtaksperiode.vedtaksperiodeId }
+                .firstOrNull()
         if (inntektsmelding == null) {
             return CronJobStatus.FORVENTET_EN_INNTEKTSMELDING_FANT_IKKE
         }
@@ -141,7 +142,7 @@ class ForsinketSaksbehandlingVarsling28(
                 vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
                 opprettetDatabase = Instant.now(),
                 tidspunkt = Instant.now(),
-                status = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER,
+                status = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_28,
                 brukervarselId = brukervarselId,
                 dittSykefravaerMeldingId = meldingBestillingId,
             ),
@@ -149,7 +150,7 @@ class ForsinketSaksbehandlingVarsling28(
 
         vedtaksperiodeBehandlingRepository.save(
             perioden.vedtaksperiode.copy(
-                sisteVarslingstatus = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER,
+                sisteVarslingstatus = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_28,
                 sisteVarslingstatusTidspunkt = Instant.now(),
                 oppdatertDatabase = Instant.now(),
             ),

@@ -151,7 +151,10 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                     oppdatertStatusVedtaksperiodeBehandling,
                     soknad?.fnr,
                 )
-                // TODO fjern sendte forsinket saksbehandlingsvarsler
+                meldingOgBrukervarselDone.doneForsinketSbVarsel(
+                    oppdatertStatusVedtaksperiodeBehandling,
+                    soknad?.fnr,
+                )
             }
 
             Behandlingstatustype.FERDIG -> {
@@ -159,7 +162,11 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                     oppdatertStatusVedtaksperiodeBehandling,
                     soknad?.fnr,
                 )
-                // TODO fjern sendte forsinket saksbehandlingsvarsler
+                meldingOgBrukervarselDone.doneForsinketSbVarsel(
+                    oppdatertStatusVedtaksperiodeBehandling,
+                    soknad?.fnr,
+                )
+                // TODO fjern sendte revarslinger forsinket SB
             }
 
             Behandlingstatustype.OPPRETTET -> {

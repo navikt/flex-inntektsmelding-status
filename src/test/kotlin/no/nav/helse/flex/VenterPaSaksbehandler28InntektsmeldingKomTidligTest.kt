@@ -11,7 +11,7 @@ import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
 import no.nav.tms.varsel.action.Sensitivitet
 import org.amshove.kluent.*
-import org.awaitility.Awaitility
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
@@ -25,6 +25,16 @@ import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() {
+    val tidspunkt = OffsetDateTime.now()
+    val behandlingstatusmelding =
+        Behandlingstatusmelding(
+            vedtaksperiodeId = Testdata.vedtaksperiodeId,
+            behandlingId = Testdata.behandlingId,
+            status = Behandlingstatustype.OPPRETTET,
+            tidspunkt = tidspunkt,
+            eksterneSøknadIder = listOf(Testdata.soknadId),
+        )
+
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
@@ -38,7 +48,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
             ),
         )
 
-        Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
+        await().atMost(5, TimeUnit.SECONDS).until {
             organisasjonRepository.findByOrgnummer(Testdata.orgNr)?.navn == "Flex AS"
         }
     }
@@ -46,15 +56,6 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
     @Test
     @Order(1)
     fun `Vi venter på saksbehandler`() {
-        val tidspunkt = OffsetDateTime.now()
-        val behandlingstatusmelding =
-            Behandlingstatusmelding(
-                vedtaksperiodeId = Testdata.vedtaksperiodeId,
-                behandlingId = Testdata.behandlingId,
-                status = Behandlingstatustype.OPPRETTET,
-                tidspunkt = tidspunkt,
-                eksterneSøknadIder = listOf(Testdata.soknadId),
-            )
         sendBehandlingsstatusMelding(behandlingstatusmelding)
         sendBehandlingsstatusMelding(
             behandlingstatusmelding.copy(
@@ -95,7 +96,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
                 vedtaksperiodeId = UUID.fromString(Testdata.vedtaksperiodeId),
             ),
         )
-        Awaitility.await().atMost(10, TimeUnit.SECONDS).until {
+        await().atMost(10, TimeUnit.SECONDS).until {
             inntektsmeldingRepository.findByFnrIn(listOf(fnr)).isNotEmpty()
         }
     }
@@ -122,11 +123,11 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
         val status =
             awaitOppdatertStatus(
                 forventetSisteSpleisstatus = VENTER_PÅ_SAKSBEHANDLER,
-                forventetSisteVarselstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER,
+                forventetSisteVarselstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_28,
             )
         val varselStatusen =
             vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
-                .first { it.status == VARSLET_VENTER_PÅ_SAKSBEHANDLER }
+                .first { it.status == VARSLET_VENTER_PÅ_SAKSBEHANDLER_28 }
         val beskjedCR = varslingConsumer.ventPåRecords(1).first()
         val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
         beskjedInput.ident shouldBeEqualTo fnr
@@ -152,5 +153,18 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
         opprettMelding.synligFremTil.shouldNotBeNull()
+    }
+
+    @Test
+    @Order(5)
+    fun `Saken blir behandlet og vi donner meldingene`() {
+        sendBehandlingsstatusMelding(
+            behandlingstatusmelding.copy(
+                status = Behandlingstatustype.FERDIG,
+            ),
+        )
+
+        varslingConsumer.ventPåRecords(1)
+        meldingKafkaConsumer.ventPåRecords(1)
     }
 }
