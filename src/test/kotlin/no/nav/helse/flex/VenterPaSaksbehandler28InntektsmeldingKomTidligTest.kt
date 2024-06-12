@@ -134,6 +134,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
         beskjedInput.eksternVarsling.shouldNotBeNull()
         beskjedInput.link.shouldBeNull()
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
+        @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
             "Behandlingen av søknaden din om sykepenger din tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Vi vil normalt behandle søknaden din innen 4 uker."
 
@@ -144,6 +145,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_28"
+        @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
             "Behandlingen av søknaden din om sykepenger din tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Vi vil normalt behandle søknaden din innen 4 uker."
         opprettMelding.lenke.shouldBeNull()
