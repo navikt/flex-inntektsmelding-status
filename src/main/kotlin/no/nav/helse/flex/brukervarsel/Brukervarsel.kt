@@ -29,6 +29,7 @@ class Brukervarsel(
         fom: LocalDate,
         synligFremTil: Instant,
         forsinketSaksbehandling: Boolean,
+        brukEksternVarsling: Boolean,
     ) {
         val opprettVarsel =
             VarselActionBuilder.opprett {
@@ -49,7 +50,12 @@ class Brukervarsel(
                     )
                 aktivFremTil = synligFremTil.atZone(UTC)
                 link = inntektsmeldingManglerUrl
-                eksternVarsling = EksternVarslingBestilling()
+                eksternVarsling =
+                    if (brukEksternVarsling) {
+                        EksternVarslingBestilling()
+                    } else {
+                        null
+                    }
             }
 
         kafkaProducer.send(ProducerRecord(MINSIDE_BRUKERVARSEL, bestillingId, opprettVarsel)).get()
