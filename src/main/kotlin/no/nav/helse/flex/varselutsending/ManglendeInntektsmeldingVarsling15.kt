@@ -51,66 +51,68 @@ class ManglendeInntektsmeldingVarsling15(
                 .filter { it.vedtaksperiode.sisteVarslingstatus == null }
                 .filter { periode -> periode.soknader.all { it.sendt.isBefore(sendtFoer) } }
 
-        if (venterPaaArbeidsgiver.size != 1) {
-            return CronJobStatus.FLERE_PERIODER_IKKE_IMPLEMENTERT
+        if (venterPaaArbeidsgiver.isEmpty()) {
+            return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_VARSEL_MANGLER_INNTEKTSMELDING_15
         }
-        // TODO sjekk om vi nettop har sendt noe annet?
 
-        val perioden = venterPaaArbeidsgiver.first()
-        val soknaden = perioden.soknader.sortedBy { it.sendt }.last()
+        venterPaaArbeidsgiver.forEachIndexed { idx, perioden ->
+            val soknaden = perioden.soknader.sortedBy { it.sendt }.last()
 
-        val randomGenerator = SeededUuid(perioden.statuser.first { it.status == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }.id!!)
+            val randomGenerator =
+                SeededUuid(perioden.statuser.first { it.status == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }.id!!)
 
-        val brukervarselId = randomGenerator.nextUUID()
+            val brukervarselId = randomGenerator.nextUUID()
 
-        val orgnavn = organisasjonRepository.findByOrgnummer(soknaden.orgnummer!!)?.navn ?: soknaden.orgnummer
+            val orgnavn = organisasjonRepository.findByOrgnummer(soknaden.orgnummer!!)?.navn ?: soknaden.orgnummer
 
-        val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
-        brukervarsel.beskjedManglerInntektsmelding(
-            fnr = fnr,
-            bestillingId = brukervarselId,
-            orgNavn = orgnavn,
-            fom = soknaden.startSyketilfelle,
-            synligFremTil = synligFremTil,
-            forsinketSaksbehandling = false,
-        )
+            val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
+            brukervarsel.beskjedManglerInntektsmelding(
+                fnr = fnr,
+                bestillingId = brukervarselId,
+                orgNavn = orgnavn,
+                fom = soknaden.startSyketilfelle,
+                synligFremTil = synligFremTil,
+                forsinketSaksbehandling = false,
+                brukEksternVarsling = idx == 0,
+            )
 
-        val meldingBestillingId = randomGenerator.nextUUID()
-        meldingKafkaProducer.produserMelding(
-            meldingUuid = meldingBestillingId,
-            meldingKafkaDto =
-                MeldingKafkaDto(
-                    fnr = fnr,
-                    opprettMelding =
-                        OpprettMelding(
-                            tekst = skapVenterPåInntektsmelding15Tekst(soknaden.startSyketilfelle, orgnavn),
-                            lenke = inntektsmeldingManglerUrl,
-                            variant = Variant.INFO,
-                            lukkbar = false,
-                            synligFremTil = synligFremTil,
-                            meldingType = "MANGLENDE_INNTEKTSMELDING",
-                        ),
+            val meldingBestillingId = randomGenerator.nextUUID()
+            meldingKafkaProducer.produserMelding(
+                meldingUuid = meldingBestillingId,
+                meldingKafkaDto =
+                    MeldingKafkaDto(
+                        fnr = fnr,
+                        opprettMelding =
+                            OpprettMelding(
+                                tekst = skapVenterPåInntektsmelding15Tekst(soknaden.startSyketilfelle, orgnavn),
+                                lenke = inntektsmeldingManglerUrl,
+                                variant = Variant.INFO,
+                                lukkbar = false,
+                                synligFremTil = synligFremTil,
+                                meldingType = "MANGLENDE_INNTEKTSMELDING",
+                            ),
+                    ),
+            )
+
+            vedtaksperiodeBehandlingStatusRepository.save(
+                VedtaksperiodeBehandlingStatusDbRecord(
+                    vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
+                    opprettetDatabase = Instant.now(),
+                    tidspunkt = Instant.now(),
+                    status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15,
+                    brukervarselId = brukervarselId,
+                    dittSykefravaerMeldingId = meldingBestillingId,
                 ),
-        )
+            )
 
-        vedtaksperiodeBehandlingStatusRepository.save(
-            VedtaksperiodeBehandlingStatusDbRecord(
-                vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
-                opprettetDatabase = Instant.now(),
-                tidspunkt = Instant.now(),
-                status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15,
-                brukervarselId = brukervarselId,
-                dittSykefravaerMeldingId = meldingBestillingId,
-            ),
-        )
-
-        vedtaksperiodeBehandlingRepository.save(
-            perioden.vedtaksperiode.copy(
-                sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15,
-                sisteVarslingstatusTidspunkt = Instant.now(),
-                oppdatertDatabase = Instant.now(),
-            ),
-        )
+            vedtaksperiodeBehandlingRepository.save(
+                perioden.vedtaksperiode.copy(
+                    sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15,
+                    sisteVarslingstatusTidspunkt = Instant.now(),
+                    oppdatertDatabase = Instant.now(),
+                ),
+            )
+        }
 
         return CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15
     }

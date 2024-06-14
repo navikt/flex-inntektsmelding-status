@@ -3,6 +3,7 @@ package no.nav.helse.flex.varselutsending
 import no.nav.helse.flex.logger
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.time.DayOfWeek
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 
@@ -15,11 +16,20 @@ class VarselutsendingCronJob(
     private val log = logger()
 
     @Scheduled(initialDelay = 1, fixedDelay = 120, timeUnit = TimeUnit.MINUTES)
-    fun run(): HashMap<CronJobStatus, Int> {
+    fun run(): Map<CronJobStatus, Int> {
+        if (OffsetDateTime.now().dayOfWeek in setOf(DayOfWeek.SUNDAY, DayOfWeek.SATURDAY)) {
+            log.info("Det er helg, jobben kjøres ikke")
+            return emptyMap()
+        }
+        if (OffsetDateTime.now().hour < 9 || OffsetDateTime.now().hour > 15) {
+            log.info("Det er ikke dagtid, jobben kjøres ikke")
+            return emptyMap()
+        }
+
         return runMedParameter(OffsetDateTime.now())
     }
 
-    fun runMedParameter(now: OffsetDateTime): HashMap<CronJobStatus, Int> {
+    fun runMedParameter(now: OffsetDateTime): Map<CronJobStatus, Int> {
         log.info("Starter VarselutsendingCronJob")
         val resultat = HashMap<CronJobStatus, Int>()
 
@@ -45,4 +55,6 @@ enum class CronJobStatus {
     SENDT_VARSEL_FORSINKET_SAKSBEHANDLING_28,
     FORVENTET_EN_INNTEKTSMELDING_FANT_IKKE,
     VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
+    INGEN_PERIODE_FUNNET_FOR_VARSEL_MANGLER_INNTEKTSMELDING_15,
+    INGEN_PERIODE_FUNNET_FOR_VARSEL_MANGLER_INNTEKTSMELDING_18,
 }

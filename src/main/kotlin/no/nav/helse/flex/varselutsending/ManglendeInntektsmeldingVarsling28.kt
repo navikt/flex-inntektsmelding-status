@@ -52,68 +52,70 @@ class ManglendeInntektsmeldingVarsling28(
                 .filter { it.vedtaksperiode.sisteVarslingstatus == StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15 }
                 .filter { periode -> periode.soknader.all { it.sendt.isBefore(sendtFoer) } }
 
-        if (venterPaaArbeidsgiver.size != 1) {
-            return CronJobStatus.FLERE_PERIODER_IKKE_IMPLEMENTERT
+        if (venterPaaArbeidsgiver.isEmpty()) {
+            return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_VARSEL_MANGLER_INNTEKTSMELDING_18
         }
-        // TODO sjekk om vi nettopp har sendt noe annet?
+        venterPaaArbeidsgiver.forEachIndexed { idx, perioden ->
 
-        val perioden = venterPaaArbeidsgiver.first()
-        val soknaden = perioden.soknader.sortedBy { it.sendt }.last()
+            val soknaden = perioden.soknader.sortedBy { it.sendt }.last()
 
-        meldingOgBrukervarselDone.doneSendteManglerImVarsler(perioden.vedtaksperiode, fnr)
+            meldingOgBrukervarselDone.doneSendteManglerImVarsler(perioden.vedtaksperiode, fnr)
 
-        val randomGenerator = SeededUuid(perioden.statuser.first { it.status == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }.id!!, 2)
+            val randomGenerator =
+                SeededUuid(perioden.statuser.first { it.status == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }.id!!, 2)
 
-        val brukervarselId = randomGenerator.nextUUID()
+            val brukervarselId = randomGenerator.nextUUID()
 
-        val orgnavn = organisasjonRepository.findByOrgnummer(soknaden.orgnummer!!)?.navn ?: soknaden.orgnummer
+            val orgnavn = organisasjonRepository.findByOrgnummer(soknaden.orgnummer!!)?.navn ?: soknaden.orgnummer
 
-        val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
-        brukervarsel.beskjedManglerInntektsmelding(
-            fnr = fnr,
-            bestillingId = brukervarselId,
-            orgNavn = orgnavn,
-            fom = soknaden.startSyketilfelle,
-            synligFremTil = synligFremTil,
-            forsinketSaksbehandling = true,
-        )
+            val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
+            brukervarsel.beskjedManglerInntektsmelding(
+                fnr = fnr,
+                bestillingId = brukervarselId,
+                orgNavn = orgnavn,
+                fom = soknaden.startSyketilfelle,
+                synligFremTil = synligFremTil,
+                forsinketSaksbehandling = true,
+                brukEksternVarsling = idx == 0,
+            )
 
-        val meldingBestillingId = randomGenerator.nextUUID()
-        meldingKafkaProducer.produserMelding(
-            meldingUuid = meldingBestillingId,
-            meldingKafkaDto =
-                MeldingKafkaDto(
-                    fnr = fnr,
-                    opprettMelding =
-                        OpprettMelding(
-                            tekst = skapVenterPåInntektsmelding28Tekst(soknaden.startSyketilfelle, orgnavn),
-                            lenke = inntektsmeldingManglerUrl,
-                            variant = Variant.INFO,
-                            lukkbar = false,
-                            synligFremTil = synligFremTil,
-                            meldingType = "MANGLENDE_INNTEKTSMELDING_28",
-                        ),
+            val meldingBestillingId = randomGenerator.nextUUID()
+            meldingKafkaProducer.produserMelding(
+                meldingUuid = meldingBestillingId,
+                meldingKafkaDto =
+                    MeldingKafkaDto(
+                        fnr = fnr,
+                        opprettMelding =
+                            OpprettMelding(
+                                tekst = skapVenterPåInntektsmelding28Tekst(soknaden.startSyketilfelle, orgnavn),
+                                lenke = inntektsmeldingManglerUrl,
+                                variant = Variant.INFO,
+                                lukkbar = false,
+                                synligFremTil = synligFremTil,
+                                meldingType = "MANGLENDE_INNTEKTSMELDING_28",
+                            ),
+                    ),
+            )
+
+            vedtaksperiodeBehandlingStatusRepository.save(
+                VedtaksperiodeBehandlingStatusDbRecord(
+                    vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
+                    opprettetDatabase = Instant.now(),
+                    tidspunkt = Instant.now(),
+                    status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_28,
+                    brukervarselId = brukervarselId,
+                    dittSykefravaerMeldingId = meldingBestillingId,
                 ),
-        )
+            )
 
-        vedtaksperiodeBehandlingStatusRepository.save(
-            VedtaksperiodeBehandlingStatusDbRecord(
-                vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
-                opprettetDatabase = Instant.now(),
-                tidspunkt = Instant.now(),
-                status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_28,
-                brukervarselId = brukervarselId,
-                dittSykefravaerMeldingId = meldingBestillingId,
-            ),
-        )
-
-        vedtaksperiodeBehandlingRepository.save(
-            perioden.vedtaksperiode.copy(
-                sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_28,
-                sisteVarslingstatusTidspunkt = Instant.now(),
-                oppdatertDatabase = Instant.now(),
-            ),
-        )
+            vedtaksperiodeBehandlingRepository.save(
+                perioden.vedtaksperiode.copy(
+                    sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_28,
+                    sisteVarslingstatusTidspunkt = Instant.now(),
+                    oppdatertDatabase = Instant.now(),
+                ),
+            )
+        }
 
         return CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_28
     }
