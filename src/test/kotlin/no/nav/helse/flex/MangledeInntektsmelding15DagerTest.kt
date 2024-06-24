@@ -129,7 +129,7 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
         beskjedInput.link shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Du har gjort din del. Nå venter vi på inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
+            "Vi venter på inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
@@ -139,7 +139,7 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING"
         opprettMelding.tekst shouldBeEqualTo
-            "Du har gjort din del. Nå venter vi på inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
+            "Vi venter på inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO

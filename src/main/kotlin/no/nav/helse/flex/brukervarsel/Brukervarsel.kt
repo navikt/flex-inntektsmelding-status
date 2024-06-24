@@ -42,7 +42,7 @@ class Brukervarsel(
                         spraakkode = "nb",
                         tekst =
                             if (forsinketSaksbehandling) {
-                                skapVenterPåInntektsmelding28Tekst(fom, orgNavn)
+                                skapVenterPåInntektsmelding28Tekst(orgNavn)
                             } else {
                                 skapVenterPåInntektsmelding15Tekst(fom, orgNavn)
                             },

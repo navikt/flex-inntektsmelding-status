@@ -87,7 +87,7 @@ class ManglendeInntektsmeldingVarsling28(
                         fnr = fnr,
                         opprettMelding =
                             OpprettMelding(
-                                tekst = skapVenterPåInntektsmelding28Tekst(soknaden.startSyketilfelle, orgnavn),
+                                tekst = skapVenterPåInntektsmelding28Tekst(orgnavn),
                                 lenke = inntektsmeldingManglerUrl,
                                 variant = Variant.INFO,
                                 lukkbar = false,
