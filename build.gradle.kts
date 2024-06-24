@@ -27,7 +27,7 @@ val kluentVersion = "1.73"
 val varselKotlinBuilderVersion = "1.0.3"
 val sykepengesoknadKafkaVersion = "2024.05.04-08.31-672172ee"
 val inntektsmeldingKontraktVersion = "2024.05.21-09-56-5528e"
-val tokenSupportVersion = "4.1.7"
+val tokenSupportVersion = "5.0.1"
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
