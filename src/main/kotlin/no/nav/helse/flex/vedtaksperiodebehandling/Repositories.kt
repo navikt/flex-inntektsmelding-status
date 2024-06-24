@@ -19,13 +19,18 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
 
     @Query(
         """
-            SELECT distinct s.fnr
-            FROM vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
-            WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
-            AND vbs.vedtaksperiode_behandling_id = v.id
-            AND v.siste_spleisstatus = 'VENTER_PÅ_ARBEIDSGIVER' 
-            AND v.siste_varslingstatus is null 
-            AND s.sendt < :sendtFoer
+            select distinct fnr
+            from 
+            (
+                select max(s.fnr) as fnr, max(s.sendt) as sendt
+                from vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
+                WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
+                AND vbs.vedtaksperiode_behandling_id = v.id
+                AND v.siste_spleisstatus = 'VENTER_PÅ_ARBEIDSGIVER' 
+                AND v.siste_varslingstatus is null 
+                group by v.vedtaksperiode_id, v.behandling_id
+            ) as sub
+            where sendt < :sendtFoer
 
         """,
     )
@@ -35,14 +40,18 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
 
     @Query(
         """
-            SELECT distinct s.fnr
-            FROM vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
-            WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
-            AND vbs.vedtaksperiode_behandling_id = v.id
-            AND v.siste_spleisstatus = 'VENTER_PÅ_ARBEIDSGIVER' 
-            AND v.siste_varslingstatus = 'VARSLET_MANGLER_INNTEKTSMELDING_15' 
-            AND s.sendt < :sendtFoer
-
+            select distinct fnr
+            from 
+            (
+                select max(s.fnr) as fnr, max(s.sendt) as sendt
+                from vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
+                WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
+                AND vbs.vedtaksperiode_behandling_id = v.id
+                AND v.siste_spleisstatus = 'VENTER_PÅ_ARBEIDSGIVER' 
+                AND v.siste_varslingstatus = 'VARSLET_MANGLER_INNTEKTSMELDING_15' 
+                group by v.vedtaksperiode_id, v.behandling_id
+            ) as sub
+            where sendt < :sendtFoer
         """,
     )
     fun finnPersonerMedForsinketSaksbehandlingGrunnetManglendeInntektsmelding(
@@ -51,18 +60,22 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
 
     @Query(
         """
-            SELECT distinct s.fnr 
-            FROM vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
-            WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
-            AND vbs.vedtaksperiode_behandling_id = v.id
-            AND v.siste_spleisstatus = 'VENTER_PÅ_SAKSBEHANDLER' 
-            AND (v.siste_varslingstatus not in (
-                'VARSLET_VENTER_PÅ_SAKSBEHANDLER', 
-                'REVARSLET_VENTER_PÅ_SAKSBEHANDLER',
-                'VARSLER_IKKE_GRUNNET_FULL_REFUSJON'
-            ) or v.siste_varslingstatus is null)
-            AND s.sendt < :sendtFoer
-
+            select distinct fnr
+            from 
+            (
+                select max(s.fnr) as fnr, max(s.sendt) as sendt
+                from vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
+                WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
+                AND vbs.vedtaksperiode_behandling_id = v.id
+                  AND v.siste_spleisstatus = 'VENTER_PÅ_SAKSBEHANDLER' 
+                  AND (v.siste_varslingstatus not in (
+                    'VARSLET_VENTER_PÅ_SAKSBEHANDLER', 
+                    'REVARSLET_VENTER_PÅ_SAKSBEHANDLER',
+                    'VARSLER_IKKE_GRUNNET_FULL_REFUSJON'
+                 ) or v.siste_varslingstatus is null)
+                group by v.vedtaksperiode_id, v.behandling_id
+            ) as sub
+            where sendt < :sendtFoer
         """,
     )
     fun finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(
