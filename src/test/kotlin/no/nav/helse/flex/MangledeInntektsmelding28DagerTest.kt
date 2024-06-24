@@ -117,8 +117,9 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
         beskjedInput.varselId shouldBeEqualTo denNyeVarselstatusen.brukervarselId
         beskjedInput.link shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
+        @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
+            "Saksbehandlingen er forsinket fordi vi fortsatt mangler inntekstmelding fra Flex AS. Etter vi har mottatt inntekstmelding vil søknaden forhåpentligvis være ferdigbehandlet innen 4 uker."
 
         val opprettMeldingCr = meldingRecords.last()
         val melding = objectMapper.readValue<MeldingKafkaDto>(opprettMeldingCr.value())
@@ -128,8 +129,9 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING_28"
+        @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
-            "Saksbehandlingen er forsinket fordi vi mangler inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
+            "Saksbehandlingen er forsinket fordi vi fortsatt mangler inntekstmelding fra Flex AS. Etter vi har mottatt inntekstmelding vil søknaden forhåpentligvis være ferdigbehandlet innen 4 uker."
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO

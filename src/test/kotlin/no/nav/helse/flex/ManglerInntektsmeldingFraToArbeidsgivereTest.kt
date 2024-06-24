@@ -136,12 +136,12 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
         beskjedInput.link shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Du har gjort din del. Nå venter vi på inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
+            "Vi venter på inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
 
         val beskjedCR2 = brukerVarslinger.last().value().tilOpprettVarselInstance()
         beskjedCR2.eksternVarsling.shouldBeNull()
         beskjedCR2.tekster.first().tekst shouldBeEqualTo
-            "Du har gjort din del. Nå venter vi på inntektsmeldingen fra Kebabfabrikken for sykefraværet som startet 29. mai 2022."
+            "Vi venter på inntektsmeldingen fra Kebabfabrikken for sykefraværet som startet 29. mai 2022."
 
         val meldinger = meldingKafkaConsumer.ventPåRecords(2)
         val meldingCR = meldinger.first()
@@ -152,7 +152,7 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING"
         opprettMelding.tekst shouldBeEqualTo
-            "Du har gjort din del. Nå venter vi på inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
+            "Vi venter på inntektsmeldingen fra Flex AS for sykefraværet som startet 29. mai 2022."
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
@@ -160,6 +160,6 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
 
         val opprettMeldingTo = objectMapper.readValue<MeldingKafkaDto>(meldinger.last().value())
         opprettMeldingTo.opprettMelding!!.tekst shouldBeEqualTo
-            "Du har gjort din del. Nå venter vi på inntektsmeldingen fra Kebabfabrikken for sykefraværet som startet 29. mai 2022."
+            "Vi venter på inntektsmeldingen fra Kebabfabrikken for sykefraværet som startet 29. mai 2022."
     }
 }
