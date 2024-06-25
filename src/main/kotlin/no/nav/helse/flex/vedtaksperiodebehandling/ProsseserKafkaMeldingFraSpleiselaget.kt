@@ -31,11 +31,13 @@ class ProsseserKafkaMeldingFraSpleiselaget(
 
         fun lagreSøknadIder(vedtaksperiodeBehandlingDbRecord: VedtaksperiodeBehandlingDbRecord) {
             kafkaDto.eksterneSøknadIder.forEach { eksternSøknadId ->
-                val eksternSøknadIdMangler =
+
+                val eksternSøknadForDenneBehandlingenMangler =
                     vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(
                         listOf(eksternSøknadId),
-                    ).isEmpty()
-                if (eksternSøknadIdMangler) {
+                    ).none { it.vedtaksperiodeBehandlingId == vedtaksperiodeBehandlingDbRecord.id }
+
+                if (eksternSøknadForDenneBehandlingenMangler) {
                     vedtaksperiodeBehandlingSykepengesoknadRepository.save(
                         VedtaksperiodeBehandlingSykepengesoknadDbRecord(
                             vedtaksperiodeBehandlingId = vedtaksperiodeBehandlingDbRecord.id!!,

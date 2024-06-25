@@ -87,6 +87,9 @@ abstract class FellesTestOppsett {
     @Autowired
     lateinit var kafkaProducer: Producer<String, String>
 
+    @Autowired
+    lateinit var hentAltForPerson: HentAltForPerson
+
     companion object {
         init {
             val threads = mutableListOf<Thread>()
