@@ -5,16 +5,18 @@ import no.nav.helse.flex.kafka.SIS_TOPIC
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.springframework.context.annotation.Profile
+import org.apache.kafka.common.TopicPartition
 import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.kafka.listener.ConsumerSeekAware
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
+import java.time.Duration
+import java.time.Instant
 
 @Component
-@Profile("test")
 class VedtaksperiodeBehandlingConsumer(
     private val prosseserKafkaMeldingFraSpleiselaget: ProsseserKafkaMeldingFraSpleiselaget,
-) {
+) : ConsumerSeekAware {
     val log = logger()
 
     @KafkaListener(
@@ -35,5 +37,20 @@ class VedtaksperiodeBehandlingConsumer(
         }
 
         acknowledgment.acknowledge()
+    }
+
+    override fun onPartitionsAssigned(
+        assignments: Map<TopicPartition, Long>,
+        callback: ConsumerSeekAware.ConsumerSeekCallback,
+    ) {
+        val timestampToSearch = Instant.now().minus(Duration.ofDays(42)).toEpochMilli()
+        val offsetsForTimes = assignments.keys.associateWith { timestampToSearch }
+
+        log.info("Seeking to timestamp $timestampToSearch for partitions $assignments")
+        // Seek to the offsets for 3 weeks ago for each partition
+        offsetsForTimes.forEach { (partition, timestamp) ->
+            log.info("Seeking to timestamp $timestamp for partition $partition")
+            callback.seekToTimestamp(partition.topic(), partition.partition(), timestamp)
+        }
     }
 }
