@@ -24,8 +24,7 @@ import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class MangledeInntektsmelding15Dager2Test : FellesTestOppsett() {
-
+class RiktigAntallPerioderLagret : FellesTestOppsett() {
     @Autowired
     lateinit var vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository
 
@@ -64,7 +63,8 @@ class MangledeInntektsmelding15Dager2Test : FellesTestOppsett() {
 
         awaitOppdatertStatus(OPPRETTET)
 
-        val newBehandlingstatusmelding = Behandlingstatusmelding(
+        val newBehandlingstatusmelding =
+            Behandlingstatusmelding(
                 vedtaksperiodeId = "3be706ee-b1b3-4558-b370-c1cd15429e5a",
                 behandlingId = "64c03649-a3b5-49df-bae2-0bd1f838b5a1",
                 status = Behandlingstatustype.OPPRETTET,
@@ -74,12 +74,9 @@ class MangledeInntektsmelding15Dager2Test : FellesTestOppsett() {
 
         sendBehandlingsstatusMelding(newBehandlingstatusmelding)
 
-
         awaitOppdatertStatus(OPPRETTET, newBehandlingstatusmelding.vedtaksperiodeId, newBehandlingstatusmelding.behandlingId)
 
         val perioder = hentAltForPerson.hentAltForPerson(fnr)
         perioder.shouldHaveSize(2)
-
-      }
-
+    }
 }
