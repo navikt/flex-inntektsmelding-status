@@ -3,7 +3,7 @@ package no.nav.helse.flex
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.Variant
-import no.nav.helse.flex.sykepengesoknad.kafka.*
+import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
@@ -11,6 +11,7 @@ import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
 import no.nav.tms.varsel.action.Sensitivitet
 import org.amshove.kluent.*
 import org.awaitility.Awaitility
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
@@ -84,10 +85,21 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
 
     @Test
     @Order(4)
-    fun `Noe skjer etter 28 dager`() {
+    fun `Det må gå nok tid før neste varsel`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(28))
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 1
+        cronjobResultat[HAR_FATT_NYLIG_VARSEL] shouldBeEqualTo 1
+    }
+
+    @Test
+    @Order(5)
+    fun `Noe skjer etter 28 dager hvis det har gått nok tid siden sist varsel`() {
+        await().pollDelay(5, TimeUnit.SECONDS).until { true }
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(28))
+        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 1
+        cronjobResultat[HAR_FATT_NYLIG_VARSEL].shouldBeNull()
 
         val status = awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
         val denNyeVarselstatusen =
@@ -102,10 +114,12 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
         val meldingRecords = meldingKafkaConsumer.ventPåRecords(2)
 
         val doneBrukervarsel = varslingRecords.first()
-        doneBrukervarsel.value().tilInaktiverVarselInstance().varselId shouldBeEqualTo denForrigeVarselstatusen.brukervarselId
+        doneBrukervarsel.value()
+            .tilInaktiverVarselInstance().varselId shouldBeEqualTo denForrigeVarselstatusen.brukervarselId
 
         val doneMeldingDittSykefravar = meldingRecords.first()
-        val doneDittSykefravaer: MeldingKafkaDto = doneMeldingDittSykefravar.value().let { objectMapper.readValue(it) }
+        val doneDittSykefravaer: MeldingKafkaDto =
+            doneMeldingDittSykefravar.value().let { objectMapper.readValue(it) }
 
         doneMeldingDittSykefravar.key() shouldBeEqualTo denForrigeVarselstatusen.dittSykefravaerMeldingId
         doneDittSykefravaer.lukkMelding.shouldNotBeNull()

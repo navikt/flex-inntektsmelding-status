@@ -13,3 +13,4 @@ env:
   SPRING_PROFILES_ACTIVE: default, testdata
   INNTEKTSMELDING_MANGLER_URL: https://www.ekstern.dev.nav.no/syk/sykefravaer/inntektsmelding
   KAFKA_AUTO_OFFSET_RESET: earliest
+  MINIMUMSTID_MELLOM_FORSTE_OG_ANDRE_MANGLER_IM_VARSEL: PT2M
