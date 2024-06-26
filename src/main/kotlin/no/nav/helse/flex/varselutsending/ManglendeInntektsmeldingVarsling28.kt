@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
 
@@ -31,8 +32,10 @@ class ManglendeInntektsmeldingVarsling28(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
+    @Value("\${MINIMUMSTID_MELLOM_FORSTE_OG_ANDRE_MANGLER_IM_VARSEL}") private val minimumstid: String,
 ) {
     private val log = logger()
+    val duration = Duration.parse(minimumstid)
 
     @Transactional(propagation = Propagation.REQUIRED)
     fun prosseserManglendeInntektsmelding28(
@@ -55,6 +58,16 @@ class ManglendeInntektsmeldingVarsling28(
         if (venterPaaArbeidsgiver.isEmpty()) {
             return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_VARSEL_MANGLER_INNTEKTSMELDING_18
         }
+
+        val harFattVarselNylig =
+            venterPaaArbeidsgiver
+                .mapNotNull { it.vedtaksperiode.sisteVarslingstatusTidspunkt }
+                .any { it.isAfter(Instant.now().minus(duration)) }
+
+        if (harFattVarselNylig) {
+            return CronJobStatus.HAR_FATT_NYLIG_VARSEL
+        }
+
         venterPaaArbeidsgiver.forEachIndexed { idx, perioden ->
 
             val soknaden = perioden.soknader.sortedBy { it.sendt }.last()
