@@ -52,7 +52,7 @@ class ManglendeInntektsmeldingVarsling28(
         val venterPaaArbeidsgiver =
             allePerioder
                 .filter { it.vedtaksperiode.sisteSpleisstatus == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }
-                .filter { it.vedtaksperiode.sisteVarslingstatus == StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15 }
+                .filter { it.vedtaksperiode.sisteVarslingstatus == StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE }
                 .filter { periode -> periode.soknader.all { it.sendt.isBefore(sendtFoer) } }
 
         if (venterPaaArbeidsgiver.isEmpty()) {
@@ -115,7 +115,7 @@ class ManglendeInntektsmeldingVarsling28(
                     vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
                     opprettetDatabase = Instant.now(),
                     tidspunkt = Instant.now(),
-                    status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_28,
+                    status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
                     brukervarselId = brukervarselId,
                     dittSykefravaerMeldingId = meldingBestillingId,
                 ),
@@ -123,7 +123,7 @@ class ManglendeInntektsmeldingVarsling28(
 
             vedtaksperiodeBehandlingRepository.save(
                 perioden.vedtaksperiode.copy(
-                    sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_28,
+                    sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
                     sisteVarslingstatusTidspunkt = Instant.now(),
                     oppdatertDatabase = Instant.now(),
                 ),

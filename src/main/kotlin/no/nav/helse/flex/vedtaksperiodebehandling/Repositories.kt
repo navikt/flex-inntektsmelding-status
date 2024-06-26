@@ -48,7 +48,7 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
                 WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
                 AND vbs.vedtaksperiode_behandling_id = v.id
                 AND v.siste_spleisstatus = 'VENTER_PÅ_ARBEIDSGIVER' 
-                AND v.siste_varslingstatus = 'VARSLET_MANGLER_INNTEKTSMELDING_15' 
+                AND v.siste_varslingstatus = 'VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE' 
                 group by v.vedtaksperiode_id, v.behandling_id
             ) as sub
             where sendt < :sendtFoer
@@ -130,21 +130,27 @@ data class VedtaksperiodeBehandlingStatusDbRecord(
 )
 
 enum class StatusVerdi {
+    VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
+    VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE,
+    VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
+    VARSLET_MANGLER_INNTEKTSMELDING_ANDRE_DONE,
+    VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
+    VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE_DONE,
     OPPRETTET,
     VENTER_PÅ_ARBEIDSGIVER,
     VENTER_PÅ_SAKSBEHANDLER,
     VENTER_PÅ_ANNEN_PERIODE,
     FERDIG,
     BEHANDLES_UTENFOR_SPEIL,
-    VARSLET_MANGLER_INNTEKTSMELDING_15,
-    VARSLET_MANGLER_INNTEKTSMELDING_15_DONE,
-    VARSLET_MANGLER_INNTEKTSMELDING_28,
-    VARSLET_MANGLER_INNTEKTSMELDING_28_DONE,
-    VARSLET_VENTER_PÅ_SAKSBEHANDLER_28,
-    VARSLET_VENTER_PÅ_SAKSBEHANDLER_28_DONE,
     REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
     VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
     VARSLET_MANGLER_INNTEKTSMELDING, // finnes i dev
     VARSLET_MANGLER_INNTEKTSMELDING_DONE, // finnes i dev
     VARSLET_VENTER_PÅ_SAKSBEHANDLER, // finnes i dev
+    VARSLET_MANGLER_INNTEKTSMELDING_15, // finnes i dev
+    VARSLET_MANGLER_INNTEKTSMELDING_15_DONE, // finnes i dev
+    VARSLET_MANGLER_INNTEKTSMELDING_28, // finnes i dev
+    VARSLET_MANGLER_INNTEKTSMELDING_28_DONE, // finnes i dev
+    VARSLET_VENTER_PÅ_SAKSBEHANDLER_28, // finnes i dev
+    VARSLET_VENTER_PÅ_SAKSBEHANDLER_28_DONE, // finnes i dev
 }

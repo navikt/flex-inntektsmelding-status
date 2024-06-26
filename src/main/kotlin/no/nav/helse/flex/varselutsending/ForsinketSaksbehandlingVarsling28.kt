@@ -53,7 +53,7 @@ class ForsinketSaksbehandlingVarsling28(
                 .filter { it.vedtaksperiode.sisteSpleisstatus == StatusVerdi.VENTER_PÅ_SAKSBEHANDLER }
                 .filter { p ->
                     listOf(
-                        StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_28,
+                        StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
                         StatusVerdi.REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
                         StatusVerdi.VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
                     )
@@ -142,7 +142,7 @@ class ForsinketSaksbehandlingVarsling28(
                 vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
                 opprettetDatabase = Instant.now(),
                 tidspunkt = Instant.now(),
-                status = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_28,
+                status = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
                 brukervarselId = brukervarselId,
                 dittSykefravaerMeldingId = meldingBestillingId,
             ),
@@ -150,7 +150,7 @@ class ForsinketSaksbehandlingVarsling28(
 
         vedtaksperiodeBehandlingRepository.save(
             perioden.vedtaksperiode.copy(
-                sisteVarslingstatus = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_28,
+                sisteVarslingstatus = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
                 sisteVarslingstatusTidspunkt = Instant.now(),
                 oppdatertDatabase = Instant.now(),
             ),

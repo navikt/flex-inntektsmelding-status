@@ -27,14 +27,14 @@ class MeldingOgBrukervarselDone(
     ) {
         doneVarselMedStatus(
             vedtaksperiodeBehandling = vedtaksperiodeBehandling,
-            statusVerdiSok = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15,
-            statusVerdiDone = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15_DONE,
+            statusVerdiSok = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
+            statusVerdiDone = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE,
             fnr = fnr,
         )
         doneVarselMedStatus(
             vedtaksperiodeBehandling = vedtaksperiodeBehandling,
-            statusVerdiSok = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_28,
-            statusVerdiDone = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_28_DONE,
+            statusVerdiSok = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
+            statusVerdiDone = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE_DONE,
             fnr = fnr,
         )
     }
@@ -46,8 +46,8 @@ class MeldingOgBrukervarselDone(
     ) {
         doneVarselMedStatus(
             vedtaksperiodeBehandling = vedtaksperiodeBehandling,
-            statusVerdiSok = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_28,
-            statusVerdiDone = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_28_DONE,
+            statusVerdiSok = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
+            statusVerdiDone = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE_DONE,
             fnr = fnr,
         )
     }
