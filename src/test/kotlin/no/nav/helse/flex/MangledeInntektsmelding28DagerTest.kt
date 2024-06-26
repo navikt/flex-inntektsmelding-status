@@ -104,11 +104,11 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
         val status = awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
         val denNyeVarselstatusen =
             vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
-                .first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_28 }
+                .first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_ANDRE }
 
         val denForrigeVarselstatusen =
             vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
-                .first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_15 }
+                .first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE }
 
         val varslingRecords = varslingConsumer.ventPåRecords(2)
         val meldingRecords = meldingKafkaConsumer.ventPåRecords(2)

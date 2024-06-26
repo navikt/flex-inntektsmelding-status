@@ -99,7 +99,7 @@ class ManglendeInntektsmeldingVarsling15(
                     vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
                     opprettetDatabase = Instant.now(),
                     tidspunkt = Instant.now(),
-                    status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15,
+                    status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
                     brukervarselId = brukervarselId,
                     dittSykefravaerMeldingId = meldingBestillingId,
                 ),
@@ -107,7 +107,7 @@ class ManglendeInntektsmeldingVarsling15(
 
             vedtaksperiodeBehandlingRepository.save(
                 perioden.vedtaksperiode.copy(
-                    sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_15,
+                    sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
                     sisteVarslingstatusTidspunkt = Instant.now(),
                     oppdatertDatabase = Instant.now(),
                 ),

@@ -166,7 +166,7 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
         val statusManglerIm =
             vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(
                 listOf(vedtaksperiode.id!!),
-            ).first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_15 }
+            ).first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE }
 
         val doneBrukervarsel =
             varslingConsumer
@@ -223,14 +223,14 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
             listOf(
                 "OPPRETTET",
                 "VENTER_PÅ_ARBEIDSGIVER",
-                "VARSLET_MANGLER_INNTEKTSMELDING_15",
+                "VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE",
                 "VENTER_PÅ_SAKSBEHANDLER",
-                "VARSLET_MANGLER_INNTEKTSMELDING_15_DONE",
+                "VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE",
                 "FERDIG",
             )
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
-        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_15_DONE
+        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE
     }
 
     @Test
@@ -292,14 +292,14 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
             listOf(
                 "OPPRETTET",
                 "VENTER_PÅ_ARBEIDSGIVER",
-                "VARSLET_MANGLER_INNTEKTSMELDING_15",
+                "VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE",
                 "VENTER_PÅ_SAKSBEHANDLER",
-                "VARSLET_MANGLER_INNTEKTSMELDING_15_DONE",
+                "VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE",
                 "FERDIG",
                 "VENTER_PÅ_SAKSBEHANDLER",
             )
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_SAKSBEHANDLER
-        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_15_DONE
+        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE
     }
 }
