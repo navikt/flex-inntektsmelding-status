@@ -48,8 +48,11 @@ class ManglendeInntektsmeldingVarsling15(
         val venterPaaArbeidsgiver =
             allePerioder
                 .filter { it.vedtaksperiode.sisteSpleisstatus == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }
-                .filter { it.vedtaksperiode.sisteVarslingstatus == null }
                 .filter { periode -> periode.soknader.all { it.sendt.isBefore(sendtFoer) } }
+                .groupBy { it.soknader.sortedBy { it.sendt }.last().orgnummer }
+                .map { it.value.sortedBy { it.soknader.sortedBy { it.sendt }.first().fom } }
+                .map { it.first() }
+                .filter { it.vedtaksperiode.sisteVarslingstatus == null }
 
         if (venterPaaArbeidsgiver.isEmpty()) {
             return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_VARSEL_MANGLER_INNTEKTSMELDING_15

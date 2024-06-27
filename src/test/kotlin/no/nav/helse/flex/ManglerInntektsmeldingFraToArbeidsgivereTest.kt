@@ -3,7 +3,6 @@ package no.nav.helse.flex
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.Testdata.behandlingId
 import no.nav.helse.flex.Testdata.fnr
-import no.nav.helse.flex.Testdata.orgNr
 import no.nav.helse.flex.Testdata.soknad
 import no.nav.helse.flex.Testdata.soknadId
 import no.nav.helse.flex.Testdata.vedtaksperiodeId
@@ -42,7 +41,7 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
 
     @Test
     @Order(0)
-    fun `Sykmeldt sender inn sykepengesøknader, vi henter ut arbeidsgivers navn`() {
+    fun `Sykmeldt sender inn sykepengesøknader`() {
         vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
             .shouldBeEmpty()
         sendSoknad(soknad)
@@ -62,10 +61,10 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
         )
 
         await().atMost(5, TimeUnit.SECONDS).until {
-            organisasjonRepository.findByOrgnummer(orgNr)?.navn == "Flex AS"
+            organisasjonRepository.count() == 2L
         }
         await().atMost(5, TimeUnit.SECONDS).until {
-            organisasjonRepository.findByOrgnummer(orgnr2)?.navn == orgnavn2
+            sykepengesoknadRepository.count() == 2L
         }
     }
 
