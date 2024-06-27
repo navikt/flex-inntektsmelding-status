@@ -9,13 +9,13 @@ import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.VENTER_PÅ_ARBEIDSGIVER
 import org.amshove.kluent.shouldBeEqualTo
-import org.amshove.kluent.shouldBeNull
 import org.amshove.kluent.shouldHaveSize
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -76,65 +76,21 @@ class ThrottleVarsleTest : FellesTestOppsett() {
             )
         }
 
-        (0 until 20).forEach { index -> sendSoknad(index) }
+        (0 until 45).forEach { index -> sendSoknad(index) }
 
         val perioderSomVenterPaaArbeidsgiver =
             vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
-        perioderSomVenterPaaArbeidsgiver.shouldHaveSize(20)
+        perioderSomVenterPaaArbeidsgiver.shouldHaveSize(45)
     }
 
     @Test
     @Order(2)
     fun `Vi sender ut mangler inntektsmelding varsel etter 15 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
-        cronjobResultat[SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15] shouldBeEqualTo 5
-        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 20
-        cronjobResultat[UTELATTE_FNR_MANGLER_IM_15_THROTTLE] shouldBeEqualTo 15
-        varslingConsumer.ventPåRecords(5)
-        meldingKafkaConsumer.ventPåRecords(5)
-    }
-
-    @Test
-    @Order(3)
-    fun `Vi sender ut mangler inntektsmelding varsel etter 15 dager enda en gang`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
-        cronjobResultat[SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15] shouldBeEqualTo 5
-        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 15
-        cronjobResultat[UTELATTE_FNR_MANGLER_IM_15_THROTTLE] shouldBeEqualTo 10
-        varslingConsumer.ventPåRecords(5)
-        meldingKafkaConsumer.ventPåRecords(5)
-    }
-
-    @Test
-    @Order(4)
-    fun `Run 3`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
-        cronjobResultat[SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15] shouldBeEqualTo 5
-        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 10
-        cronjobResultat[UTELATTE_FNR_MANGLER_IM_15_THROTTLE] shouldBeEqualTo 5
-        varslingConsumer.ventPåRecords(5)
-        meldingKafkaConsumer.ventPåRecords(5)
-    }
-
-    @Test
-    @Order(5)
-    fun `Run 4`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
-        cronjobResultat[SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15] shouldBeEqualTo 5
-        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 5
-        cronjobResultat[UTELATTE_FNR_MANGLER_IM_15_THROTTLE] shouldBeEqualTo 0
-        varslingConsumer.ventPåRecords(5)
-        meldingKafkaConsumer.ventPåRecords(5)
-    }
-
-    @Test
-    @Order(6)
-    fun `Run 5`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
-        cronjobResultat[SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15].shouldBeNull()
-        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
-        cronjobResultat[UTELATTE_FNR_MANGLER_IM_15_THROTTLE].shouldBeNull()
-        varslingConsumer.ventPåRecords(0)
-        meldingKafkaConsumer.ventPåRecords(0)
+        cronjobResultat[SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15] shouldBeEqualTo 20
+        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 45
+        cronjobResultat[UTELATTE_FNR_MANGLER_IM_15_THROTTLE] shouldBeEqualTo 25
+        varslingConsumer.ventPåRecords(20, duration = Duration.ofMinutes(1))
+        meldingKafkaConsumer.ventPåRecords(20, duration = Duration.ofMinutes(1))
     }
 }

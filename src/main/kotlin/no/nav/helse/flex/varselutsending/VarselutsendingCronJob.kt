@@ -15,7 +15,7 @@ class VarselutsendingCronJob(
 ) {
     private val log = logger()
 
-    @Scheduled(initialDelay = 1, fixedDelay = 120, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 1, fixedDelay = 60, timeUnit = TimeUnit.MINUTES)
     fun run(): Map<CronJobStatus, Int> {
         if (OffsetDateTime.now().dayOfWeek in setOf(DayOfWeek.SUNDAY, DayOfWeek.SATURDAY)) {
             log.info("Det er helg, jobben kjøres ikke")
