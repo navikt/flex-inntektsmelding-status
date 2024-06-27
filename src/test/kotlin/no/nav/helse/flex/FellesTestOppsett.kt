@@ -174,8 +174,8 @@ abstract class FellesTestOppsett {
         Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
             val vedtaksperiode =
                 vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
-                    Testdata.vedtaksperiodeId,
-                    Testdata.behandlingId,
+                    vedtaksperiodeId,
+                    behandlingId,
                 )
             if (vedtaksperiode == null) {
                 false
@@ -184,8 +184,8 @@ abstract class FellesTestOppsett {
             }
         }
         return vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
-            Testdata.vedtaksperiodeId,
-            Testdata.behandlingId,
+            vedtaksperiodeId,
+            behandlingId,
         )!!
     }
 

@@ -10,6 +10,7 @@ import no.nav.helse.flex.Testdata.vedtaksperiodeId
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.sykepengesoknad.kafka.*
+import no.nav.helse.flex.varselutsending.CronJobStatus
 import no.nav.helse.flex.varselutsending.CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15
 import no.nav.helse.flex.varselutsending.CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
@@ -37,7 +38,8 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now()).shouldBeEmpty()
+        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+            .shouldBeEmpty()
         sendSoknad(soknad)
         sendSoknad(
             soknad.copy(
@@ -54,7 +56,8 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
     @Test
     @Order(1)
     fun `Vi får beskjed at perioden venter på arbeidsgiver`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now()).shouldBeEmpty()
+        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+            .shouldBeEmpty()
 
         val tidspunkt = OffsetDateTime.now()
         val behandlingstatusmelding =
@@ -301,5 +304,15 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_SAKSBEHANDLER
         response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE
+    }
+
+    @Test
+    @Order(10)
+    fun `Cronjob resultat til slutt`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(14))
+        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
+        cronjobResultat[CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 0
+        cronjobResultat[CronJobStatus.UNIKE_FNR_KANDIDATER_FORSINKET_SAKSBEHANDLING_28] shouldBeEqualTo 0
+        cronjobResultat.shouldHaveSize(3)
     }
 }
