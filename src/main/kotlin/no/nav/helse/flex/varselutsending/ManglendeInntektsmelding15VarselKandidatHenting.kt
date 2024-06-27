@@ -31,7 +31,7 @@ class ManglendeInntektsmelding15VarselKandidatHenting(
                     returMap.increment(it)
                 }
             val antallSendteVarsler = returMap[CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15]
-            if (antallSendteVarsler != null && antallSendteVarsler >= 5) {
+            if (antallSendteVarsler != null && antallSendteVarsler >= 20) {
                 returMap[CronJobStatus.UTELATTE_FNR_MANGLER_IM_15_THROTTLE] = fnrListe.size - idx - 1
                 return returMap
             }
