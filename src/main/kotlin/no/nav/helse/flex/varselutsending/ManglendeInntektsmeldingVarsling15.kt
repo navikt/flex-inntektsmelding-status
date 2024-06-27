@@ -2,13 +2,11 @@ package no.nav.helse.flex.varselutsending
 
 import no.nav.helse.flex.brukervarsel.Brukervarsel
 import no.nav.helse.flex.database.LockRepository
-import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
-import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding15Tekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
@@ -23,7 +21,6 @@ import java.time.OffsetDateTime
 class ManglendeInntektsmeldingVarsling15(
     private val hentAltForPerson: HentAltForPerson,
     private val lockRepository: LockRepository,
-    private val environmentToggles: EnvironmentToggles,
     private val brukervarsel: Brukervarsel,
     private val organisasjonRepository: OrganisasjonRepository,
     private val meldingKafkaProducer: MeldingKafkaProducer,
@@ -31,16 +28,11 @@ class ManglendeInntektsmeldingVarsling15(
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
 ) {
-    private val log = logger()
-
     @Transactional(propagation = Propagation.REQUIRED)
     fun prosseserManglendeInntektsmeldingKandidat(
         fnr: String,
         sendtFoer: Instant,
     ): CronJobStatus {
-        if (environmentToggles.isProduction()) {
-            return CronJobStatus.MANGLENDE_INNTEKTSMELDING_VARSEL_15_DISABLET_I_PROD
-        }
         lockRepository.settAdvisoryTransactionLock(fnr)
 
         val allePerioder = hentAltForPerson.hentAltForPerson(fnr)
