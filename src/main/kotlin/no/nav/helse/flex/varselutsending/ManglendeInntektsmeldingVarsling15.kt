@@ -2,6 +2,7 @@ package no.nav.helse.flex.varselutsending
 
 import no.nav.helse.flex.brukervarsel.Brukervarsel
 import no.nav.helse.flex.database.LockRepository
+import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.melding.OpprettMelding
@@ -28,6 +29,8 @@ class ManglendeInntektsmeldingVarsling15(
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
 ) {
+    val log = logger()
+
     @Transactional(propagation = Propagation.REQUIRED)
     fun prosseserManglendeInntektsmeldingKandidat(
         fnr: String,
@@ -61,6 +64,9 @@ class ManglendeInntektsmeldingVarsling15(
             val orgnavn = organisasjonRepository.findByOrgnummer(soknaden.orgnummer!!)?.navn ?: soknaden.orgnummer
 
             val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
+
+            log.info("Sender første mangler inntektsmelding varsel til vedtaksperiode ${perioden.vedtaksperiode.vedtaksperiodeId}")
+
             brukervarsel.beskjedManglerInntektsmelding(
                 fnr = fnr,
                 bestillingId = brukervarselId,
