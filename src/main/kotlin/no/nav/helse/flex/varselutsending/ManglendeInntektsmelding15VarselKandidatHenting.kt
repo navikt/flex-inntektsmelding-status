@@ -25,11 +25,16 @@ class ManglendeInntektsmelding15VarselKandidatHenting(
 
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] = fnrListe.size
 
-        fnrListe.forEach { fnr ->
+        fnrListe.forEachIndexed { idx, fnr ->
             manglendeInntektsmeldingVarsling15.prosseserManglendeInntektsmeldingKandidat(fnr, sendtFoer)
                 .also {
                     returMap.increment(it)
                 }
+            val antallSendteVarsler = returMap[CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15]
+            if (antallSendteVarsler != null && antallSendteVarsler >= 5) {
+                returMap[CronJobStatus.UTELATTE_FNR_MANGLER_IM_15_THROTTLE] = fnrListe.size - idx - 1
+                return returMap
+            }
         }
 
         return returMap
