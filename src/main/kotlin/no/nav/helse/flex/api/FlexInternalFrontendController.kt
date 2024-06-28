@@ -35,7 +35,7 @@ class FlexInternalFrontendController(
 
     data class HentVedtaksperioderPostRequest(
         val fnr: String? = null,
-        val vedtaksperiodId: String? = null,
+        val vedtaksperiodeId: String? = null,
         val sykepengesoknadId: String? = null,
     )
 
@@ -51,8 +51,8 @@ class FlexInternalFrontendController(
         if (req.fnr != null) {
             return hentAltForPerson.hentAltForPerson(req.fnr)
         }
-        if (req.vedtaksperiodId != null) {
-            return hentAltForPerson.hentAltForVedtaksperiode(req.vedtaksperiodId)
+        if (req.vedtaksperiodeId != null) {
+            return hentAltForPerson.hentAltForVedtaksperiode(req.vedtaksperiodeId)
         }
         return emptyList()
     }
