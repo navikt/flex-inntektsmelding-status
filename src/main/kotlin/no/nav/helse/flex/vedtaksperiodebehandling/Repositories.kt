@@ -15,6 +15,8 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
         behandlingId: String,
     ): VedtaksperiodeBehandlingDbRecord?
 
+    fun findByVedtaksperiodeId(vedtaksperiodeId: String): List<VedtaksperiodeBehandlingDbRecord>
+
     fun findByIdIn(id: List<String>): List<VedtaksperiodeBehandlingDbRecord>
 
     @Query(

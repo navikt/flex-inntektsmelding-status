@@ -52,6 +52,22 @@ class HentAltForPerson(
             )
         }
     }
+
+    fun hentAltForVedtaksperiode(vedtaksperiodId: String): List<FullVedtaksperiodeBehandling> {
+        val perioder = vedtaksperiodeBehandlingRepository.findByVedtaksperiodeId(vedtaksperiodId)
+        val relasjoner =
+            vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingIdIn(
+                perioder.map { it.id!! },
+            )
+        val soknader =
+            sykepengesoknadRepository.findBySykepengesoknadUuidIn(
+                relasjoner.map { it.sykepengesoknadUuid },
+            )
+        soknader.firstOrNull()?.let {
+            return hentAltForPerson(it.fnr)
+        }
+        return emptyList()
+    }
 }
 
 data class FullVedtaksperiodeBehandling(
