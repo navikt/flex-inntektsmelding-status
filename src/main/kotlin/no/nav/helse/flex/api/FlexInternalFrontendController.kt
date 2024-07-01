@@ -39,6 +39,11 @@ class FlexInternalFrontendController(
         val sykepengesoknadId: String? = null,
     )
 
+    data class VedtakOgInntektsmeldingerResponse(
+        val vedtaksperioder: List<FullVedtaksperiodeBehandling>,
+        val inntektsmeldinger: List<InntektsmeldingDbRecord>,
+    )
+
     @PostMapping(
         "/api/v1/vedtaksperioder",
         consumes = [APPLICATION_JSON_VALUE],
@@ -55,6 +60,29 @@ class FlexInternalFrontendController(
             return hentAltForPerson.hentAltForVedtaksperiode(req.vedtaksperiodeId)
         }
         return emptyList()
+    }
+
+    @PostMapping(
+        "/api/v1/vedtak-og-inntektsmeldinger",
+        consumes = [APPLICATION_JSON_VALUE],
+        produces = [APPLICATION_JSON_VALUE],
+    )
+    fun hentVedtakOgInntektsmeldinger(
+        @RequestBody req: HentVedtaksperioderPostRequest,
+    ): VedtakOgInntektsmeldingerResponse {
+        clientIdValidation.validateClientId(NamespaceAndApp(namespace = "flex", app = "flex-internal-frontend"))
+        if (req.fnr != null) {
+            val perioder = hentAltForPerson.hentAltForPerson(req.fnr)
+            val inntektsmeldinger = inntektsmeldingRepository.findByFnrIn(listOf(req.fnr))
+            return VedtakOgInntektsmeldingerResponse(perioder, inntektsmeldinger)
+        }
+        if (req.vedtaksperiodeId != null) {
+            val perioder = hentAltForPerson.hentAltForVedtaksperiode(req.vedtaksperiodeId)
+            val fnr = perioder.firstOrNull()?.soknader?.firstOrNull()?.fnr
+            val inntektsmeldinger = fnr ?.let { inntektsmeldingRepository.findByFnrIn(listOf(it)) } ?: emptyList()
+            return VedtakOgInntektsmeldingerResponse(perioder, inntektsmeldinger)
+        }
+        return VedtakOgInntektsmeldingerResponse(emptyList(), emptyList())
     }
 
     @GetMapping("/api/v1/inntektsmeldinger", produces = [MediaType.APPLICATION_JSON_VALUE])
