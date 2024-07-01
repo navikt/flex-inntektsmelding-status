@@ -37,7 +37,7 @@ class InntektsmeldingLagringTest : FellesTestOppsett() {
                 virksomhetsnummer = "123456789",
                 refusjonBelopPerMnd = BigDecimal(10000),
                 beregnetInntekt = BigDecimal(10000),
-                vedtaksperiodeId = UUID.fromString("ffcf0c28-dd35-4b5d-b518-3d3cbda9329a"),
+                vedtaksperiodeId = "ffcf0c28-dd35-4b5d-b518-3d3cbda9329a",
             ).serialisertTilString(),
         )
 

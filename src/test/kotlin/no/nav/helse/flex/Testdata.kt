@@ -34,7 +34,7 @@ fun skapInntektsmelding(
     virksomhetsnummer: String?,
     refusjonBelopPerMnd: BigDecimal?,
     beregnetInntekt: BigDecimal?,
-    vedtaksperiodeId: UUID? = null,
+    vedtaksperiodeId: String? = null,
 ): Inntektsmelding {
     val foersteJanuar = LocalDate.of(2019, 1, 1)
     val andreJanuar = LocalDate.of(2019, 1, 2)
@@ -60,6 +60,11 @@ fun skapInntektsmelding(
         innsenderFulltNavn = "",
         innsenderTelefon = "",
         virksomhetsnummer = virksomhetsnummer,
-        vedtaksperiodeId = vedtaksperiodeId,
+        vedtaksperiodeId =
+            if (vedtaksperiodeId != null) {
+                UUID.fromString(vedtaksperiodeId)
+            } else {
+                null
+            },
     )
 }
