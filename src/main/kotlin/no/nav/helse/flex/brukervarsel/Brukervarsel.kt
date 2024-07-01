@@ -2,6 +2,7 @@ package no.nav.helse.flex.brukervarsel
 
 import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
 import no.nav.helse.flex.logger
+import no.nav.helse.flex.varseltekst.SAKSBEHANDLINGSTID_URL
 import no.nav.helse.flex.varseltekst.skapForsinketSaksbehandling28Tekst
 import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding15Tekst
 import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding28Tekst
@@ -81,7 +82,7 @@ class Brukervarsel(
                         default = true,
                     )
                 aktivFremTil = synligFremTil.atZone(UTC)
-                link = null
+                link = SAKSBEHANDLINGSTID_URL
                 eksternVarsling = EksternVarslingBestilling()
             }
 
