@@ -89,7 +89,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
                 virksomhetsnummer = "123456789",
                 refusjonBelopPerMnd = BigDecimal(5000),
                 beregnetInntekt = BigDecimal(10000),
-                vedtaksperiodeId = UUID.fromString(Testdata.vedtaksperiodeId),
+                vedtaksperiodeId = Testdata.vedtaksperiodeId,
             ),
         )
         Awaitility.await().atMost(10, TimeUnit.SECONDS).until {
@@ -149,7 +149,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
         melding.lukkMelding.shouldBeNull()
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
-        opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_28"
+        opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL"
         @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
             "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over normal saksbehandlingstid."
