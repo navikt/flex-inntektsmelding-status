@@ -1,6 +1,9 @@
 package no.nav.helse.flex
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.helse.flex.Testdata.fnr
+import no.nav.helse.flex.api.FlexInternalFrontendController.HentVedtaksperioderPostRequest
+import no.nav.helse.flex.api.FlexInternalFrontendController.VedtakOgInntektsmeldingerResponse
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.inntektsmelding.INNTEKTSMELDING_TOPIC
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
@@ -31,8 +34,11 @@ import org.springframework.boot.test.autoconfigure.actuate.observability.AutoCon
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.MediaType
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
@@ -232,6 +238,27 @@ abstract class FellesTestOppsett {
                 soknad.serialisertTilString(),
             ),
         ).get()
+    }
+
+    fun hentVedtaksperioder(fnr: String = Testdata.fnr): List<FullVedtaksperiodeBehandling> {
+        val responseString =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/v1/vedtak-og-inntektsmeldinger")
+                        .header("Authorization", "Bearer ${skapAzureJwt("flex-internal-frontend-client-id")}")
+                        .header("fnr", fnr)
+                        .accept("application/json; charset=UTF-8")
+                        .content(
+                            HentVedtaksperioderPostRequest(fnr = fnr)
+                                .serialisertTilString(),
+                        )
+                        .contentType(MediaType.APPLICATION_JSON),
+                )
+                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful).andReturn().response.contentAsString
+
+        val response: VedtakOgInntektsmeldingerResponse = objectMapper.readValue(responseString)
+        return response.vedtaksperioder
     }
 }
 
