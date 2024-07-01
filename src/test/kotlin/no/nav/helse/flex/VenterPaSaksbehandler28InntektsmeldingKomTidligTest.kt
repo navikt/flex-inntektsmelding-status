@@ -5,6 +5,7 @@ import no.nav.helse.flex.Testdata.fnr
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.sykepengesoknad.kafka.*
+import no.nav.helse.flex.varseltekst.SAKSBEHANDLINGSTID_URL
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
@@ -133,11 +134,11 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
         beskjedInput.ident shouldBeEqualTo fnr
         beskjedInput.varselId shouldBeEqualTo varselStatusen.brukervarselId
         beskjedInput.eksternVarsling.shouldNotBeNull()
-        beskjedInput.link.shouldBeNull()
+        beskjedInput.link shouldBeEqualTo SAKSBEHANDLINGSTID_URL
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Søknaden vil forhåpentligvis være ferdigbehandlet innen 4 uker. Vi beklager eventuelle ulemper dette medfører."
+            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over normal saksbehandlingstid."
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
@@ -148,8 +149,8 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
         opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_28"
         @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
-            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Søknaden vil forhåpentligvis være ferdigbehandlet innen 4 uker. Vi beklager eventuelle ulemper dette medfører."
-        opprettMelding.lenke.shouldBeNull()
+            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over normal saksbehandlingstid."
+        opprettMelding.lenke shouldBeEqualTo SAKSBEHANDLINGSTID_URL
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
         opprettMelding.synligFremTil.shouldNotBeNull()

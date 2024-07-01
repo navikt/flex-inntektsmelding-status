@@ -11,6 +11,7 @@ import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
+import no.nav.helse.flex.varseltekst.SAKSBEHANDLINGSTID_URL
 import no.nav.helse.flex.varseltekst.skapForsinketSaksbehandling28Tekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
 import org.springframework.beans.factory.annotation.Value
@@ -123,7 +124,7 @@ class ForsinketSaksbehandlingVarsling28(
                     opprettMelding =
                         OpprettMelding(
                             tekst = skapForsinketSaksbehandling28Tekst(),
-                            lenke = null,
+                            lenke = SAKSBEHANDLINGSTID_URL,
                             variant = Variant.INFO,
                             lukkbar = false,
                             synligFremTil = synligFremTil,
