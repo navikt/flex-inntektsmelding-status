@@ -18,11 +18,12 @@ class VarselutsendingCronJob(
 
     @Scheduled(initialDelay = 1, fixedDelay = 30, timeUnit = TimeUnit.MINUTES)
     fun run(): Map<CronJobStatus, Int> {
-        if (OffsetDateTime.now().dayOfWeek in setOf(DayOfWeek.SUNDAY, DayOfWeek.SATURDAY)) {
+        val osloDatetimeNow = OffsetDateTime.now().tilOsloZone()
+        if (osloDatetimeNow.dayOfWeek in setOf(DayOfWeek.SUNDAY, DayOfWeek.SATURDAY)) {
             log.info("Det er helg, jobben kjøres ikke")
             return emptyMap()
         }
-        if (OffsetDateTime.now().tilOsloZone().hour < 9 || OffsetDateTime.now().hour > 15) {
+        if (osloDatetimeNow.hour < 9 || osloDatetimeNow.hour > 15) {
             log.info("Det er ikke dagtid, jobben kjøres ikke")
             return emptyMap()
         }
