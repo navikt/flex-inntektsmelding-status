@@ -10,14 +10,12 @@ import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
-import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingSykepengesoknadRepository
 import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
-import org.springframework.beans.factory.annotation.Autowired
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -25,9 +23,6 @@ import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class RiktigAntallPerioderLagret : FellesTestOppsett() {
-    @Autowired
-    lateinit var vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository
-
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {

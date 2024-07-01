@@ -25,14 +25,6 @@ class FlexInternalFrontendController(
     private val inntektsmeldingRepository: InntektsmeldingRepository,
     private val environmentToggles: EnvironmentToggles,
 ) {
-    @GetMapping("/api/v1/vedtaksperioder", produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun hentVedtaksperioder(
-        @RequestHeader fnr: String,
-    ): List<FullVedtaksperiodeBehandling> {
-        clientIdValidation.validateClientId(NamespaceAndApp(namespace = "flex", app = "flex-internal-frontend"))
-        return hentAltForPerson.hentAltForPerson(fnr)
-    }
-
     data class HentVedtaksperioderPostRequest(
         val fnr: String? = null,
         val vedtaksperiodeId: String? = null,
@@ -43,24 +35,6 @@ class FlexInternalFrontendController(
         val vedtaksperioder: List<FullVedtaksperiodeBehandling>,
         val inntektsmeldinger: List<InntektsmeldingDbRecord>,
     )
-
-    @PostMapping(
-        "/api/v1/vedtaksperioder",
-        consumes = [APPLICATION_JSON_VALUE],
-        produces = [APPLICATION_JSON_VALUE],
-    )
-    fun hentVedtaksperioderPost(
-        @RequestBody req: HentVedtaksperioderPostRequest,
-    ): List<FullVedtaksperiodeBehandling> {
-        clientIdValidation.validateClientId(NamespaceAndApp(namespace = "flex", app = "flex-internal-frontend"))
-        if (req.fnr != null) {
-            return hentAltForPerson.hentAltForPerson(req.fnr)
-        }
-        if (req.vedtaksperiodeId != null) {
-            return hentAltForPerson.hentAltForVedtaksperiode(req.vedtaksperiodeId)
-        }
-        return emptyList()
-    }
 
     @PostMapping(
         "/api/v1/vedtak-og-inntektsmeldinger",
@@ -83,14 +57,6 @@ class FlexInternalFrontendController(
             return VedtakOgInntektsmeldingerResponse(perioder, inntektsmeldinger)
         }
         return VedtakOgInntektsmeldingerResponse(emptyList(), emptyList())
-    }
-
-    @GetMapping("/api/v1/inntektsmeldinger", produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun hentInntektsmedlinger(
-        @RequestHeader fnr: String,
-    ): List<InntektsmeldingDbRecord> {
-        clientIdValidation.validateClientId(NamespaceAndApp(namespace = "flex", app = "flex-internal-frontend"))
-        return inntektsmeldingRepository.findByFnrIn(listOf(fnr))
     }
 
     @PostMapping("/api/v1/cronjob", produces = [MediaType.APPLICATION_JSON_VALUE])

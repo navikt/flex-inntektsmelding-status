@@ -10,7 +10,6 @@ import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
 import no.nav.tms.varsel.action.Sensitivitet
 import org.amshove.kluent.*
-import org.awaitility.Awaitility
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
@@ -36,7 +35,7 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
             ),
         )
 
-        Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
+        await().atMost(5, TimeUnit.SECONDS).until {
             organisasjonRepository.findByOrgnummer(Testdata.orgNr)?.navn == "Flex AS"
         }
     }

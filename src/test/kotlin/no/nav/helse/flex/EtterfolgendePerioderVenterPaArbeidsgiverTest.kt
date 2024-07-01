@@ -14,7 +14,6 @@ import no.nav.helse.flex.varselutsending.CronJobStatus.SENDT_VARSEL_MANGLER_INNT
 import no.nav.helse.flex.varselutsending.CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.FullVedtaksperiodeBehandling
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
 import no.nav.tms.varsel.action.Sensitivitet
 import org.amshove.kluent.*
@@ -23,9 +22,6 @@ import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
-import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -177,19 +173,7 @@ class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
     @Test
     @Order(2)
     fun `Vi kan hente ut historikken fra flex internal frontend`() {
-        val responseString =
-            mockMvc
-                .perform(
-                    MockMvcRequestBuilders
-                        .get("/api/v1/vedtaksperioder")
-                        .header("Authorization", "Bearer ${skapAzureJwt("flex-internal-frontend-client-id")}")
-                        .header("fnr", fnr)
-                        .accept("application/json; charset=UTF-8")
-                        .contentType(MediaType.APPLICATION_JSON),
-                )
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful).andReturn().response.contentAsString
-
-        val response: List<FullVedtaksperiodeBehandling> = objectMapper.readValue(responseString)
+        val response = hentVedtaksperioder()
         response shouldHaveSize 4
         response[0].soknader.first().orgnummer shouldBeEqualTo orgNr
         response[0].statuser shouldHaveSize 2

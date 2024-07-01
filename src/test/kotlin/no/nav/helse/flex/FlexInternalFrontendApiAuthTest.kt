@@ -1,6 +1,7 @@
 package no.nav.helse.flex
 
 import no.nav.helse.flex.Testdata.fnr
+import no.nav.helse.flex.api.FlexInternalFrontendController
 import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
 import org.amshove.kluent.*
@@ -18,9 +19,9 @@ class FlexInternalFrontendApiAuthTest : FellesTestOppsett() {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/v1/vedtaksperioder")
+                    .post("/api/v1/vedtak-og-inntektsmeldinger")
                     .header("Authorization", "Bearer ${skapAzureJwt("en-annen-client-id")}")
-                    .header("fnr", fnr)
+                    .content(FlexInternalFrontendController.HentVedtaksperioderPostRequest(fnr = fnr).serialisertTilString())
                     .contentType(MediaType.APPLICATION_JSON),
             )
             .andExpect(MockMvcResultMatchers.status().is4xxClientError)
@@ -31,8 +32,8 @@ class FlexInternalFrontendApiAuthTest : FellesTestOppsett() {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/v1/vedtaksperioder")
-                    .header("fnr", fnr)
+                    .post("/api/v1/vedtak-og-inntektsmeldinger")
+                    .content(FlexInternalFrontendController.HentVedtaksperioderPostRequest(fnr = fnr).serialisertTilString())
                     .contentType(MediaType.APPLICATION_JSON),
             )
             .andExpect(MockMvcResultMatchers.status().is4xxClientError)
