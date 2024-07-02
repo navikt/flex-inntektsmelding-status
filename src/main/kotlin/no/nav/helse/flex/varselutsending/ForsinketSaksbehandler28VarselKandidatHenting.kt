@@ -1,6 +1,7 @@
 package no.nav.helse.flex.varselutsending
 
 import no.nav.helse.flex.logger
+import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.increment
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
 import org.springframework.stereotype.Component
@@ -10,8 +11,10 @@ import java.time.OffsetDateTime
 class ForsinketSaksbehandler28VarselKandidatHenting(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val forsinketSaksbehandlingVarsling28: ForsinketSaksbehandlingVarsling28,
+    environmentToggles: EnvironmentToggles,
 ) {
     private val log = logger()
+    private val varselGrense = if (environmentToggles.isProduction()) 5 else 10
 
     fun hentOgProsseser(now: OffsetDateTime): Map<CronJobStatus, Int> {
         val sendtFoer = now.minusDays(28).toInstant()
@@ -25,13 +28,18 @@ class ForsinketSaksbehandler28VarselKandidatHenting(
 
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_FORSINKET_SAKSBEHANDLING_28] = fnrListe.size
 
-        fnrListe.forEach { fnr ->
+        fnrListe.forEachIndexed { idx, fnr ->
             forsinketSaksbehandlingVarsling28.prosseserManglendeInntektsmelding28(fnr, sendtFoer)
                 .also {
                     returMap.increment(it)
                 }
-        }
 
+            val antallSendteVarsler = returMap[CronJobStatus.SENDT_VARSEL_FORSINKET_SAKSBEHANDLING_28]
+            if (antallSendteVarsler != null && antallSendteVarsler >= varselGrense) {
+                returMap[CronJobStatus.UTELATTE_FNR_FORSINKET_SAKSBEHANDLING_THROTTLE] = fnrListe.size - idx - 1
+                return returMap
+            }
+        }
         return returMap
     }
 }

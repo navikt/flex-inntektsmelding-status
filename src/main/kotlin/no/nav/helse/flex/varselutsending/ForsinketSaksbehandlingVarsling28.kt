@@ -9,7 +9,6 @@ import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
-import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.varseltekst.SAKSBEHANDLINGSTID_URL
 import no.nav.helse.flex.varseltekst.skapForsinketSaksbehandling28Tekst
@@ -26,8 +25,6 @@ import java.time.OffsetDateTime
 class ForsinketSaksbehandlingVarsling28(
     private val hentAltForPerson: HentAltForPerson,
     private val lockRepository: LockRepository,
-    private val environmentToggles: EnvironmentToggles,
-    private val meldingOgBrukervarselDone: MeldingOgBrukervarselDone,
     private val brukervarsel: Brukervarsel,
     private val organisasjonRepository: OrganisasjonRepository,
     private val meldingKafkaProducer: MeldingKafkaProducer,
@@ -44,9 +41,6 @@ class ForsinketSaksbehandlingVarsling28(
         fnr: String,
         sendtFoer: Instant,
     ): CronJobStatus {
-        if (environmentToggles.isProduction()) {
-            return CronJobStatus.FORSINKET_SAKSBEHANDLING_VARSEL_28_DISABLET_I_PROD
-        }
         lockRepository.settAdvisoryTransactionLock(fnr)
 
         val allePerioder = hentAltForPerson.hentAltForPerson(fnr)
@@ -140,6 +134,8 @@ class ForsinketSaksbehandlingVarsling28(
             val brukervarselId = randomGenerator.nextUUID()
 
             val orgnavn = organisasjonRepository.findByOrgnummer(soknaden.orgnummer!!)?.navn ?: soknaden.orgnummer
+
+            log.info("Sender første forsinket saksbehandling varsel til vedtaksperiode ${perioden.vedtaksperiode.vedtaksperiodeId}")
 
             val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
             brukervarsel.beskjedForsinketSaksbehandling(
