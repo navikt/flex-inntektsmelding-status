@@ -24,7 +24,12 @@ class SykepengesoknadLagring(
 
             if (eksisterende == null) {
                 var sendt = soknad.sendtNav?.tilOsloZone()
-                if (soknad.sendtArbeidsgiver != null && soknad.sendtArbeidsgiver!!.tilOsloZone().isBefore(sendt)) {
+                if (soknad.sendtArbeidsgiver != null && (
+                        sendt == null ||
+                            soknad.sendtArbeidsgiver!!.tilOsloZone()
+                                .isBefore(sendt)
+                    )
+                ) {
                     sendt = soknad.sendtArbeidsgiver!!.tilOsloZone()
                 }
                 if (sendt == null) {
