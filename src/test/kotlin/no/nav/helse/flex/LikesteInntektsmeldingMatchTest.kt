@@ -98,7 +98,7 @@ class LikesteInntektsmeldingMatchTest : FellesTestOppsett() {
                 refusjonBelopPerMnd = BigDecimal(5000),
                 beregnetInntekt = BigDecimal(10000),
                 foersteFravaersdag = LocalDate.of(2022, 5, 28),
-                vedtaksperiodeId = UUID.randomUUID(),
+                vedtaksperiodeId = UUID.randomUUID().toString(),
             ),
         )
         await().atMost(10, TimeUnit.SECONDS).until {
@@ -138,11 +138,11 @@ class LikesteInntektsmeldingMatchTest : FellesTestOppsett() {
         beskjedInput.ident shouldBeEqualTo fnr
         beskjedInput.varselId shouldBeEqualTo varselStatusen.brukervarselId
         beskjedInput.eksternVarsling.shouldNotBeNull()
-        beskjedInput.link.shouldBeNull()
+        beskjedInput.link.shouldBeEqualTo("https://www.nav.no/saksbehandlingstider#sykepenger")
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Søknaden vil forhåpentligvis være ferdigbehandlet innen 4 uker. Vi beklager eventuelle ulemper dette medfører."
+            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over normal saksbehandlingstid."
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
@@ -150,11 +150,11 @@ class LikesteInntektsmeldingMatchTest : FellesTestOppsett() {
         melding.lukkMelding.shouldBeNull()
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
-        opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_28"
+        opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL"
         @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
-            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Søknaden vil forhåpentligvis være ferdigbehandlet innen 4 uker. Vi beklager eventuelle ulemper dette medfører."
-        opprettMelding.lenke.shouldBeNull()
+            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over normal saksbehandlingstid."
+        opprettMelding.lenke.shouldBeEqualTo("https://www.nav.no/saksbehandlingstider#sykepenger")
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
         opprettMelding.synligFremTil.shouldNotBeNull()

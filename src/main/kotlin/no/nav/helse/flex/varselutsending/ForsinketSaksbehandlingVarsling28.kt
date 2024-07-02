@@ -111,9 +111,12 @@ class ForsinketSaksbehandlingVarsling28(
 
             val randomGenerator =
                 SeededUuid(perioden.statuser.first { it.status == StatusVerdi.VENTER_PÅ_SAKSBEHANDLER }.id!!)
+            val inntektsmeldinger = inntektesmeldingRepository.findByFnrIn(listOf(fnr))
 
-            val inntektsmelding =
-                inntektesmeldingRepository.findByFnrIn(listOf(fnr)).matchInntektsmeldingMedPeriode(perioden)
+            // val inntektsmelding = inntektsmeldingSimilar(inntektsmeldinger, perioden, soknaden)
+
+            val inntektsmelding = inntektsmeldingSimilar(inntektsmeldinger, perioden, soknaden)
+                // inntektesmeldingRepository.findByFnrIn(listOf(fnr)).matchInntektsmeldingMedPeriode(perioden)
                     ?: return CronJobStatus.FORVENTET_EN_INNTEKTSMELDING_FANT_IKKE
 
             if (inntektsmelding.fullRefusjon) {
@@ -168,8 +171,8 @@ class ForsinketSaksbehandlingVarsling28(
                     ),
             )
 
-        val inntektsmeldinger = inntektesmeldingRepository.findByFnrIn(listOf(fnr))
-        val inntektsmelding = inntektsmeldingSimilar(inntektsmeldinger, perioden, soknaden)
+
+
             vedtaksperiodeBehandlingStatusRepository.save(
                 VedtaksperiodeBehandlingStatusDbRecord(
                     vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
