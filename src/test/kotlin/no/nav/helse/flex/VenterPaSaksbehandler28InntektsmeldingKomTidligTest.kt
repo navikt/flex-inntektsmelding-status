@@ -23,7 +23,7 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
-
+// også bra test
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() {
     val tidspunkt = OffsetDateTime.now()

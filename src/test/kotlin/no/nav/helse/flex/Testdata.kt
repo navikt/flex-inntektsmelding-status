@@ -29,14 +29,17 @@ object Testdata {
         )
 }
 
+val foersteJanuar = LocalDate.of(2019, 1, 1)
+
+
 fun skapInntektsmelding(
     fnr: String,
     virksomhetsnummer: String?,
     refusjonBelopPerMnd: BigDecimal?,
     beregnetInntekt: BigDecimal?,
     vedtaksperiodeId: String? = null,
+    foersteFravaersdag: LocalDate = foersteJanuar
 ): Inntektsmelding {
-    val foersteJanuar = LocalDate.of(2019, 1, 1)
     val andreJanuar = LocalDate.of(2019, 1, 2)
     return Inntektsmelding(
         inntektsmeldingId = UUID.randomUUID().toString(),
@@ -54,7 +57,7 @@ fun skapInntektsmelding(
         arkivreferanse = "AR123",
         ferieperioder = emptyList(),
         mottattDato = foersteJanuar.atStartOfDay(),
-        foersteFravaersdag = foersteJanuar,
+        foersteFravaersdag = foersteFravaersdag,
         naerRelasjon = true,
         avsenderSystem = AvsenderSystem("AltinnPortal", "1.0"),
         innsenderFulltNavn = "",

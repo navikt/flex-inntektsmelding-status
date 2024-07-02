@@ -5,29 +5,30 @@ import no.nav.helse.flex.Testdata.fnr
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.sykepengesoknad.kafka.*
-import no.nav.helse.flex.varseltekst.SAKSBEHANDLINGSTID_URL
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
 import no.nav.tms.varsel.action.Sensitivitet
 import org.amshove.kluent.*
-import org.awaitility.Awaitility
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
 import java.math.BigDecimal
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
-
-// bra test
+// også bra test
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
+class LikesteInntektsmeldingMatchTest : FellesTestOppsett() {
     val tidspunkt = OffsetDateTime.now()
+
+
 
     val behandlingstatusmelding =
         Behandlingstatusmelding(
@@ -51,7 +52,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
             ),
         )
 
-        Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
+        await().atMost(5, TimeUnit.SECONDS).until {
             organisasjonRepository.findByOrgnummer(Testdata.orgNr)?.navn == "Flex AS"
         }
     }
@@ -65,49 +66,48 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
                 status = Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER,
             ),
         )
-
-        awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
-    }
-
-    @Test
-    @Order(2)
-    fun `Sender varsel etter 15 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
-        cronjobResultat[SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15] shouldBeEqualTo 1
-        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 1
-        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 0
-
-        varslingConsumer.ventPåRecords(1)
-        meldingKafkaConsumer.ventPåRecords(1)
-    }
-
-    @Test
-    @Order(3)
-    fun `Vi lagrer en inntektsmelding fra HAG og går til venter på SB`() {
-        sendInntektsmelding(
-            skapInntektsmelding(
-                fnr = fnr,
-                virksomhetsnummer = "123456789",
-                refusjonBelopPerMnd = BigDecimal(5000),
-                beregnetInntekt = BigDecimal(10000),
-                vedtaksperiodeId = Testdata.vedtaksperiodeId,
-            ),
-        )
-        Awaitility.await().atMost(10, TimeUnit.SECONDS).until {
-            inntektsmeldingRepository.findByFnrIn(listOf(fnr)).isNotEmpty()
-        }
-
         sendBehandlingsstatusMelding(
             behandlingstatusmelding.copy(
                 status = Behandlingstatustype.VENTER_PÅ_SAKSBEHANDLER,
             ),
         )
-        varslingConsumer.ventPåRecords(1)
-        meldingKafkaConsumer.ventPåRecords(1)
+
+        awaitOppdatertStatus(VENTER_PÅ_SAKSBEHANDLER)
     }
 
     @Test
-    @Order(4)
+    @Order(2)
+    fun `Ingenting skjer etter 15 dager`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
+        cronjobResultat.shouldHaveSize(3)
+        cronjobResultat[SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15].shouldBeNull()
+        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 0
+
+        varslingConsumer.ventPåRecords(0)
+        meldingKafkaConsumer.ventPåRecords(0)
+    }
+
+    @Test
+    @Order(2)
+    fun `Vi lagrer en inntektsmelding fra HAG`() {
+        sendInntektsmelding(
+            skapInntektsmelding(
+                fnr = fnr,
+                virksomhetsnummer = "123456547",
+                refusjonBelopPerMnd = BigDecimal(5000),
+                beregnetInntekt = BigDecimal(10000),
+                foersteFravaersdag = LocalDate.of(2022, 5, 28),
+                vedtaksperiodeId = UUID.randomUUID(),
+            ),
+        )
+        await().atMost(10, TimeUnit.SECONDS).until {
+            inntektsmeldingRepository.findByFnrIn(listOf(fnr)).isNotEmpty()
+        }
+    }
+
+    @Test
+    @Order(3)
     fun `Ingenting skjer etter 20 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(20))
         cronjobResultat.shouldHaveSize(3)
@@ -116,7 +116,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
     }
 
     @Test
-    @Order(5)
+    @Order(4)
     fun `Etter 28 dager sender vi varsel om forsinket saksbehandling`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(28))
         cronjobResultat.shouldHaveSize(4)
@@ -138,11 +138,11 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
         beskjedInput.ident shouldBeEqualTo fnr
         beskjedInput.varselId shouldBeEqualTo varselStatusen.brukervarselId
         beskjedInput.eksternVarsling.shouldNotBeNull()
-        beskjedInput.link shouldBeEqualTo SAKSBEHANDLINGSTID_URL
+        beskjedInput.link.shouldBeNull()
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over normal saksbehandlingstid."
+            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Søknaden vil forhåpentligvis være ferdigbehandlet innen 4 uker. Vi beklager eventuelle ulemper dette medfører."
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
@@ -150,13 +150,26 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
         melding.lukkMelding.shouldBeNull()
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
-        opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL"
+        opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_28"
         @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
-            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over normal saksbehandlingstid."
-        opprettMelding.lenke shouldBeEqualTo SAKSBEHANDLINGSTID_URL
+            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Søknaden vil forhåpentligvis være ferdigbehandlet innen 4 uker. Vi beklager eventuelle ulemper dette medfører."
+        opprettMelding.lenke.shouldBeNull()
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
         opprettMelding.synligFremTil.shouldNotBeNull()
+    }
+
+    @Test
+    @Order(5)
+    fun `Saken blir behandlet og vi donner meldingene`() {
+        sendBehandlingsstatusMelding(
+            behandlingstatusmelding.copy(
+                status = Behandlingstatustype.FERDIG,
+            ),
+        )
+
+        varslingConsumer.ventPåRecords(1)
+        meldingKafkaConsumer.ventPåRecords(1)
     }
 }

@@ -2,6 +2,7 @@ package no.nav.helse.flex.varselutsending
 
 import no.nav.helse.flex.brukervarsel.Brukervarsel
 import no.nav.helse.flex.database.LockRepository
+import no.nav.helse.flex.inntektsmelding.InntektsmeldingDbRecord
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.MeldingKafkaDto
@@ -9,6 +10,7 @@ import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
+import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.varseltekst.SAKSBEHANDLINGSTID_URL
@@ -166,6 +168,8 @@ class ForsinketSaksbehandlingVarsling28(
                     ),
             )
 
+        val inntektsmeldinger = inntektesmeldingRepository.findByFnrIn(listOf(fnr))
+        val inntektsmelding = inntektsmeldingSimilar(inntektsmeldinger, perioden, soknaden)
             vedtaksperiodeBehandlingStatusRepository.save(
                 VedtaksperiodeBehandlingStatusDbRecord(
                     vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
