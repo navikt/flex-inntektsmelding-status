@@ -11,11 +11,11 @@ import java.time.OffsetDateTime
 class ManglendeInntektsmelding15VarselKandidatHenting(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val manglendeInntektsmeldingVarsling15: ManglendeInntektsmeldingVarsling15,
-    private val environmentToggles: EnvironmentToggles,
+    environmentToggles: EnvironmentToggles,
 ) {
     private val log = logger()
 
-    private val varselGrense = if (environmentToggles.isProduction()) 200 else 20
+    private val varselGrense = if (environmentToggles.isProduction()) 250 else 20
 
     fun hentOgProsseser(now: OffsetDateTime): Map<CronJobStatus, Int> {
         val sendtFoer = now.minusDays(15).toInstant()
