@@ -84,8 +84,6 @@ class ForsinketSaksbehandlingVarsling28(
         forstePerArbeidsgiver.forEachIndexed { idx, perioden ->
             val soknaden = perioden.soknader.sortedBy { it.sendt }.last()
 
-            meldingOgBrukervarselDone.doneSendteManglerImVarsler(perioden.vedtaksperiode, fnr)
-
             if (harSendtEtVarsel) {
                 val now = Instant.now()
                 vedtaksperiodeBehandlingStatusRepository.save(
