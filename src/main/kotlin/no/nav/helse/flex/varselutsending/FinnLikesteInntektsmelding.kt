@@ -11,13 +11,14 @@ fun LocalDate?.isWithin30DaysOf(annenDato: LocalDate?): Boolean {
     return dagerImellom < 30
 }
 
-fun inntektsmeldingSimilar(
+fun finnLikesteInntektsmelding(
     inntektsmeldinger: List<InntektsmeldingDbRecord>,
     perioden: FullVedtaksperiodeBehandling,
     soknaden: Sykepengesoknad,
 ): InntektsmeldingDbRecord? {
     val matchPaVedtaksperiodeId =
-        inntektsmeldinger.filter { it.vedtaksperiodeId == perioden.vedtaksperiode.vedtaksperiodeId }
+        inntektsmeldinger
+            .filter { it.vedtaksperiodeId == perioden.vedtaksperiode.vedtaksperiodeId }
             .firstOrNull()
 
     if (matchPaVedtaksperiodeId != null) {
@@ -26,7 +27,7 @@ fun inntektsmeldingSimilar(
 
     val matchPaOrgnrOgLikDato =
         inntektsmeldinger.filter { it.virksomhetsnummer == soknaden.orgnummer }
-            .filter { it.foersteFravaersdag.isWithin30DaysOf(soknaden.fom) }
+            .filter { it.foersteFravaersdag.isWithin30DaysOf(soknaden.startSyketilfelle) }
             .sortedByDescending { it.mottattDato }
             .firstOrNull()
 

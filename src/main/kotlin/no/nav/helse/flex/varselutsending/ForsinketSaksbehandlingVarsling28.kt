@@ -112,7 +112,7 @@ class ForsinketSaksbehandlingVarsling28(
             val inntektsmeldinger = inntektesmeldingRepository.findByFnrIn(listOf(fnr))
 
             val inntektsmelding =
-                inntektsmeldingSimilar(inntektsmeldinger, perioden, soknaden)
+                finnLikesteInntektsmelding(inntektsmeldinger, perioden, soknaden)
                     ?: return CronJobStatus.FORVENTET_EN_INNTEKTSMELDING_FANT_IKKE
 
             if (inntektsmelding.fullRefusjon) {
