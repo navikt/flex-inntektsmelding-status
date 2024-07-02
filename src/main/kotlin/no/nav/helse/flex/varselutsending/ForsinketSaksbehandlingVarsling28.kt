@@ -113,7 +113,10 @@ class ForsinketSaksbehandlingVarsling28(
 
             val inntektsmelding =
                 finnLikesteInntektsmelding(inntektsmeldinger, perioden, soknaden)
-                    ?: return CronJobStatus.FORVENTET_EN_INNTEKTSMELDING_FANT_IKKE
+            if (inntektsmelding == null) {
+                log.warn("Fant ikke inntektsmelding for vedtaksperiodeId ${perioden.vedtaksperiode.vedtaksperiodeId}")
+                return CronJobStatus.FORVENTET_EN_INNTEKTSMELDING_FANT_IKKE
+            }
 
             if (inntektsmelding.fullRefusjon) {
                 vedtaksperiodeBehandlingStatusRepository.save(
