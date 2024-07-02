@@ -31,14 +31,13 @@ object Testdata {
 
 val foersteJanuar = LocalDate.of(2019, 1, 1)
 
-
 fun skapInntektsmelding(
     fnr: String,
     virksomhetsnummer: String?,
     refusjonBelopPerMnd: BigDecimal?,
     beregnetInntekt: BigDecimal?,
     vedtaksperiodeId: String? = null,
-    foersteFravaersdag: LocalDate = foersteJanuar
+    foersteFravaersdag: LocalDate = foersteJanuar,
 ): Inntektsmelding {
     val andreJanuar = LocalDate.of(2019, 1, 2)
     return Inntektsmelding(

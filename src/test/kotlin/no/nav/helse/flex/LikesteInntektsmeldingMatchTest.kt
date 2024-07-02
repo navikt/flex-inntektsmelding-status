@@ -23,11 +23,10 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class LikesteInntektsmeldingMatchTest : FellesTestOppsett() {
     val tidspunkt = OffsetDateTime.now()
-
-
 
     val behandlingstatusmelding =
         Behandlingstatusmelding(
