@@ -9,7 +9,6 @@ import java.time.temporal.ChronoUnit
 
 
 fun LocalDate?.isWithin30DaysOf(annenDato: LocalDate?): Boolean {
-    // return this != null && other != null && this.minusDays(30) <= other && this.plusDays(30) >= other
     val dagerImellom = ChronoUnit.DAYS.between(this, annenDato).let { Math.abs(it) }
     return dagerImellom < 30
 }
