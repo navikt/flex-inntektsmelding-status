@@ -23,12 +23,12 @@ class SykepengesoknadLagring(
             val eksisterende = sykepengesoknadRepository.findBySykepengesoknadUuid(soknad.id)
 
             if (eksisterende == null) {
-                var sendt = Instant.now()
-                if (soknad.sendtNav != null && soknad.sendtNav!!.tilOsloZone().isBefore(sendt)) {
-                    sendt = soknad.sendtNav!!.tilOsloZone()
-                }
+                var sendt = soknad.sendtNav?.tilOsloZone()
                 if (soknad.sendtArbeidsgiver != null && soknad.sendtArbeidsgiver!!.tilOsloZone().isBefore(sendt)) {
                     sendt = soknad.sendtArbeidsgiver!!.tilOsloZone()
+                }
+                if (sendt == null) {
+                    sendt = LocalDateTime.now().tilOsloZone()
                 }
 
                 log.info("Lagrer sykepengesøknad ${soknad.id} sendt=$sendt")
