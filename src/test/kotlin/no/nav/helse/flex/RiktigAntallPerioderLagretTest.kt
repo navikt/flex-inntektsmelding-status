@@ -22,7 +22,7 @@ import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class RiktigAntallPerioderLagret : FellesTestOppsett() {
+class RiktigAntallPerioderLagretTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
