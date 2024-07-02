@@ -113,10 +113,8 @@ class ForsinketSaksbehandlingVarsling28(
                 SeededUuid(perioden.statuser.first { it.status == StatusVerdi.VENTER_PÅ_SAKSBEHANDLER }.id!!)
             val inntektsmeldinger = inntektesmeldingRepository.findByFnrIn(listOf(fnr))
 
-            // val inntektsmelding = inntektsmeldingSimilar(inntektsmeldinger, perioden, soknaden)
 
             val inntektsmelding = inntektsmeldingSimilar(inntektsmeldinger, perioden, soknaden)
-                // inntektesmeldingRepository.findByFnrIn(listOf(fnr)).matchInntektsmeldingMedPeriode(perioden)
                     ?: return CronJobStatus.FORVENTET_EN_INNTEKTSMELDING_FANT_IKKE
 
             if (inntektsmelding.fullRefusjon) {

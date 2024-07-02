@@ -33,9 +33,3 @@ fun inntektsmeldingSimilar(inntektsmeldinger: List<InntektsmeldingDbRecord>, per
 
     return null
 }
-
-
-//private fun LocalDate?.erIGreiNærhetTilSoknader(soknader: List<Sykepengesoknad>): Boolean {
-//    // sjekk om det er innenfor 30 dagers likhet mellon de to tidspunktene
-//    return this != null && soknader.any { it.fom.minusDays(30) <= this && it.tom.plusDays(30) >= this }
-//}

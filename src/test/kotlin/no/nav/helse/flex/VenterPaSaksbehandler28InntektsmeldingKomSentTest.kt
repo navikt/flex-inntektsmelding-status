@@ -24,7 +24,6 @@ import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-// bra test
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
     val tidspunkt = OffsetDateTime.now()
