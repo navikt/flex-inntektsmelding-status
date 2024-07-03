@@ -7,10 +7,12 @@ import no.nav.helse.flex.vedtaksperiodebehandling.FullVedtaksperiodeBehandling
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingDbRecord
 import org.amshove.kluent.shouldBeEqualTo
+import org.amshove.kluent.shouldBeNull
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.util.*
 
 class FinnLikesteInntektsmeldingTest {
@@ -33,12 +35,12 @@ class FinnLikesteInntektsmeldingTest {
     val soknad =
         Sykepengesoknad(
             orgnummer = Testdata.orgNr,
-            startSyketilfelle = LocalDate.now(),
-            fom = LocalDate.now(),
-            tom = LocalDate.now(),
+            startSyketilfelle = LocalDate.now().minusYears(3),
+            fom = LocalDate.now().minusYears(3),
+            tom = LocalDate.now().minusYears(3),
             fnr = Testdata.fnr,
-            sendt = Instant.now(),
-            opprettetDatabase = Instant.now(),
+            sendt = OffsetDateTime.now().minusYears(3).toInstant(),
+            opprettetDatabase = OffsetDateTime.now().minusYears(3).toInstant(),
             sykepengesoknadUuid = Testdata.soknadId,
             soknadstype = "SOKNAD",
         )
@@ -151,5 +153,77 @@ class FinnLikesteInntektsmeldingTest {
 
         val inntektsmelding = finnLikesteInntektsmelding(inntektsmeldinger, vedtaksperiodeBehandling, soknad)
         inntektsmelding shouldBeEqualTo riktigInntektsmelding
+    }
+
+    @Test
+    fun `finner likeste inntektsmelding når inntektsmeldingen ikke har foerste fraværstdag og mottatt dato er innafor`() {
+        val riktigInntektsmelding =
+            InntektsmeldingDbRecord(
+                id = UUID.randomUUID().toString(),
+                virksomhetsnummer = Testdata.orgNr,
+                foersteFravaersdag = null,
+                mottattDato = soknad.startSyketilfelle.atStartOfDay().plusDays(29).toInstant(ZoneOffset.UTC),
+                vedtaksperiodeId = null,
+                arbeidsgivertype = "VIRKSOMHET",
+                fnr = Testdata.fnr,
+                fullRefusjon = true,
+                inntektsmeldingId = UUID.randomUUID().toString(),
+                opprettet = Instant.now(),
+            )
+        val inntektsmeldinger: List<InntektsmeldingDbRecord> =
+            listOf(
+                riktigInntektsmelding,
+                InntektsmeldingDbRecord(
+                    id = UUID.randomUUID().toString(),
+                    virksomhetsnummer = Testdata.orgNr,
+                    foersteFravaersdag = LocalDate.now().plusYears(1),
+                    mottattDato = Instant.now(),
+                    vedtaksperiodeId = null,
+                    arbeidsgivertype = "VIRKSOMHET",
+                    fnr = Testdata.fnr,
+                    fullRefusjon = true,
+                    inntektsmeldingId = UUID.randomUUID().toString(),
+                    opprettet = Instant.now(),
+                ),
+            ).shuffled()
+
+        val inntektsmelding = finnLikesteInntektsmelding(inntektsmeldinger, vedtaksperiodeBehandling, soknad)
+        inntektsmelding shouldBeEqualTo riktigInntektsmelding
+    }
+
+    @Test
+    fun `finner ikke likeste inntektsmelding når inntektsmeldingen ikke har foerste fraværstdag og mottatt dato ikke er innafor`() {
+        val riktigInntektsmelding =
+            InntektsmeldingDbRecord(
+                id = UUID.randomUUID().toString(),
+                virksomhetsnummer = Testdata.orgNr,
+                foersteFravaersdag = null,
+                mottattDato = soknad.startSyketilfelle.atStartOfDay().plusDays(31).toInstant(ZoneOffset.UTC),
+                vedtaksperiodeId = null,
+                arbeidsgivertype = "VIRKSOMHET",
+                fnr = Testdata.fnr,
+                fullRefusjon = true,
+                inntektsmeldingId = UUID.randomUUID().toString(),
+                opprettet = Instant.now(),
+            )
+        val inntektsmeldinger: List<InntektsmeldingDbRecord> =
+            listOf(
+                riktigInntektsmelding,
+                InntektsmeldingDbRecord(
+                    id = UUID.randomUUID().toString(),
+                    virksomhetsnummer = Testdata.orgNr,
+                    foersteFravaersdag = LocalDate.now().plusYears(1),
+                    mottattDato = Instant.now(),
+                    vedtaksperiodeId = null,
+                    arbeidsgivertype = "VIRKSOMHET",
+                    fnr = Testdata.fnr,
+                    fullRefusjon = true,
+                    inntektsmeldingId = UUID.randomUUID().toString(),
+                    opprettet = Instant.now(),
+                ),
+            ).shuffled()
+
+        val inntektsmelding = finnLikesteInntektsmelding(inntektsmeldinger, vedtaksperiodeBehandling, soknad)
+        inntektsmelding.shouldBeNull()
     }
 }
