@@ -13,6 +13,7 @@ import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.varseltekst.SAKSBEHANDLINGSTID_URL
 import no.nav.helse.flex.varseltekst.skapForsinketSaksbehandling28Tekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
+import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
@@ -31,7 +32,7 @@ class ForsinketSaksbehandlingVarsling28(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
     private val inntektesmeldingRepository: InntektsmeldingRepository,
-    @Value("\${MINIMUMSTID_MELLOM_FORSINKET_SAKSBEHANDLING_VARSEL}") private val minimumstid: String,
+    @Value("\${MINIMUMSTID_FRA_VARSEL_TIL_FORSTE_FORSINKET_SAKSBEHANDLING_VARSEL}") private val minimumstid: String,
 ) {
     private val log = logger()
     val duration = Duration.parse(minimumstid)
@@ -47,7 +48,7 @@ class ForsinketSaksbehandlingVarsling28(
 
         val forstePerArbeidsgiver =
             allePerioder
-                .filter { it.vedtaksperiode.sisteSpleisstatus == StatusVerdi.VENTER_PÅ_SAKSBEHANDLER }
+                .filter { it.vedtaksperiode.sisteSpleisstatus == VENTER_PÅ_SAKSBEHANDLER }
                 .filter { periode -> periode.soknader.all { it.sendt.isBefore(sendtFoer) } }
                 .groupBy { it.soknader.sortedBy { it.sendt }.last().orgnummer }
                 .map { it.value.sortedBy { it.soknader.sortedBy { it.sendt }.first().fom } }
@@ -55,8 +56,8 @@ class ForsinketSaksbehandlingVarsling28(
                 .filter {
                     it.vedtaksperiode.sisteVarslingstatus == null ||
                         listOf(
-                            StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE,
-                            StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE_DONE,
+                            VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE,
+                            VARSLET_MANGLER_INNTEKTSMELDING_ANDRE_DONE,
                         ).contains(it.vedtaksperiode.sisteVarslingstatus)
                 }
                 .sortedBy { it.soknader.first().orgnummer }
@@ -66,7 +67,14 @@ class ForsinketSaksbehandlingVarsling28(
             allePerioder
                 .flatMap { it.statuser }
                 .filter { it.tidspunkt.isAfter(Instant.now().minus(duration)) }
-                .any { it.status == StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE } // TODO også se etter revarsel senere
+                .any {
+                    listOf(
+                        VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
+                        REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
+                        VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
+                        VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
+                    ).contains(it.status)
+                }
 
         if (nyligVarslet) {
             return CronJobStatus.FORSINKET_SAKSBEHANDLING_VARSEL_SENDT_SISTE_20_DAGER
@@ -85,14 +93,14 @@ class ForsinketSaksbehandlingVarsling28(
                         vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
                         opprettetDatabase = now,
                         tidspunkt = now,
-                        status = StatusVerdi.VARSLET_FORSINKET_PA_ANNEN_ORGNUMMER,
+                        status = VARSLET_FORSINKET_PA_ANNEN_ORGNUMMER,
                         dittSykefravaerMeldingId = null,
                         brukervarselId = null,
                     ),
                 )
                 vedtaksperiodeBehandlingRepository.save(
                     perioden.vedtaksperiode.copy(
-                        sisteVarslingstatus = StatusVerdi.VARSLET_FORSINKET_PA_ANNEN_ORGNUMMER,
+                        sisteVarslingstatus = VARSLET_FORSINKET_PA_ANNEN_ORGNUMMER,
                         sisteVarslingstatusTidspunkt = now,
                         oppdatertDatabase = now,
                     ),
@@ -102,7 +110,7 @@ class ForsinketSaksbehandlingVarsling28(
             }
 
             val randomGenerator =
-                SeededUuid(perioden.statuser.first { it.status == StatusVerdi.VENTER_PÅ_SAKSBEHANDLER }.id!!)
+                SeededUuid(perioden.statuser.first { it.status == VENTER_PÅ_SAKSBEHANDLER }.id!!)
             val inntektsmeldinger = inntektesmeldingRepository.findByFnrIn(listOf(fnr))
 
             val inntektsmelding =
@@ -118,7 +126,7 @@ class ForsinketSaksbehandlingVarsling28(
                         vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
                         opprettetDatabase = Instant.now(),
                         tidspunkt = Instant.now(),
-                        status = StatusVerdi.VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
+                        status = VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
                         brukervarselId = null,
                         dittSykefravaerMeldingId = null,
                     ),
@@ -126,7 +134,7 @@ class ForsinketSaksbehandlingVarsling28(
 
                 vedtaksperiodeBehandlingRepository.save(
                     perioden.vedtaksperiode.copy(
-                        sisteVarslingstatus = StatusVerdi.VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
+                        sisteVarslingstatus = VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
                         sisteVarslingstatusTidspunkt = Instant.now(),
                         oppdatertDatabase = Instant.now(),
                     ),
@@ -171,7 +179,7 @@ class ForsinketSaksbehandlingVarsling28(
                     vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
                     opprettetDatabase = Instant.now(),
                     tidspunkt = Instant.now(),
-                    status = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
+                    status = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
                     brukervarselId = brukervarselId,
                     dittSykefravaerMeldingId = meldingBestillingId,
                 ),
@@ -179,7 +187,7 @@ class ForsinketSaksbehandlingVarsling28(
 
             vedtaksperiodeBehandlingRepository.save(
                 perioden.vedtaksperiode.copy(
-                    sisteVarslingstatus = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
+                    sisteVarslingstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
                     sisteVarslingstatusTidspunkt = Instant.now(),
                     oppdatertDatabase = Instant.now(),
                 ),
