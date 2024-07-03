@@ -14,7 +14,7 @@ class ForsinketSaksbehandler28VarselKandidatHenting(
     environmentToggles: EnvironmentToggles,
 ) {
     private val log = logger()
-    private val varselGrense = if (environmentToggles.isProduction()) 5 else 10
+    private val varselGrense = if (environmentToggles.isProduction()) 120 else 10
 
     fun hentOgProsseser(now: OffsetDateTime): Map<CronJobStatus, Int> {
         val sendtFoer = now.minusDays(28).toInstant()
