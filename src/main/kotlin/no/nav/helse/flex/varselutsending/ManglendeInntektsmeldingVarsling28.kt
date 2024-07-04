@@ -43,6 +43,7 @@ class ManglendeInntektsmeldingVarsling28(
         sendtFoer: Instant,
     ): CronJobStatus {
         if (environmentToggles.isProduction()) {
+            // TODO dry run håndtering før denne lages
             return CronJobStatus.MANGLENDE_INNTEKTSMELDING_VARSEL_28_DISABLET_I_PROD
         }
         lockRepository.settAdvisoryTransactionLock(fnr)
