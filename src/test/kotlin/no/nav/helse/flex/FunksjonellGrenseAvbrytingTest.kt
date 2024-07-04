@@ -13,9 +13,8 @@ class FunksjonellGrenseAvbrytingTest : FellesTestOppsett() {
     fun `Vi sender inn 8 søknader som venter på arbeidsgiver`() {
         (0 until 8).forEach { index -> sendSoknaderSomVenterPaArbeidsgiver(index) }
 
-        val perioderSomVenterPaaArbeidsgiver =
-            vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
-        perioderSomVenterPaaArbeidsgiver.shouldHaveSize(8)
+        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+            .shouldHaveSize(8)
     }
 
     @Test
@@ -25,6 +24,33 @@ class FunksjonellGrenseAvbrytingTest : FellesTestOppsett() {
             assertThrows<RuntimeException> {
                 varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(40))
             }
-        exception.message shouldBeEqualTo "Funksjonell grense for antall varsler nådd, antall varsler: 8. Grensen er satt til 7"
+        exception.message shouldBeEqualTo
+            "Funksjonell grense for antall  SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15 varsler nådd, antall varsler: 8. Grensen er satt til 7"
+    }
+
+    @Test
+    @Order(3)
+    fun `Sletter fra database`() {
+        slettFraDatabase()
+    }
+
+    @Test
+    @Order(4)
+    fun `Vi sender inn 8 søknader som venter på saksbehandler`() {
+        (0 until 8).forEach { index -> sendSoknaderSomVenterPaSaksbehandler(index) }
+
+        vedtaksperiodeBehandlingRepository.finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(Instant.now())
+            .shouldHaveSize(8)
+    }
+
+    @Test
+    @Order(5)
+    fun `Cronjobben aborter igjen`() {
+        val exception =
+            assertThrows<RuntimeException> {
+                varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(40))
+            }
+        exception.message shouldBeEqualTo
+            "Funksjonell grense for antall  SENDT_VARSEL_FORSINKET_SAKSBEHANDLING_28 varsler nådd, antall varsler: 8. Grensen er satt til 7"
     }
 }

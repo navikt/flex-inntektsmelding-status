@@ -30,27 +30,13 @@ class ManglendeInntektsmelding15VarselKandidatHenting(
 
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] = fnrListe.size
 
-        // dryrun kall
-        val antallUtsendinger =
-            fnrListe
-                .map { fnr ->
-                    manglendeInntektsmeldingVarsling15.prosseserManglendeInntektsmeldingKandidat(
-                        fnr,
-                        sendtFoer,
-                        dryRun = true,
-                    )
-                }
-                .filter { it == CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15 }
-
-        log.info("Dry run for manglende inntektsmelding 15, antall varsler: ${antallUtsendinger.size}")
-
-        if (antallUtsendinger.size >= funksjonellGrenseForAntallVarsler) {
-            val melding =
-                "Funksjonell grense for antall varsler nådd, antall varsler: ${antallUtsendinger.size}. " +
-                    "Grensen er satt til $funksjonellGrenseForAntallVarsler"
-            log.error(melding)
-            throw RuntimeException(melding)
-        }
+        fnrListe.map { fnr ->
+            manglendeInntektsmeldingVarsling15.prosseserManglendeInntektsmeldingKandidat(
+                fnr,
+                sendtFoer,
+                dryRun = true,
+            )
+        }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15)
 
         fnrListe.forEachIndexed { idx, fnr ->
             manglendeInntektsmeldingVarsling15.prosseserManglendeInntektsmeldingKandidat(fnr, sendtFoer, dryRun = false)
