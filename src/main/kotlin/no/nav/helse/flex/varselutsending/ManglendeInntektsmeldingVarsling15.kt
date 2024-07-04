@@ -85,18 +85,18 @@ class ManglendeInntektsmeldingVarsling15(
                 meldingKafkaProducer.produserMelding(
                     meldingUuid = meldingBestillingId,
                     meldingKafkaDto =
-                    MeldingKafkaDto(
-                        fnr = fnr,
-                        opprettMelding =
-                        OpprettMelding(
-                            tekst = skapVenterPåInntektsmelding15Tekst(soknaden.startSyketilfelle, orgnavn),
-                            lenke = inntektsmeldingManglerUrl,
-                            variant = Variant.INFO,
-                            lukkbar = false,
-                            synligFremTil = synligFremTil,
-                            meldingType = "MANGLENDE_INNTEKTSMELDING",
+                        MeldingKafkaDto(
+                            fnr = fnr,
+                            opprettMelding =
+                                OpprettMelding(
+                                    tekst = skapVenterPåInntektsmelding15Tekst(soknaden.startSyketilfelle, orgnavn),
+                                    lenke = inntektsmeldingManglerUrl,
+                                    variant = Variant.INFO,
+                                    lukkbar = false,
+                                    synligFremTil = synligFremTil,
+                                    meldingType = "MANGLENDE_INNTEKTSMELDING",
+                                ),
                         ),
-                    ),
                 )
 
                 vedtaksperiodeBehandlingStatusRepository.save(

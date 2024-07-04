@@ -213,7 +213,7 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
     @Test
     @Order(6)
     fun `Vi sender ut forsinket saksbehandling varsel etter 45 dager når det har gått nok sleep tid`() {
-        await().pollDelay(6, TimeUnit.SECONDS).until { true }
+        await().pollDelay(1, TimeUnit.SECONDS).until { true }
 
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(45))
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0

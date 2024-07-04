@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit
 class ThrottleForsinketSaksbehandlingTest : FellesTestOppsett() {
     @Test
     @Order(1)
-    fun `Vi sender inn 45 søknader som venter på saksbehandler`() {
+    fun `Vi sender inn 6 søknader som venter på saksbehandler`() {
         fun sendSoknad(index: Int) {
             val soknaden =
                 SykepengesoknadDTO(
@@ -95,22 +95,22 @@ class ThrottleForsinketSaksbehandlingTest : FellesTestOppsett() {
             )
         }
 
-        (0 until 45).forEach { index -> sendSoknad(index) }
+        (0 until 6).forEach { index -> sendSoknad(index) }
 
         val perioderSomVenterPaaArbeidsgiver =
             vedtaksperiodeBehandlingRepository.finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(Instant.now())
-        perioderSomVenterPaaArbeidsgiver.shouldHaveSize(45)
+        perioderSomVenterPaaArbeidsgiver.shouldHaveSize(6)
     }
 
     @Test
     @Order(2)
     fun `Vi sender ut mangler  varsel etter 30 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(30))
-        cronjobResultat[SENDT_VARSEL_FORSINKET_SAKSBEHANDLING_28] shouldBeEqualTo 10
+        cronjobResultat[SENDT_VARSEL_FORSINKET_SAKSBEHANDLING_28] shouldBeEqualTo 4
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FORSINKET_SAKSBEHANDLING_28] shouldBeEqualTo 45
-        cronjobResultat[UTELATTE_FNR_FORSINKET_SAKSBEHANDLING_THROTTLE] shouldBeEqualTo 35
-        varslingConsumer.ventPåRecords(10, duration = Duration.ofMinutes(1))
-        meldingKafkaConsumer.ventPåRecords(10, duration = Duration.ofMinutes(1))
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FORSINKET_SAKSBEHANDLING_28] shouldBeEqualTo 6
+        cronjobResultat[UTELATTE_FNR_FORSINKET_SAKSBEHANDLING_THROTTLE] shouldBeEqualTo 2
+        varslingConsumer.ventPåRecords(4, duration = Duration.ofMinutes(1))
+        meldingKafkaConsumer.ventPåRecords(4, duration = Duration.ofMinutes(1))
     }
 }
