@@ -15,7 +15,7 @@ fun skapVenterPåInntektsmelding15Tekst(
 fun skapVenterPåInntektsmelding28Tekst(orgnavn: String): String {
     @Suppress("ktlint:standard:max-line-length")
 
-    return "Saksbehandlingen er forsinket fordi vi fortsatt mangler inntekstmelding fra $orgnavn. Etter vi har mottatt inntekstmelding vil søknaden forhåpentligvis være ferdigbehandlet innen 4 uker."
+    return "Saksbehandlingen er forsinket fordi vi fortsatt mangler inntektsmelding fra $orgnavn. Etter vi har mottatt inntektsmelding vil søknaden forhåpentligvis være ferdigbehandlet innen 4 uker."
 }
 
 fun skapForsinketSaksbehandling28Tekst(): String {
