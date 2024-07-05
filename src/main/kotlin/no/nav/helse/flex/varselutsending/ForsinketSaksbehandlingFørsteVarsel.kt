@@ -47,7 +47,7 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
         val returMap = mutableMapOf<CronJobStatus, Int>()
         log.info("Fant ${fnrListe.size} unike fnr for varselutsending for forsinket saksbehandling grunnet manglende inntektsmelding")
 
-        returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_FORSINKET_SAKSBEHANDLING_28] = fnrListe.size
+        returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] = fnrListe.size
 
         fnrListe.map { fnr ->
             forsinketSaksbehandlingVarslingFørsteVarsel.prosseserManglendeInntektsmelding28(
@@ -55,8 +55,8 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
                 sendtFoer,
                 dryRun = true,
             )
-        }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_VARSEL_FORSINKET_SAKSBEHANDLING_28)
-            .also { returMap[CronJobStatus.FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL_DRY_RUN] = it }
+        }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING)
+            .also { returMap[CronJobStatus.FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL_DRY_RUN] = it }
 
         fnrListe.forEachIndexed { idx, fnr ->
             forsinketSaksbehandlingVarslingFørsteVarsel.prosseserManglendeInntektsmelding28(fnr, sendtFoer, false)
@@ -64,9 +64,9 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
                     returMap.increment(it)
                 }
 
-            val antallSendteVarsler = returMap[CronJobStatus.SENDT_VARSEL_FORSINKET_SAKSBEHANDLING_28]
+            val antallSendteVarsler = returMap[CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING]
             if (antallSendteVarsler != null && antallSendteVarsler >= varselGrense) {
-                returMap[CronJobStatus.UTELATTE_FNR_FORSINKET_SAKSBEHANDLING_THROTTLE] = fnrListe.size - idx - 1
+                returMap[CronJobStatus.THROTTLET_FØRSTE_FORSINKER_SAKSBEHANDLING_VARSEL] = fnrListe.size - idx - 1
                 return returMap
             }
         }
@@ -132,10 +132,10 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                 }
 
         if (nyligVarslet) {
-            return CronJobStatus.FORSINKET_SAKSBEHANDLING_VARSEL_SENDT_SISTE_20_DAGER
+            return CronJobStatus.HAR_FATT_NYLIG_VARSEL
         }
         if (forstePerArbeidsgiver.isEmpty()) {
-            return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_VARSEL_FORSINKET_SAKSBEHANDLING
+            return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL
         }
         var harSendtEtVarsel = false
         forstePerArbeidsgiver.forEachIndexed { idx, perioden ->
@@ -174,7 +174,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                 finnLikesteInntektsmelding(inntektsmeldinger, perioden, soknaden)
             if (inntektsmelding == null) {
                 log.warn("Fant ikke inntektsmelding for vedtaksperiodeId ${perioden.vedtaksperiode.vedtaksperiodeId}")
-                return CronJobStatus.FORVENTET_EN_INNTEKTSMELDING_FANT_IKKE
+                return CronJobStatus.FANT_INGEN_INNTEKTSMELDING
             }
 
             if (inntektsmelding.fullRefusjon) {
@@ -255,6 +255,6 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
             }
         }
 
-        return CronJobStatus.SENDT_VARSEL_FORSINKET_SAKSBEHANDLING_28
+        return CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING
     }
 }

@@ -1,6 +1,5 @@
 package no.nav.helse.flex
 
-import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldHaveSize
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.TestMethodOrder
 import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
-import java.util.*
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class ThrottleVarsleTest : FellesTestOppsett() {
@@ -29,9 +27,9 @@ class ThrottleVarsleTest : FellesTestOppsett() {
     @Order(2)
     fun `Vi sender ut mangler inntektsmelding varsel etter 15 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
-        cronjobResultat[SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15] shouldBeEqualTo 4
-        cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 6
-        cronjobResultat[UTELATTE_FNR_MANGLER_IM_15_THROTTLE] shouldBeEqualTo 2
+        cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 4
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 6
+        cronjobResultat[THROTTLET_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL] shouldBeEqualTo 2
         varslingConsumer.ventPåRecords(4, duration = Duration.ofMinutes(1))
         meldingKafkaConsumer.ventPåRecords(4, duration = Duration.ofMinutes(1))
     }
