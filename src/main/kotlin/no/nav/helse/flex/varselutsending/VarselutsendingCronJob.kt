@@ -10,9 +10,9 @@ import java.util.concurrent.TimeUnit
 
 @Component
 class VarselutsendingCronJob(
-    private val manglendeInntektsmelding15VarselKandidatHenting: ManglendeInntektsmelding15VarselKandidatHenting,
-    private val manglendeInntektsmelding28VarselKandidatHenting: ManglendeInntektsmelding28VarselKandidatHenting,
-    private val forsinketSaksbehandler28VarselKandidatHenting: ForsinketSaksbehandler28VarselKandidatHenting,
+    private val manglendeInntektsmeldingFørsteVarselFinnPersoner: ManglendeInntektsmeldingFørsteVarselFinnPersoner,
+    private val manglendeInntektsmeldingAndreVarselFinnPersoner: ManglendeInntektsmeldingAndreVarselFinnPersoner,
+    private val forsinketSaksbehandlingFørsteVarselFinnPersoner: ForsinketSaksbehandlingFørsteVarselFinnPersoner,
 ) {
     private val log = logger()
 
@@ -35,9 +35,9 @@ class VarselutsendingCronJob(
         log.info("Starter VarselutsendingCronJob")
         val resultat = HashMap<CronJobStatus, Int>()
 
-        manglendeInntektsmelding15VarselKandidatHenting.hentOgProsseser(now).also { resultat.putAll(it) }
-        manglendeInntektsmelding28VarselKandidatHenting.hentOgProsseser(now).also { resultat.putAll(it) }
-        forsinketSaksbehandler28VarselKandidatHenting.hentOgProsseser(now).also { resultat.putAll(it) }
+        manglendeInntektsmeldingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+        manglendeInntektsmeldingAndreVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+        forsinketSaksbehandlingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
 
         log.info("Resultat fra VarselutsendingCronJob: $resultat")
         return resultat
@@ -51,7 +51,6 @@ enum class CronJobStatus {
     MANGLENDE_INNTEKTSMELDING_VARSEL_28_DISABLET_I_PROD,
     SENDT_VARSEL_MANGLER_INNTEKTSMELDING_28,
     UNIKE_FNR_KANDIDATER_FORSINKET_SAKSBEHANDLING_28,
-    FORSINKET_SAKSBEHANDLING_VARSEL_28_DISABLET_I_PROD,
     SENDT_VARSEL_FORSINKET_SAKSBEHANDLING_28,
     FORVENTET_EN_INNTEKTSMELDING_FANT_IKKE,
     VARSLER_IKKE_GRUNNET_FULL_REFUSJON,

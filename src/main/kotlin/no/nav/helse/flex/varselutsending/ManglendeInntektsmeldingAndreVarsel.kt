@@ -22,9 +22,9 @@ import java.time.Instant
 import java.time.OffsetDateTime
 
 @Component
-class ManglendeInntektsmelding28VarselKandidatHenting(
+class ManglendeInntektsmeldingAndreVarselFinnPersoner(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
-    private val manglendeInntektsmeldingVarsling28: ManglendeInntektsmeldingVarsling28,
+    private val manglendeInntektsmeldingAndreVarsel: ManglendeInntektsmeldingAndreVarsel,
 ) {
     private val log = logger()
 
@@ -41,7 +41,7 @@ class ManglendeInntektsmelding28VarselKandidatHenting(
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] = fnrListe.size
 
         fnrListe.forEach { fnr ->
-            manglendeInntektsmeldingVarsling28.prosseserManglendeInntektsmelding28(fnr, sendtFoer)
+            manglendeInntektsmeldingAndreVarsel.prosseserManglendeInntektsmelding28(fnr, sendtFoer)
                 .also {
                     returMap.increment(it)
                 }
@@ -54,7 +54,7 @@ class ManglendeInntektsmelding28VarselKandidatHenting(
 
 
 @Component
-class ManglendeInntektsmeldingVarsling28(
+class ManglendeInntektsmeldingAndreVarsel(
     private val hentAltForPerson: HentAltForPerson,
     private val lockRepository: LockRepository,
     private val environmentToggles: EnvironmentToggles,

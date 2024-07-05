@@ -28,9 +28,9 @@ import java.time.Instant
 import java.time.OffsetDateTime
 
 @Component
-class ForsinketSaksbehandler28VarselKandidatHenting(
+class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
-    private val forsinketSaksbehandlingVarsling28: ForsinketSaksbehandlingVarsling28,
+    private val forsinketSaksbehandlingVarslingFørsteVarsel: ForsinketSaksbehandlingVarslingFørsteVarsel,
     environmentToggles: EnvironmentToggles,
 ) {
     private val log = logger()
@@ -50,7 +50,7 @@ class ForsinketSaksbehandler28VarselKandidatHenting(
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_FORSINKET_SAKSBEHANDLING_28] = fnrListe.size
 
         fnrListe.map { fnr ->
-            forsinketSaksbehandlingVarsling28.prosseserManglendeInntektsmelding28(
+            forsinketSaksbehandlingVarslingFørsteVarsel.prosseserManglendeInntektsmelding28(
                 fnr,
                 sendtFoer,
                 dryRun = true,
@@ -58,7 +58,7 @@ class ForsinketSaksbehandler28VarselKandidatHenting(
         }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_VARSEL_FORSINKET_SAKSBEHANDLING_28)
 
         fnrListe.forEachIndexed { idx, fnr ->
-            forsinketSaksbehandlingVarsling28.prosseserManglendeInntektsmelding28(fnr, sendtFoer, false)
+            forsinketSaksbehandlingVarslingFørsteVarsel.prosseserManglendeInntektsmelding28(fnr, sendtFoer, false)
                 .also {
                     returMap.increment(it)
                 }
@@ -75,7 +75,7 @@ class ForsinketSaksbehandler28VarselKandidatHenting(
 
 
 @Component
-class ForsinketSaksbehandlingVarsling28(
+class ForsinketSaksbehandlingVarslingFørsteVarsel(
     private val hentAltForPerson: HentAltForPerson,
     private val lockRepository: LockRepository,
     private val brukervarsel: Brukervarsel,
