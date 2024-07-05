@@ -39,7 +39,12 @@ class VarselutsendingCronJob(
         manglendeInntektsmeldingAndreVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
         forsinketSaksbehandlingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
 
-        log.info("Resultat fra VarselutsendingCronJob: $resultat")
+        log.info(
+            "Resultat fra VarselutsendingCronJob: ${resultat.map { "${it.key}: ${it.value}" }.joinToString(
+                separator = "\n",
+                prefix = "\n",
+            ) }",
+        )
         return resultat
     }
 }
@@ -61,4 +66,6 @@ enum class CronJobStatus {
     UTELATTE_FNR_FORSINKET_SAKSBEHANDLING_THROTTLE,
     FORSINKET_SAKSBEHANDLING_VARSEL_SENDT_SISTE_20_DAGER,
     INGEN_PERIODE_FUNNET_FOR_VARSEL_FORSINKET_SAKSBEHANDLING,
+    MANGLENDE_INNTEKTSMELDING_FORSTE_VARSEL_DRY_RUN,
+    FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL_DRY_RUN,
 }

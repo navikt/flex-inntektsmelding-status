@@ -110,7 +110,6 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
     @Order(4)
     fun `Ingenting skjer etter 20 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(20))
-        cronjobResultat.shouldHaveSize(3)
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 0
     }
@@ -120,7 +119,6 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
     fun `Etter 28 dager sender vi varsel om forsinket saksbehandling`() {
         await().pollDelay(1, TimeUnit.SECONDS).until { true }
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(28))
-        cronjobResultat.shouldHaveSize(4)
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FORSINKET_SAKSBEHANDLING_28] shouldBeEqualTo 1

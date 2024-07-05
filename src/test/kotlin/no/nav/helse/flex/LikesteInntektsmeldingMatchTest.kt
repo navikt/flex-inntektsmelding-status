@@ -77,7 +77,6 @@ class LikesteInntektsmeldingMatchTest : FellesTestOppsett() {
     @Order(2)
     fun `Ingenting skjer etter 15 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
-        cronjobResultat.shouldHaveSize(3)
         cronjobResultat[SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15].shouldBeNull()
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 0
@@ -108,7 +107,6 @@ class LikesteInntektsmeldingMatchTest : FellesTestOppsett() {
     @Order(3)
     fun `Ingenting skjer etter 20 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(20))
-        cronjobResultat.shouldHaveSize(3)
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 0
     }
@@ -117,7 +115,6 @@ class LikesteInntektsmeldingMatchTest : FellesTestOppsett() {
     @Order(4)
     fun `Etter 28 dager sender vi varsel om forsinket saksbehandling`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(28))
-        cronjobResultat.shouldHaveSize(4)
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FORSINKET_SAKSBEHANDLING_28] shouldBeEqualTo 1

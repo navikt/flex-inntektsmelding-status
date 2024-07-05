@@ -56,6 +56,7 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
                 dryRun = true,
             )
         }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_VARSEL_FORSINKET_SAKSBEHANDLING_28)
+            .also { returMap[CronJobStatus.FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL_DRY_RUN] = it }
 
         fnrListe.forEachIndexed { idx, fnr ->
             forsinketSaksbehandlingVarslingFørsteVarsel.prosseserManglendeInntektsmelding28(fnr, sendtFoer, false)

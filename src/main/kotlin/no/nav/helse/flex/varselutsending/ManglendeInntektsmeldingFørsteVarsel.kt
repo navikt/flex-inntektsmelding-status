@@ -50,9 +50,14 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
                 dryRun = true,
             )
         }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15)
+            .also { returMap[CronJobStatus.MANGLENDE_INNTEKTSMELDING_FORSTE_VARSEL_DRY_RUN] = it }
 
         fnrListe.forEachIndexed { idx, fnr ->
-            manglendeInntektsmeldingFørsteVarsel.prosseserManglendeInntektsmeldingKandidat(fnr, sendtFoer, dryRun = false)
+            manglendeInntektsmeldingFørsteVarsel.prosseserManglendeInntektsmeldingKandidat(
+                fnr,
+                sendtFoer,
+                dryRun = false,
+            )
                 .also {
                     returMap.increment(it)
                 }
