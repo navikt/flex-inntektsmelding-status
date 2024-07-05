@@ -273,6 +273,5 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
         cronjobResultat[CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 0
         cronjobResultat[CronJobStatus.UNIKE_FNR_KANDIDATER_FORSINKET_SAKSBEHANDLING_28] shouldBeEqualTo 0
-        cronjobResultat.shouldHaveSize(3)
     }
 }

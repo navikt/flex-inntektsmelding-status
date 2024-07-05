@@ -8,7 +8,9 @@ import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
+import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
+import no.nav.helse.flex.util.increment
 import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding15Tekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
 import org.springframework.beans.factory.annotation.Value
@@ -19,7 +21,59 @@ import java.time.Instant
 import java.time.OffsetDateTime
 
 @Component
-class ManglendeInntektsmeldingVarsling15(
+class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
+    private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
+    private val manglendeInntektsmeldingFørsteVarsel: ManglendeInntektsmeldingFørsteVarsel,
+    environmentToggles: EnvironmentToggles,
+) {
+    private val log = logger()
+
+    private val maxAntallUtsendelsePerKjoring = if (environmentToggles.isProduction()) 250 else 4
+    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 2000 else 7
+
+    fun hentOgProsseser(now: OffsetDateTime): Map<CronJobStatus, Int> {
+        val sendtFoer = now.minusDays(15).toInstant()
+
+        val fnrListe =
+            vedtaksperiodeBehandlingRepository
+                .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtFoer = sendtFoer)
+
+        val returMap = mutableMapOf<CronJobStatus, Int>()
+        log.info("Fant ${fnrListe.size} unike fnr for varselutsending for manglende inntektsmelding")
+
+        returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] = fnrListe.size
+
+        fnrListe.map { fnr ->
+            manglendeInntektsmeldingFørsteVarsel.prosseserManglendeInntektsmeldingKandidat(
+                fnr,
+                sendtFoer,
+                dryRun = true,
+            )
+        }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15)
+            .also { returMap[CronJobStatus.MANGLENDE_INNTEKTSMELDING_FORSTE_VARSEL_DRY_RUN] = it }
+
+        fnrListe.forEachIndexed { idx, fnr ->
+            manglendeInntektsmeldingFørsteVarsel.prosseserManglendeInntektsmeldingKandidat(
+                fnr,
+                sendtFoer,
+                dryRun = false,
+            )
+                .also {
+                    returMap.increment(it)
+                }
+            val antallSendteVarsler = returMap[CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15]
+            if (antallSendteVarsler != null && antallSendteVarsler >= maxAntallUtsendelsePerKjoring) {
+                returMap[CronJobStatus.UTELATTE_FNR_MANGLER_IM_15_THROTTLE] = fnrListe.size - idx - 1
+                return returMap
+            }
+        }
+
+        return returMap
+    }
+}
+
+@Component
+class ManglendeInntektsmeldingFørsteVarsel(
     private val hentAltForPerson: HentAltForPerson,
     private val lockRepository: LockRepository,
     private val brukervarsel: Brukervarsel,

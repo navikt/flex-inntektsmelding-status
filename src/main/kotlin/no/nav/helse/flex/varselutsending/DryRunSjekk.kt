@@ -7,9 +7,8 @@ private val log = LoggerFactory.getLogger("no.nav.helse.flex.varselutsending.Dry
 fun List<CronJobStatus>.dryRunSjekk(
     grense: Int,
     status: CronJobStatus,
-) {
+): Int {
     val antallUtsendinger =
-
         this.filter { it == status }
 
     log.info("Dry run fant ${antallUtsendinger.size} varsler av type $status")
@@ -21,4 +20,5 @@ fun List<CronJobStatus>.dryRunSjekk(
         log.error(melding)
         throw RuntimeException(melding)
     }
+    return antallUtsendinger.size
 }

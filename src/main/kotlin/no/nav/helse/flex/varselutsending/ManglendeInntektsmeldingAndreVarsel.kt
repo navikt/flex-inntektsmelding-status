@@ -10,6 +10,7 @@ import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
+import no.nav.helse.flex.util.increment
 import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding28Tekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
 import org.springframework.beans.factory.annotation.Value
@@ -21,7 +22,37 @@ import java.time.Instant
 import java.time.OffsetDateTime
 
 @Component
-class ManglendeInntektsmeldingVarsling28(
+class ManglendeInntektsmeldingAndreVarselFinnPersoner(
+    private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
+    private val manglendeInntektsmeldingAndreVarsel: ManglendeInntektsmeldingAndreVarsel,
+) {
+    private val log = logger()
+
+    fun hentOgProsseser(now: OffsetDateTime): Map<CronJobStatus, Int> {
+        val sendtFoer = now.minusDays(28).toInstant()
+
+        val fnrListe =
+            vedtaksperiodeBehandlingRepository
+                .finnPersonerMedForsinketSaksbehandlingGrunnetManglendeInntektsmelding(sendtFoer = sendtFoer)
+
+        val returMap = mutableMapOf<CronJobStatus, Int>()
+        log.info("Fant ${fnrListe.size} unike fnr for varselutsending for forsinket saksbehandling grunnet manglende inntektsmelding")
+
+        returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] = fnrListe.size
+
+        fnrListe.forEach { fnr ->
+            manglendeInntektsmeldingAndreVarsel.prosseserManglendeInntektsmelding28(fnr, sendtFoer)
+                .also {
+                    returMap.increment(it)
+                }
+        }
+
+        return returMap
+    }
+}
+
+@Component
+class ManglendeInntektsmeldingAndreVarsel(
     private val hentAltForPerson: HentAltForPerson,
     private val lockRepository: LockRepository,
     private val environmentToggles: EnvironmentToggles,

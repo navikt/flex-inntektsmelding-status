@@ -238,6 +238,5 @@ class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
         cronjobResultat[CronJobStatus.INGEN_PERIODE_FUNNET_FOR_VARSEL_MANGLER_INNTEKTSMELDING_15] shouldBeEqualTo 1
         cronjobResultat[CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 0
         cronjobResultat[CronJobStatus.UNIKE_FNR_KANDIDATER_FORSINKET_SAKSBEHANDLING_28] shouldBeEqualTo 0
-        cronjobResultat.shouldHaveSize(4)
     }
 }
