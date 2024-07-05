@@ -12,6 +12,7 @@ import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.util.increment
 import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding28Tekst
+import no.nav.helse.flex.varselutsending.CronJobStatus.SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING
 import no.nav.helse.flex.vedtaksperiodebehandling.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -26,8 +27,7 @@ class ManglendeInntektsmeldingAndreVarselFinnPersoner(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val manglendeInntektsmeldingAndreVarsel: ManglendeInntektsmeldingAndreVarsel,
     environmentToggles: EnvironmentToggles,
-
-    ) {
+) {
     private val log = logger()
     private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 400 else 7
     private val maxAntallUtsendelsePerKjoring = if (environmentToggles.isProduction()) 250 else 4
@@ -50,22 +50,20 @@ class ManglendeInntektsmeldingAndreVarselFinnPersoner(
                 sendtFoer,
                 dryRun = true,
             )
-        }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING)
+        }.dryRunSjekk(funksjonellGrenseForAntallVarsler, SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING)
             .also { returMap[CronJobStatus.ANDRE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] = it }
-
 
         fnrListe.forEachIndexed { idx, fnr ->
             manglendeInntektsmeldingAndreVarsel.prosseserManglendeInntektsmeldingAndreVarsel(fnr, sendtFoer, false)
                 .also {
                     returMap.increment(it)
                 }
-            val antallSendteVarsler = returMap[CronJobStatus.SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING]
+            val antallSendteVarsler = returMap[SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING]
             if (antallSendteVarsler != null && antallSendteVarsler >= maxAntallUtsendelsePerKjoring) {
                 returMap[CronJobStatus.THROTTLET_ANDRE_MANGLER_INNTEKTSMELDING_VARSEL] = fnrListe.size - idx - 1
                 return returMap
             }
         }
-
 
         return returMap
     }
@@ -185,6 +183,6 @@ class ManglendeInntektsmeldingAndreVarsel(
             }
         }
 
-        return CronJobStatus.SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING
+        return SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING
     }
 }
