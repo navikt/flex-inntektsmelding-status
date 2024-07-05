@@ -25,7 +25,8 @@ class FunksjonellGrenseAvbrytingTest : FellesTestOppsett() {
                 varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(40))
             }
         exception.message shouldBeEqualTo
-            "Funksjonell grense for antall  SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15 varsler nådd, antall varsler: 8. Grensen er satt til 7"
+            "Funksjonell grense for antall SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING varsler nådd, " +
+            "antall varsler: 8. Grensen er satt til 7"
     }
 
     @Test
@@ -51,6 +52,7 @@ class FunksjonellGrenseAvbrytingTest : FellesTestOppsett() {
                 varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(40))
             }
         exception.message shouldBeEqualTo
-            "Funksjonell grense for antall  SENDT_VARSEL_FORSINKET_SAKSBEHANDLING_28 varsler nådd, antall varsler: 8. Grensen er satt til 7"
+            "Funksjonell grense for antall SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING varsler nådd, " +
+            "antall varsler: 8. Grensen er satt til 7"
     }
 }

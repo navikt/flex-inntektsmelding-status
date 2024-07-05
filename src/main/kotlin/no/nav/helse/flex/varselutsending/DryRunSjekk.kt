@@ -15,7 +15,7 @@ fun List<CronJobStatus>.dryRunSjekk(
 
     if (antallUtsendinger.size >= grense) {
         val melding =
-            "Funksjonell grense for antall  $status varsler nådd, antall varsler: ${antallUtsendinger.size}. " +
+            "Funksjonell grense for antall $status varsler nådd, antall varsler: ${antallUtsendinger.size}. " +
                 "Grensen er satt til $grense"
         log.error(melding)
         throw RuntimeException(melding)
