@@ -41,7 +41,7 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
         val returMap = mutableMapOf<CronJobStatus, Int>()
         log.info("Fant ${fnrListe.size} unike fnr for varselutsending for manglende inntektsmelding")
 
-        returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] = fnrListe.size
+        returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] = fnrListe.size
 
         fnrListe.map { fnr ->
             manglendeInntektsmeldingFørsteVarsel.prosseserManglendeInntektsmeldingKandidat(
@@ -49,8 +49,8 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
                 sendtFoer,
                 dryRun = true,
             )
-        }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15)
-            .also { returMap[CronJobStatus.MANGLENDE_INNTEKTSMELDING_FORSTE_VARSEL_DRY_RUN] = it }
+        }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING)
+            .also { returMap[CronJobStatus.FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] = it }
 
         fnrListe.forEachIndexed { idx, fnr ->
             manglendeInntektsmeldingFørsteVarsel.prosseserManglendeInntektsmeldingKandidat(
@@ -61,9 +61,9 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
                 .also {
                     returMap.increment(it)
                 }
-            val antallSendteVarsler = returMap[CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15]
+            val antallSendteVarsler = returMap[CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING]
             if (antallSendteVarsler != null && antallSendteVarsler >= maxAntallUtsendelsePerKjoring) {
-                returMap[CronJobStatus.UTELATTE_FNR_MANGLER_IM_15_THROTTLE] = fnrListe.size - idx - 1
+                returMap[CronJobStatus.THROTTLET_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL] = fnrListe.size - idx - 1
                 return returMap
             }
         }
@@ -107,7 +107,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
                 .filter { it.vedtaksperiode.sisteVarslingstatus == null }
 
         if (venterPaaArbeidsgiver.isEmpty()) {
-            return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_VARSEL_MANGLER_INNTEKTSMELDING_15
+            return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL
         }
 
         if (!dryRun) {
@@ -173,6 +173,6 @@ class ManglendeInntektsmeldingFørsteVarsel(
                 )
             }
         }
-        return CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15
+        return CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING
     }
 }

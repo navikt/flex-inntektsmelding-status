@@ -38,7 +38,7 @@ class ManglendeInntektsmeldingAndreVarselFinnPersoner(
         val returMap = mutableMapOf<CronJobStatus, Int>()
         log.info("Fant ${fnrListe.size} unike fnr for varselutsending for forsinket saksbehandling grunnet manglende inntektsmelding")
 
-        returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] = fnrListe.size
+        returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] = fnrListe.size
 
         fnrListe.forEach { fnr ->
             manglendeInntektsmeldingAndreVarsel.prosseserManglendeInntektsmelding28(fnr, sendtFoer)
@@ -75,7 +75,7 @@ class ManglendeInntektsmeldingAndreVarsel(
     ): CronJobStatus {
         if (environmentToggles.isProduction()) {
             // TODO dry run håndtering før denne lages
-            return CronJobStatus.MANGLENDE_INNTEKTSMELDING_VARSEL_28_DISABLET_I_PROD
+            return CronJobStatus.ANDRE_MANGLER_INNTEKTSMELDING_VARSEL_DISABLET_I_PROD
         }
         lockRepository.settAdvisoryTransactionLock(fnr)
 
@@ -88,7 +88,7 @@ class ManglendeInntektsmeldingAndreVarsel(
                 .filter { periode -> periode.soknader.all { it.sendt.isBefore(sendtFoer) } }
 
         if (venterPaaArbeidsgiver.isEmpty()) {
-            return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_VARSEL_MANGLER_INNTEKTSMELDING_18
+            return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_ANDER_MANGLER_INNTEKTSMELDING_VARSEL
         }
 
         val harFattVarselNylig =
@@ -162,6 +162,6 @@ class ManglendeInntektsmeldingAndreVarsel(
             )
         }
 
-        return CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_28
+        return CronJobStatus.SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING
     }
 }
