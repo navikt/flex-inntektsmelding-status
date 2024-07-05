@@ -10,6 +10,7 @@ import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
+import no.nav.helse.flex.util.increment
 import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding28Tekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
 import org.springframework.beans.factory.annotation.Value
@@ -19,6 +20,38 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
+
+@Component
+class ManglendeInntektsmelding28VarselKandidatHenting(
+    private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
+    private val manglendeInntektsmeldingVarsling28: ManglendeInntektsmeldingVarsling28,
+) {
+    private val log = logger()
+
+    fun hentOgProsseser(now: OffsetDateTime): Map<CronJobStatus, Int> {
+        val sendtFoer = now.minusDays(28).toInstant()
+
+        val fnrListe =
+            vedtaksperiodeBehandlingRepository
+                .finnPersonerMedForsinketSaksbehandlingGrunnetManglendeInntektsmelding(sendtFoer = sendtFoer)
+
+        val returMap = mutableMapOf<CronJobStatus, Int>()
+        log.info("Fant ${fnrListe.size} unike fnr for varselutsending for forsinket saksbehandling grunnet manglende inntektsmelding")
+
+        returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] = fnrListe.size
+
+        fnrListe.forEach { fnr ->
+            manglendeInntektsmeldingVarsling28.prosseserManglendeInntektsmelding28(fnr, sendtFoer)
+                .also {
+                    returMap.increment(it)
+                }
+        }
+
+        return returMap
+    }
+}
+
+
 
 @Component
 class ManglendeInntektsmeldingVarsling28(
@@ -97,18 +130,18 @@ class ManglendeInntektsmeldingVarsling28(
             meldingKafkaProducer.produserMelding(
                 meldingUuid = meldingBestillingId,
                 meldingKafkaDto =
-                    MeldingKafkaDto(
-                        fnr = fnr,
-                        opprettMelding =
-                            OpprettMelding(
-                                tekst = skapVenterPåInntektsmelding28Tekst(orgnavn),
-                                lenke = inntektsmeldingManglerUrl,
-                                variant = Variant.INFO,
-                                lukkbar = false,
-                                synligFremTil = synligFremTil,
-                                meldingType = "MANGLENDE_INNTEKTSMELDING_28",
-                            ),
+                MeldingKafkaDto(
+                    fnr = fnr,
+                    opprettMelding =
+                    OpprettMelding(
+                        tekst = skapVenterPåInntektsmelding28Tekst(orgnavn),
+                        lenke = inntektsmeldingManglerUrl,
+                        variant = Variant.INFO,
+                        lukkbar = false,
+                        synligFremTil = synligFremTil,
+                        meldingType = "MANGLENDE_INNTEKTSMELDING_28",
                     ),
+                ),
             )
 
             vedtaksperiodeBehandlingStatusRepository.save(
