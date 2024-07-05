@@ -15,7 +15,8 @@ class ManglendeInntektsmelding15VarselKandidatHenting(
 ) {
     private val log = logger()
 
-    private val varselGrense = if (environmentToggles.isProduction()) 250 else 20
+    private val maxAntallUtsendelsePerKjoring = if (environmentToggles.isProduction()) 250 else 4
+    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 2000 else 7
 
     fun hentOgProsseser(now: OffsetDateTime): Map<CronJobStatus, Int> {
         val sendtFoer = now.minusDays(15).toInstant()
@@ -29,13 +30,21 @@ class ManglendeInntektsmelding15VarselKandidatHenting(
 
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] = fnrListe.size
 
+        fnrListe.map { fnr ->
+            manglendeInntektsmeldingVarsling15.prosseserManglendeInntektsmeldingKandidat(
+                fnr,
+                sendtFoer,
+                dryRun = true,
+            )
+        }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15)
+
         fnrListe.forEachIndexed { idx, fnr ->
-            manglendeInntektsmeldingVarsling15.prosseserManglendeInntektsmeldingKandidat(fnr, sendtFoer)
+            manglendeInntektsmeldingVarsling15.prosseserManglendeInntektsmeldingKandidat(fnr, sendtFoer, dryRun = false)
                 .also {
                     returMap.increment(it)
                 }
             val antallSendteVarsler = returMap[CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15]
-            if (antallSendteVarsler != null && antallSendteVarsler >= varselGrense) {
+            if (antallSendteVarsler != null && antallSendteVarsler >= maxAntallUtsendelsePerKjoring) {
                 returMap[CronJobStatus.UTELATTE_FNR_MANGLER_IM_15_THROTTLE] = fnrListe.size - idx - 1
                 return returMap
             }

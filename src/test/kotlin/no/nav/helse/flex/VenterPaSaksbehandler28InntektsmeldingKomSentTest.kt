@@ -51,7 +51,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
             ),
         )
 
-        Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
+        await().atMost(5, TimeUnit.SECONDS).until {
             organisasjonRepository.findByOrgnummer(Testdata.orgNr)?.navn == "Flex AS"
         }
     }
@@ -118,7 +118,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
     @Test
     @Order(5)
     fun `Etter 28 dager sender vi varsel om forsinket saksbehandling`() {
-        await().pollDelay(6, TimeUnit.SECONDS).until { true }
+        await().pollDelay(1, TimeUnit.SECONDS).until { true }
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(28))
         cronjobResultat.shouldHaveSize(4)
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0

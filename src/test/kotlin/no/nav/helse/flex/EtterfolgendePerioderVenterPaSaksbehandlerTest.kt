@@ -219,7 +219,7 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
 
         varslingConsumer.ventPåRecords(1)
         meldingKafkaConsumer.ventPåRecords(1)
-        await().pollDelay(6, TimeUnit.SECONDS).until { true }
+        await().pollDelay(1, TimeUnit.SECONDS).until { true }
     }
 
     @Test

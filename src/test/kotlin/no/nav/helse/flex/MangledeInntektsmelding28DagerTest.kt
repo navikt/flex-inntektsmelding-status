@@ -94,7 +94,7 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
     @Test
     @Order(5)
     fun `Noe skjer etter 28 dager hvis det har gått nok tid siden sist varsel`() {
-        await().pollDelay(5, TimeUnit.SECONDS).until { true }
+        await().pollDelay(1, TimeUnit.SECONDS).until { true }
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(28))
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_15] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_MANGLENDE_INNTEKTSMELDING_28] shouldBeEqualTo 1

@@ -41,8 +41,11 @@ class ForsinketSaksbehandlingVarsling28(
     fun prosseserManglendeInntektsmelding28(
         fnr: String,
         sendtFoer: Instant,
+        dryRun: Boolean,
     ): CronJobStatus {
-        lockRepository.settAdvisoryTransactionLock(fnr)
+        if (!dryRun) {
+            lockRepository.settAdvisoryTransactionLock(fnr)
+        }
 
         val allePerioder = hentAltForPerson.hentAltForPerson(fnr)
 
@@ -87,24 +90,26 @@ class ForsinketSaksbehandlingVarsling28(
             val soknaden = perioden.soknader.sortedBy { it.sendt }.last()
 
             if (harSendtEtVarsel) {
-                val now = Instant.now()
-                vedtaksperiodeBehandlingStatusRepository.save(
-                    VedtaksperiodeBehandlingStatusDbRecord(
-                        vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
-                        opprettetDatabase = now,
-                        tidspunkt = now,
-                        status = VARSLET_FORSINKET_PA_ANNEN_ORGNUMMER,
-                        dittSykefravaerMeldingId = null,
-                        brukervarselId = null,
-                    ),
-                )
-                vedtaksperiodeBehandlingRepository.save(
-                    perioden.vedtaksperiode.copy(
-                        sisteVarslingstatus = VARSLET_FORSINKET_PA_ANNEN_ORGNUMMER,
-                        sisteVarslingstatusTidspunkt = now,
-                        oppdatertDatabase = now,
-                    ),
-                )
+                if (!dryRun) {
+                    val now = Instant.now()
+                    vedtaksperiodeBehandlingStatusRepository.save(
+                        VedtaksperiodeBehandlingStatusDbRecord(
+                            vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
+                            opprettetDatabase = now,
+                            tidspunkt = now,
+                            status = VARSLET_FORSINKET_PA_ANNEN_ORGNUMMER,
+                            dittSykefravaerMeldingId = null,
+                            brukervarselId = null,
+                        ),
+                    )
+                    vedtaksperiodeBehandlingRepository.save(
+                        perioden.vedtaksperiode.copy(
+                            sisteVarslingstatus = VARSLET_FORSINKET_PA_ANNEN_ORGNUMMER,
+                            sisteVarslingstatusTidspunkt = now,
+                            oppdatertDatabase = now,
+                        ),
+                    )
+                }
 
                 return@forEachIndexed
             }
@@ -121,77 +126,81 @@ class ForsinketSaksbehandlingVarsling28(
             }
 
             if (inntektsmelding.fullRefusjon) {
+                if (!dryRun) {
+                    vedtaksperiodeBehandlingStatusRepository.save(
+                        VedtaksperiodeBehandlingStatusDbRecord(
+                            vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
+                            opprettetDatabase = Instant.now(),
+                            tidspunkt = Instant.now(),
+                            status = VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
+                            brukervarselId = null,
+                            dittSykefravaerMeldingId = null,
+                        ),
+                    )
+
+                    vedtaksperiodeBehandlingRepository.save(
+                        perioden.vedtaksperiode.copy(
+                            sisteVarslingstatus = VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
+                            sisteVarslingstatusTidspunkt = Instant.now(),
+                            oppdatertDatabase = Instant.now(),
+                        ),
+                    )
+                }
+                return CronJobStatus.VARSLER_IKKE_GRUNNET_FULL_REFUSJON
+            }
+            harSendtEtVarsel = true
+            if (!dryRun) {
+                val brukervarselId = randomGenerator.nextUUID()
+
+                val orgnavn = organisasjonRepository.findByOrgnummer(soknaden.orgnummer!!)?.navn ?: soknaden.orgnummer
+
+                log.info("Sender første forsinket saksbehandling varsel til vedtaksperiode ${perioden.vedtaksperiode.vedtaksperiodeId}")
+
+                val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
+                brukervarsel.beskjedForsinketSaksbehandling(
+                    fnr = fnr,
+                    bestillingId = brukervarselId,
+                    orgNavn = orgnavn,
+                    synligFremTil = synligFremTil,
+                )
+
+                val meldingBestillingId = randomGenerator.nextUUID()
+                meldingKafkaProducer.produserMelding(
+                    meldingUuid = meldingBestillingId,
+                    meldingKafkaDto =
+                        MeldingKafkaDto(
+                            fnr = fnr,
+                            opprettMelding =
+                                OpprettMelding(
+                                    tekst = skapForsinketSaksbehandling28Tekst(),
+                                    lenke = SAKSBEHANDLINGSTID_URL,
+                                    variant = Variant.INFO,
+                                    lukkbar = false,
+                                    synligFremTil = synligFremTil,
+                                    meldingType = "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL",
+                                ),
+                        ),
+                )
+
                 vedtaksperiodeBehandlingStatusRepository.save(
                     VedtaksperiodeBehandlingStatusDbRecord(
                         vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
                         opprettetDatabase = Instant.now(),
                         tidspunkt = Instant.now(),
-                        status = VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
-                        brukervarselId = null,
-                        dittSykefravaerMeldingId = null,
+                        status = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
+                        brukervarselId = brukervarselId,
+                        dittSykefravaerMeldingId = meldingBestillingId,
                     ),
                 )
 
                 vedtaksperiodeBehandlingRepository.save(
                     perioden.vedtaksperiode.copy(
-                        sisteVarslingstatus = VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
+                        sisteVarslingstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
                         sisteVarslingstatusTidspunkt = Instant.now(),
                         oppdatertDatabase = Instant.now(),
                     ),
                 )
-                return CronJobStatus.VARSLER_IKKE_GRUNNET_FULL_REFUSJON
             }
-            harSendtEtVarsel = true
-            val brukervarselId = randomGenerator.nextUUID()
-
-            val orgnavn = organisasjonRepository.findByOrgnummer(soknaden.orgnummer!!)?.navn ?: soknaden.orgnummer
-
-            log.info("Sender første forsinket saksbehandling varsel til vedtaksperiode ${perioden.vedtaksperiode.vedtaksperiodeId}")
-
-            val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
-            brukervarsel.beskjedForsinketSaksbehandling(
-                fnr = fnr,
-                bestillingId = brukervarselId,
-                orgNavn = orgnavn,
-                synligFremTil = synligFremTil,
-            )
-
-            val meldingBestillingId = randomGenerator.nextUUID()
-            meldingKafkaProducer.produserMelding(
-                meldingUuid = meldingBestillingId,
-                meldingKafkaDto =
-                    MeldingKafkaDto(
-                        fnr = fnr,
-                        opprettMelding =
-                            OpprettMelding(
-                                tekst = skapForsinketSaksbehandling28Tekst(),
-                                lenke = SAKSBEHANDLINGSTID_URL,
-                                variant = Variant.INFO,
-                                lukkbar = false,
-                                synligFremTil = synligFremTil,
-                                meldingType = "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL",
-                            ),
-                    ),
-            )
-
-            vedtaksperiodeBehandlingStatusRepository.save(
-                VedtaksperiodeBehandlingStatusDbRecord(
-                    vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
-                    opprettetDatabase = Instant.now(),
-                    tidspunkt = Instant.now(),
-                    status = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
-                    brukervarselId = brukervarselId,
-                    dittSykefravaerMeldingId = meldingBestillingId,
-                ),
-            )
-
-            vedtaksperiodeBehandlingRepository.save(
-                perioden.vedtaksperiode.copy(
-                    sisteVarslingstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
-                    sisteVarslingstatusTidspunkt = Instant.now(),
-                    oppdatertDatabase = Instant.now(),
-                ),
-            )
         }
 
         return CronJobStatus.SENDT_VARSEL_FORSINKET_SAKSBEHANDLING_28

@@ -14,7 +14,8 @@ class ForsinketSaksbehandler28VarselKandidatHenting(
     environmentToggles: EnvironmentToggles,
 ) {
     private val log = logger()
-    private val varselGrense = if (environmentToggles.isProduction()) 120 else 10
+    private val varselGrense = if (environmentToggles.isProduction()) 120 else 4
+    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 2000 else 7
 
     fun hentOgProsseser(now: OffsetDateTime): Map<CronJobStatus, Int> {
         val sendtFoer = now.minusDays(28).toInstant()
@@ -28,8 +29,16 @@ class ForsinketSaksbehandler28VarselKandidatHenting(
 
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_FORSINKET_SAKSBEHANDLING_28] = fnrListe.size
 
+        fnrListe.map { fnr ->
+            forsinketSaksbehandlingVarsling28.prosseserManglendeInntektsmelding28(
+                fnr,
+                sendtFoer,
+                dryRun = true,
+            )
+        }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_VARSEL_FORSINKET_SAKSBEHANDLING_28)
+
         fnrListe.forEachIndexed { idx, fnr ->
-            forsinketSaksbehandlingVarsling28.prosseserManglendeInntektsmelding28(fnr, sendtFoer)
+            forsinketSaksbehandlingVarsling28.prosseserManglendeInntektsmelding28(fnr, sendtFoer, false)
                 .also {
                     returMap.increment(it)
                 }
