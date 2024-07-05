@@ -73,7 +73,6 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
     }
 }
 
-
 @Component
 class ForsinketSaksbehandlingVarslingFørsteVarsel(
     private val hentAltForPerson: HentAltForPerson,
@@ -220,18 +219,18 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                 meldingKafkaProducer.produserMelding(
                     meldingUuid = meldingBestillingId,
                     meldingKafkaDto =
-                    MeldingKafkaDto(
-                        fnr = fnr,
-                        opprettMelding =
-                        OpprettMelding(
-                            tekst = skapForsinketSaksbehandling28Tekst(),
-                            lenke = SAKSBEHANDLINGSTID_URL,
-                            variant = Variant.INFO,
-                            lukkbar = false,
-                            synligFremTil = synligFremTil,
-                            meldingType = "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL",
+                        MeldingKafkaDto(
+                            fnr = fnr,
+                            opprettMelding =
+                                OpprettMelding(
+                                    tekst = skapForsinketSaksbehandling28Tekst(),
+                                    lenke = SAKSBEHANDLINGSTID_URL,
+                                    variant = Variant.INFO,
+                                    lukkbar = false,
+                                    synligFremTil = synligFremTil,
+                                    meldingType = "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL",
+                                ),
                         ),
-                    ),
                 )
 
                 vedtaksperiodeBehandlingStatusRepository.save(

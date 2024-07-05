@@ -20,8 +20,6 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.OffsetDateTime
 
-
-
 @Component
 class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
@@ -68,7 +66,6 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
         return returMap
     }
 }
-
 
 @Component
 class ManglendeInntektsmeldingFørsteVarsel(
@@ -137,18 +134,18 @@ class ManglendeInntektsmeldingFørsteVarsel(
                 meldingKafkaProducer.produserMelding(
                     meldingUuid = meldingBestillingId,
                     meldingKafkaDto =
-                    MeldingKafkaDto(
-                        fnr = fnr,
-                        opprettMelding =
-                        OpprettMelding(
-                            tekst = skapVenterPåInntektsmelding15Tekst(soknaden.startSyketilfelle, orgnavn),
-                            lenke = inntektsmeldingManglerUrl,
-                            variant = Variant.INFO,
-                            lukkbar = false,
-                            synligFremTil = synligFremTil,
-                            meldingType = "MANGLENDE_INNTEKTSMELDING",
+                        MeldingKafkaDto(
+                            fnr = fnr,
+                            opprettMelding =
+                                OpprettMelding(
+                                    tekst = skapVenterPåInntektsmelding15Tekst(soknaden.startSyketilfelle, orgnavn),
+                                    lenke = inntektsmeldingManglerUrl,
+                                    variant = Variant.INFO,
+                                    lukkbar = false,
+                                    synligFremTil = synligFremTil,
+                                    meldingType = "MANGLENDE_INNTEKTSMELDING",
+                                ),
                         ),
-                    ),
                 )
 
                 vedtaksperiodeBehandlingStatusRepository.save(
@@ -174,4 +171,3 @@ class ManglendeInntektsmeldingFørsteVarsel(
         return CronJobStatus.SENDT_VARSEL_MANGLER_INNTEKTSMELDING_15
     }
 }
-

@@ -51,8 +51,6 @@ class ManglendeInntektsmeldingAndreVarselFinnPersoner(
     }
 }
 
-
-
 @Component
 class ManglendeInntektsmeldingAndreVarsel(
     private val hentAltForPerson: HentAltForPerson,
@@ -130,18 +128,18 @@ class ManglendeInntektsmeldingAndreVarsel(
             meldingKafkaProducer.produserMelding(
                 meldingUuid = meldingBestillingId,
                 meldingKafkaDto =
-                MeldingKafkaDto(
-                    fnr = fnr,
-                    opprettMelding =
-                    OpprettMelding(
-                        tekst = skapVenterPåInntektsmelding28Tekst(orgnavn),
-                        lenke = inntektsmeldingManglerUrl,
-                        variant = Variant.INFO,
-                        lukkbar = false,
-                        synligFremTil = synligFremTil,
-                        meldingType = "MANGLENDE_INNTEKTSMELDING_28",
+                    MeldingKafkaDto(
+                        fnr = fnr,
+                        opprettMelding =
+                            OpprettMelding(
+                                tekst = skapVenterPåInntektsmelding28Tekst(orgnavn),
+                                lenke = inntektsmeldingManglerUrl,
+                                variant = Variant.INFO,
+                                lukkbar = false,
+                                synligFremTil = synligFremTil,
+                                meldingType = "MANGLENDE_INNTEKTSMELDING_28",
+                            ),
                     ),
-                ),
             )
 
             vedtaksperiodeBehandlingStatusRepository.save(
