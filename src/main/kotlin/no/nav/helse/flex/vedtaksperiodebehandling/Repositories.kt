@@ -84,7 +84,6 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
         @Param("sendtFoer") sendtFoer: Instant,
     ): List<String>
 
-
     @Query(
         """
         select distinct max(s.fnr) as fnr
@@ -96,7 +95,7 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
             'VARSLET_VENTER_PÅ_SAKSBEHANDLER', 
             'REVARSLET_VENTER_PÅ_SAKSBEHANDLER'
          )
-         AND  siste_varslingstatus_tidspunkt < :sendtFoer
+         AND  siste_varslingstatus_tidspunkt < :varsletFoer
         group by v.vedtaksperiode_id, v.behandling_id
         """,
     )
@@ -165,6 +164,7 @@ enum class StatusVerdi {
     FERDIG,
     BEHANDLES_UTENFOR_SPEIL,
     REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
+    REVARSLET_VENTER_PÅ_SAKSBEHANDLER_DONE,
     VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
     VARSLET_FORSINKET_PA_ANNEN_ORGNUMMER,
     VARSLET_MANGLER_INNTEKTSMELDING, // finnes i dev

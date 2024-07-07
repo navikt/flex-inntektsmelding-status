@@ -50,6 +50,12 @@ class MeldingOgBrukervarselDone(
             statusVerdiDone = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE_DONE,
             fnr = fnr,
         )
+        doneVarselMedStatus(
+            vedtaksperiodeBehandling = vedtaksperiodeBehandling,
+            statusVerdiSok = StatusVerdi.REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
+            statusVerdiDone = StatusVerdi.REVARSLET_VENTER_PÅ_SAKSBEHANDLER_DONE,
+            fnr = fnr,
+        )
     }
 
     fun doneVarselMedStatus(

@@ -2,13 +2,11 @@ package no.nav.helse.flex.varselutsending
 
 import no.nav.helse.flex.brukervarsel.Brukervarsel
 import no.nav.helse.flex.database.LockRepository
-import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
-import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.util.increment
@@ -80,11 +78,10 @@ class ForsinketSaksbehandlingVarslingRevarsel(
     private val hentAltForPerson: HentAltForPerson,
     private val lockRepository: LockRepository,
     private val brukervarsel: Brukervarsel,
-    private val organisasjonRepository: OrganisasjonRepository,
     private val meldingKafkaProducer: MeldingKafkaProducer,
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
-    private val inntektesmeldingRepository: InntektsmeldingRepository,
+    private val meldingOgBrukervarselDone: MeldingOgBrukervarselDone,
     @Value("\${MINIMUMSTID_FRA_VARSEL_TIL_FORSTE_FORSINKET_SAKSBEHANDLING_VARSEL}") private val minimumstid: String,
 ) {
     private val log = logger()
@@ -102,8 +99,6 @@ class ForsinketSaksbehandlingVarslingRevarsel(
 
         val allePerioder = hentAltForPerson.hentAltForPerson(fnr)
 
-
-        // hvis varsel på nummer en så setter vi egen status på de andre orgnumrene
         val nyligVarslet =
             allePerioder
                 .flatMap { it.statuser }
@@ -127,14 +122,17 @@ class ForsinketSaksbehandlingVarslingRevarsel(
                 .filter {
                     listOf(
                         REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
-                        VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE
+                        VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
                     ).contains(it.vedtaksperiode.sisteVarslingstatus)
                 }
                 .filter { it.vedtaksperiode.sisteVarslingstatusTidspunkt?.isBefore(varsletFør) == true }
 
         if (revarslingsperioder.size > 1) {
-            log.error("Fant ${revarslingsperioder.size} perioder for revarsel for vedtaksperioder ${revarslingsperioder.map { it.vedtaksperiode.vedtaksperiodeId }}")
-            // Dette skal ikke skjer
+            log.error(
+                "Fant ${revarslingsperioder.size} perioder for revarsel for vedtaksperioder " +
+                    "${revarslingsperioder.map { it.vedtaksperiode.vedtaksperiodeId }}",
+            )
+            // Dette skal ikke skje
             return CronJobStatus.FANT_FLERE_ENN_EN_VEDTAKSPERIODE_FOR_REVARSEL
         }
 
@@ -145,10 +143,58 @@ class ForsinketSaksbehandlingVarslingRevarsel(
             return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL
         }
 
-        // TODO Done de gamle varselene og send ut nye.
-        // TODO finn en bra seed for å lage UUID
-        if(!dryRun){
+        if (!dryRun) {
+            val randomGenerator = SeededUuid(revarselingsperiode.statuser.minByOrNull { it.tidspunkt }!!.id!!)
+            meldingOgBrukervarselDone.doneForsinketSbVarsel(revarselingsperiode.vedtaksperiode, fnr)
+            val brukervarselId = randomGenerator.nextUUID()
 
+            log.info(
+                "Revarsler forsinket saksbehandling varsel til vedtaksperiode ${revarselingsperiode.vedtaksperiode.vedtaksperiodeId}",
+            )
+
+            val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
+            brukervarsel.beskjedForsinketSaksbehandling(
+                fnr = fnr,
+                bestillingId = brukervarselId,
+                synligFremTil = synligFremTil,
+            )
+
+            val meldingBestillingId = randomGenerator.nextUUID()
+            meldingKafkaProducer.produserMelding(
+                meldingUuid = meldingBestillingId,
+                meldingKafkaDto =
+                    MeldingKafkaDto(
+                        fnr = fnr,
+                        opprettMelding =
+                            OpprettMelding(
+                                tekst = skapForsinketSaksbehandling28Tekst(),
+                                lenke = SAKSBEHANDLINGSTID_URL,
+                                variant = Variant.INFO,
+                                lukkbar = false,
+                                synligFremTil = synligFremTil,
+                                meldingType = "FORSINKET_SAKSBEHANDLING_REVARSEL",
+                            ),
+                    ),
+            )
+
+            vedtaksperiodeBehandlingStatusRepository.save(
+                VedtaksperiodeBehandlingStatusDbRecord(
+                    vedtaksperiodeBehandlingId = revarselingsperiode.vedtaksperiode.id!!,
+                    opprettetDatabase = Instant.now(),
+                    tidspunkt = Instant.now(),
+                    status = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
+                    brukervarselId = brukervarselId,
+                    dittSykefravaerMeldingId = meldingBestillingId,
+                ),
+            )
+
+            vedtaksperiodeBehandlingRepository.save(
+                revarselingsperiode.vedtaksperiode.copy(
+                    sisteVarslingstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
+                    sisteVarslingstatusTidspunkt = Instant.now(),
+                    oppdatertDatabase = Instant.now(),
+                ),
+            )
         }
 
         return SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING

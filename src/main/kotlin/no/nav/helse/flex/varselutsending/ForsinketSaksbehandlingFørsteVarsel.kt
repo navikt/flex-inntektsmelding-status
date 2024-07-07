@@ -8,7 +8,6 @@ import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
-import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.util.increment
@@ -85,7 +84,6 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
     private val hentAltForPerson: HentAltForPerson,
     private val lockRepository: LockRepository,
     private val brukervarsel: Brukervarsel,
-    private val organisasjonRepository: OrganisasjonRepository,
     private val meldingKafkaProducer: MeldingKafkaProducer,
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
@@ -211,15 +209,12 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
             if (!dryRun) {
                 val brukervarselId = randomGenerator.nextUUID()
 
-                val orgnavn = organisasjonRepository.findByOrgnummer(soknaden.orgnummer!!)?.navn ?: soknaden.orgnummer
-
                 log.info("Sender første forsinket saksbehandling varsel til vedtaksperiode ${perioden.vedtaksperiode.vedtaksperiodeId}")
 
                 val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
                 brukervarsel.beskjedForsinketSaksbehandling(
                     fnr = fnr,
                     bestillingId = brukervarselId,
-                    orgNavn = orgnavn,
                     synligFremTil = synligFremTil,
                 )
 

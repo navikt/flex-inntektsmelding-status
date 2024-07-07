@@ -66,7 +66,6 @@ class Brukervarsel(
     fun beskjedForsinketSaksbehandling(
         fnr: String,
         bestillingId: String,
-        orgNavn: String,
         synligFremTil: Instant,
     ) {
         val opprettVarsel =

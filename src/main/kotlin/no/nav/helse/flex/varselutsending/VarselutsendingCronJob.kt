@@ -14,6 +14,7 @@ class VarselutsendingCronJob(
     private val manglendeInntektsmeldingFørsteVarselFinnPersoner: ManglendeInntektsmeldingFørsteVarselFinnPersoner,
     private val manglendeInntektsmeldingAndreVarselFinnPersoner: ManglendeInntektsmeldingAndreVarselFinnPersoner,
     private val forsinketSaksbehandlingFørsteVarselFinnPersoner: ForsinketSaksbehandlingFørsteVarselFinnPersoner,
+    private val forsinketSaksbehandlingRevarselFinnPersoner: ForsinketSaksbehandlingRevarselFinnPersoner,
 ) {
     private val log = logger()
 
@@ -43,6 +44,7 @@ class VarselutsendingCronJob(
         manglendeInntektsmeldingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
         manglendeInntektsmeldingAndreVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
         forsinketSaksbehandlingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+        forsinketSaksbehandlingRevarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
 
         log.info(
             "Resultat fra VarselutsendingCronJob: ${
