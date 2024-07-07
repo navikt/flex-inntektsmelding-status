@@ -83,6 +83,26 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
     fun finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(
         @Param("sendtFoer") sendtFoer: Instant,
     ): List<String>
+
+
+    @Query(
+        """
+        select distinct max(s.fnr) as fnr
+        from vedtaksperiode_behandling v, sykepengesoknad s, vedtaksperiode_behandling_sykepengesoknad vbs
+        WHERE vbs.sykepengesoknad_uuid = s.sykepengesoknad_uuid 
+        AND vbs.vedtaksperiode_behandling_id = v.id
+          AND v.siste_spleisstatus = 'VENTER_PÅ_SAKSBEHANDLER' 
+          AND v.siste_varslingstatus  in (
+            'VARSLET_VENTER_PÅ_SAKSBEHANDLER', 
+            'REVARSLET_VENTER_PÅ_SAKSBEHANDLER'
+         )
+         AND  siste_varslingstatus_tidspunkt < :sendtFoer
+        group by v.vedtaksperiode_id, v.behandling_id
+        """,
+    )
+    fun finnPersonerForRevarslingSomVenterPåSaksbehandlger(
+        @Param("varsletFoer") varsletFoer: Instant,
+    ): List<String>
 }
 
 @Table("vedtaksperiode_behandling")
