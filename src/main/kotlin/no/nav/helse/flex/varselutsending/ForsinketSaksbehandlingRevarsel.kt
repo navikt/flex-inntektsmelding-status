@@ -137,19 +137,19 @@ class ForsinketSaksbehandlingVarslingRevarsel(
         }
 
         // Forvent en revarslingsperiode. log error og returner egen status hvis ikke riktig
-        val revarselingsperiode = revarslingsperioder.firstOrNull()
-        if (revarselingsperiode == null) {
+        val revarslingsperiode = revarslingsperioder.firstOrNull()
+        if (revarslingsperiode == null) {
             log.error("Fant ingen perioder for revarsel for fnr $fnr")
             return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL
         }
 
         if (!dryRun) {
-            val randomGenerator = SeededUuid(revarselingsperiode.statuser.minByOrNull { it.tidspunkt }!!.id!!)
-            meldingOgBrukervarselDone.doneForsinketSbVarsel(revarselingsperiode.vedtaksperiode, fnr)
+            val randomGenerator = SeededUuid(revarslingsperiode.statuser.minByOrNull { it.tidspunkt }!!.id!!)
+            meldingOgBrukervarselDone.doneForsinketSbVarsel(revarslingsperiode.vedtaksperiode, fnr)
             val brukervarselId = randomGenerator.nextUUID()
 
             log.info(
-                "Revarsler forsinket saksbehandling varsel til vedtaksperiode ${revarselingsperiode.vedtaksperiode.vedtaksperiodeId}",
+                "Revarsler forsinket saksbehandling til vedtaksperiode ${revarslingsperiode.vedtaksperiode.vedtaksperiodeId}",
             )
 
             val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
@@ -179,7 +179,7 @@ class ForsinketSaksbehandlingVarslingRevarsel(
 
             vedtaksperiodeBehandlingStatusRepository.save(
                 VedtaksperiodeBehandlingStatusDbRecord(
-                    vedtaksperiodeBehandlingId = revarselingsperiode.vedtaksperiode.id!!,
+                    vedtaksperiodeBehandlingId = revarslingsperiode.vedtaksperiode.id!!,
                     opprettetDatabase = Instant.now(),
                     tidspunkt = Instant.now(),
                     status = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
@@ -189,7 +189,7 @@ class ForsinketSaksbehandlingVarslingRevarsel(
             )
 
             vedtaksperiodeBehandlingRepository.save(
-                revarselingsperiode.vedtaksperiode.copy(
+                revarslingsperiode.vedtaksperiode.copy(
                     sisteVarslingstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
                     sisteVarslingstatusTidspunkt = Instant.now(),
                     oppdatertDatabase = Instant.now(),
