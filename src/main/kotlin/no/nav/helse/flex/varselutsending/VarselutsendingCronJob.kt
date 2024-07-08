@@ -40,10 +40,12 @@ class VarselutsendingCronJob(
         forsinketSaksbehandlingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
 
         log.info(
-            "Resultat fra VarselutsendingCronJob: ${resultat.map { "${it.key}: ${it.value}" }.joinToString(
-                separator = "\n",
-                prefix = "\n",
-            ) }",
+            "Resultat fra VarselutsendingCronJob: ${
+                resultat.map { "${it.key}: ${it.value}" }.sorted().joinToString(
+                    separator = "\n",
+                    prefix = "\n",
+                )
+            }",
         )
         return resultat
     }
