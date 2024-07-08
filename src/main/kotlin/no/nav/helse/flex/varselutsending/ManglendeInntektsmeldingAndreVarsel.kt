@@ -84,8 +84,6 @@ class ManglendeInntektsmeldingAndreVarsel(
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
 ) {
-    val duration = Duration.ofDays(10)
-
     @Transactional(propagation = Propagation.REQUIRED)
     fun prosseserManglendeInntektsmeldingAndreVarsel(
         fnr: String,
@@ -115,7 +113,7 @@ class ManglendeInntektsmeldingAndreVarsel(
         val harFattVarselNylig =
             venterPaaArbeidsgiver
                 .mapNotNull { it.vedtaksperiode.sisteVarslingstatusTidspunkt }
-                .any { it.isAfter(now.minus(duration)) }
+                .any { it.isAfter(now.minus(Duration.ofDays(10))) }
 
         if (harFattVarselNylig) {
             return CronJobStatus.HAR_FATT_NYLIG_VARSEL
