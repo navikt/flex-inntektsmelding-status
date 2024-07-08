@@ -19,13 +19,13 @@ import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusDbRecord
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusRepository
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 @Component
 class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
@@ -37,8 +37,8 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
     private val varselGrense = if (environmentToggles.isProduction()) 120 else 4
     private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 2000 else 7
 
-    fun hentOgProsseser(now: OffsetDateTime): Map<CronJobStatus, Int> {
-        val sendtFoer = now.minusDays(28).toInstant()
+    fun hentOgProsseser(now: Instant): Map<CronJobStatus, Int> {
+        val sendtFoer = now.atOffset(ZoneOffset.UTC).minusDays(28).toInstant()
 
         val fnrListe =
             vedtaksperiodeBehandlingRepository
@@ -54,12 +54,13 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
                 fnr,
                 sendtFoer,
                 dryRun = true,
+                now = now,
             )
         }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING)
             .also { returMap[CronJobStatus.FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL_DRY_RUN] = it }
 
         fnrListe.forEachIndexed { idx, fnr ->
-            forsinketSaksbehandlingVarslingFørsteVarsel.prosseserManglendeInntektsmelding28(fnr, sendtFoer, false)
+            forsinketSaksbehandlingVarslingFørsteVarsel.prosseserManglendeInntektsmelding28(fnr, sendtFoer, false, now = now)
                 .also {
                     returMap.increment(it)
                 }
@@ -84,16 +85,15 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
     private val inntektesmeldingRepository: InntektsmeldingRepository,
-    @Value("\${MINIMUMSTID_FRA_VARSEL_TIL_FORSTE_FORSINKET_SAKSBEHANDLING_VARSEL}") private val minimumstid: String,
 ) {
     private val log = logger()
-    val duration = Duration.parse(minimumstid)
 
     @Transactional(propagation = Propagation.REQUIRED)
     fun prosseserManglendeInntektsmelding28(
         fnr: String,
         sendtFoer: Instant,
         dryRun: Boolean,
+        now: Instant,
     ): CronJobStatus {
         if (!dryRun) {
             lockRepository.settAdvisoryTransactionLock(fnr)
@@ -121,7 +121,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
         val nyligVarslet =
             allePerioder
                 .flatMap { it.statuser }
-                .filter { it.tidspunkt.isAfter(Instant.now().minus(duration)) }
+                .filter { it.tidspunkt.isAfter(now.minus(Duration.ofDays(12))) }
                 .any {
                     listOf(
                         VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
@@ -143,7 +143,6 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
 
             if (harSendtEtVarsel) {
                 if (!dryRun) {
-                    val now = Instant.now()
                     vedtaksperiodeBehandlingStatusRepository.save(
                         VedtaksperiodeBehandlingStatusDbRecord(
                             vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
@@ -182,8 +181,8 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                     vedtaksperiodeBehandlingStatusRepository.save(
                         VedtaksperiodeBehandlingStatusDbRecord(
                             vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
-                            opprettetDatabase = Instant.now(),
-                            tidspunkt = Instant.now(),
+                            opprettetDatabase = now,
+                            tidspunkt = now,
                             status = VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
                             brukervarselId = null,
                             dittSykefravaerMeldingId = null,
@@ -193,8 +192,8 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                     vedtaksperiodeBehandlingRepository.save(
                         perioden.vedtaksperiode.copy(
                             sisteVarslingstatus = VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
-                            sisteVarslingstatusTidspunkt = Instant.now(),
-                            oppdatertDatabase = Instant.now(),
+                            sisteVarslingstatusTidspunkt = now,
+                            oppdatertDatabase = now,
                         ),
                     )
                 }
@@ -237,8 +236,8 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                 vedtaksperiodeBehandlingStatusRepository.save(
                     VedtaksperiodeBehandlingStatusDbRecord(
                         vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
-                        opprettetDatabase = Instant.now(),
-                        tidspunkt = Instant.now(),
+                        opprettetDatabase = now,
+                        tidspunkt = now,
                         status = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
                         brukervarselId = brukervarselId,
                         dittSykefravaerMeldingId = meldingBestillingId,
@@ -248,8 +247,8 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                 vedtaksperiodeBehandlingRepository.save(
                     perioden.vedtaksperiode.copy(
                         sisteVarslingstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
-                        sisteVarslingstatusTidspunkt = Instant.now(),
-                        oppdatertDatabase = Instant.now(),
+                        sisteVarslingstatusTidspunkt = now,
+                        oppdatertDatabase = now,
                     ),
                 )
             }

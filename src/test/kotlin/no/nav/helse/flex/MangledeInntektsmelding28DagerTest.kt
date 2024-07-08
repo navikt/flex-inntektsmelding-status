@@ -64,8 +64,8 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
 
     @Test
     @Order(2)
-    fun `Vi sender ut mangler inntektsmelding varsel etter 15 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
+    fun `Vi sender ut mangler inntektsmelding varsel etter 21 dager (egentlig 15 men tester tid mellom)`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(21))
         cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
         cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
@@ -76,8 +76,8 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
 
     @Test
     @Order(3)
-    fun `Ingenting skjer etter 20 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(20))
+    fun `Ingenting skjer etter 22 dager`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(22))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
     }
@@ -93,9 +93,8 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
 
     @Test
     @Order(5)
-    fun `Noe skjer etter 28 dager hvis det har gått nok tid siden sist varsel`() {
-        await().pollDelay(1, TimeUnit.SECONDS).until { true }
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(28))
+    fun `Noe skjer etter 32 dager hvis det har gått nok tid siden sist varsel`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(32))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
         cronjobResultat[HAR_FATT_NYLIG_VARSEL].shouldBeNull()

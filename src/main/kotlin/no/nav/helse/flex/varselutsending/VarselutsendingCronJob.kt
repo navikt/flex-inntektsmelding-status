@@ -35,9 +35,11 @@ class VarselutsendingCronJob(
         log.info("Starter VarselutsendingCronJob")
         val resultat = HashMap<CronJobStatus, Int>()
 
+        val nowInstant = now.toInstant()
+
         manglendeInntektsmeldingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
         manglendeInntektsmeldingAndreVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
-        forsinketSaksbehandlingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+        forsinketSaksbehandlingFørsteVarselFinnPersoner.hentOgProsseser(nowInstant).also { resultat.putAll(it) }
 
         log.info(
             "Resultat fra VarselutsendingCronJob: ${

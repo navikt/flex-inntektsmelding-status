@@ -49,12 +49,13 @@ class ManglendeInntektsmeldingAndreVarselFinnPersoner(
                 fnr,
                 sendtFoer,
                 dryRun = true,
+                now = now,
             )
         }.dryRunSjekk(funksjonellGrenseForAntallVarsler, SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING)
             .also { returMap[CronJobStatus.ANDRE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] = it }
 
         fnrListe.forEachIndexed { idx, fnr ->
-            manglendeInntektsmeldingAndreVarsel.prosseserManglendeInntektsmeldingAndreVarsel(fnr, sendtFoer, false)
+            manglendeInntektsmeldingAndreVarsel.prosseserManglendeInntektsmeldingAndreVarsel(fnr, sendtFoer, false, now = now)
                 .also {
                     returMap.increment(it)
                 }
@@ -81,16 +82,15 @@ class ManglendeInntektsmeldingAndreVarsel(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
     @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
-    @Value("\${MINIMUMSTID_MELLOM_FORSTE_OG_ANDRE_MANGLER_IM_VARSEL}") private val minimumstid: String,
 ) {
-    private val log = logger()
-    val duration = Duration.parse(minimumstid)
+    val duration = Duration.ofDays(10)
 
     @Transactional(propagation = Propagation.REQUIRED)
     fun prosseserManglendeInntektsmeldingAndreVarsel(
         fnr: String,
         sendtFoer: Instant,
         dryRun: Boolean,
+        now: OffsetDateTime,
     ): CronJobStatus {
         if (!dryRun && environmentToggles.isProduction()) {
             return CronJobStatus.ANDRE_MANGLER_INNTEKTSMELDING_VARSEL_DISABLET_I_PROD
@@ -114,7 +114,7 @@ class ManglendeInntektsmeldingAndreVarsel(
         val harFattVarselNylig =
             venterPaaArbeidsgiver
                 .mapNotNull { it.vedtaksperiode.sisteVarslingstatusTidspunkt }
-                .any { it.isAfter(Instant.now().minus(duration)) }
+                .any { it.isAfter(now.toInstant().minus(duration)) }
 
         if (harFattVarselNylig) {
             return CronJobStatus.HAR_FATT_NYLIG_VARSEL
@@ -165,8 +165,8 @@ class ManglendeInntektsmeldingAndreVarsel(
                 vedtaksperiodeBehandlingStatusRepository.save(
                     VedtaksperiodeBehandlingStatusDbRecord(
                         vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
-                        opprettetDatabase = Instant.now(),
-                        tidspunkt = Instant.now(),
+                        opprettetDatabase = now.toInstant(),
+                        tidspunkt = now.toInstant(),
                         status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
                         brukervarselId = brukervarselId,
                         dittSykefravaerMeldingId = meldingBestillingId,
@@ -176,8 +176,8 @@ class ManglendeInntektsmeldingAndreVarsel(
                 vedtaksperiodeBehandlingRepository.save(
                     perioden.vedtaksperiode.copy(
                         sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
-                        sisteVarslingstatusTidspunkt = Instant.now(),
-                        oppdatertDatabase = Instant.now(),
+                        sisteVarslingstatusTidspunkt = now.toInstant(),
+                        oppdatertDatabase = now.toInstant(),
                     ),
                 )
             }

@@ -48,6 +48,7 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
                 fnr,
                 sendtFoer,
                 dryRun = true,
+                now = now,
             )
         }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING)
             .also { returMap[CronJobStatus.FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] = it }
@@ -57,6 +58,7 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
                 fnr,
                 sendtFoer,
                 dryRun = false,
+                now = now,
             )
                 .also {
                     returMap.increment(it)
@@ -90,6 +92,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
         fnr: String,
         sendtFoer: Instant,
         dryRun: Boolean,
+        now: OffsetDateTime,
     ): CronJobStatus {
         if (!dryRun) {
             lockRepository.settAdvisoryTransactionLock(fnr)
@@ -156,8 +159,8 @@ class ManglendeInntektsmeldingFørsteVarsel(
                 vedtaksperiodeBehandlingStatusRepository.save(
                     VedtaksperiodeBehandlingStatusDbRecord(
                         vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
-                        opprettetDatabase = Instant.now(),
-                        tidspunkt = Instant.now(),
+                        opprettetDatabase = now.toInstant(),
+                        tidspunkt = now.toInstant(),
                         status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
                         brukervarselId = brukervarselId,
                         dittSykefravaerMeldingId = meldingBestillingId,
@@ -167,8 +170,8 @@ class ManglendeInntektsmeldingFørsteVarsel(
                 vedtaksperiodeBehandlingRepository.save(
                     perioden.vedtaksperiode.copy(
                         sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
-                        sisteVarslingstatusTidspunkt = Instant.now(),
-                        oppdatertDatabase = Instant.now(),
+                        sisteVarslingstatusTidspunkt = now.toInstant(),
+                        oppdatertDatabase = now.toInstant(),
                     ),
                 )
             }
