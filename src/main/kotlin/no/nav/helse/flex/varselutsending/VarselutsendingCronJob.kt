@@ -5,6 +5,7 @@ import no.nav.helse.flex.util.tilOsloZone
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.DayOfWeek
+import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 
@@ -28,18 +29,20 @@ class VarselutsendingCronJob(
             return emptyMap()
         }
 
-        return runMedParameter(OffsetDateTime.now())
+        return runMedParameter(Instant.now())
     }
 
     fun runMedParameter(now: OffsetDateTime): Map<CronJobStatus, Int> {
+        return runMedParameter(now.toInstant())
+    }
+
+    fun runMedParameter(now: Instant): Map<CronJobStatus, Int> {
         log.info("Starter VarselutsendingCronJob")
         val resultat = HashMap<CronJobStatus, Int>()
 
-        val nowInstant = now.toInstant()
-
         manglendeInntektsmeldingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
         manglendeInntektsmeldingAndreVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
-        forsinketSaksbehandlingFørsteVarselFinnPersoner.hentOgProsseser(nowInstant).also { resultat.putAll(it) }
+        forsinketSaksbehandlingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
 
         log.info(
             "Resultat fra VarselutsendingCronJob: ${

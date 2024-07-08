@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 
 @Component
 class ManglendeInntektsmeldingAndreVarselFinnPersoner(
@@ -32,8 +33,8 @@ class ManglendeInntektsmeldingAndreVarselFinnPersoner(
     private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 400 else 7
     private val maxAntallUtsendelsePerKjoring = if (environmentToggles.isProduction()) 250 else 4
 
-    fun hentOgProsseser(now: OffsetDateTime): Map<CronJobStatus, Int> {
-        val sendtFoer = now.minusDays(28).toInstant()
+    fun hentOgProsseser(now: Instant): Map<CronJobStatus, Int> {
+        val sendtFoer = now.minus(28, ChronoUnit.DAYS)
 
         val fnrListe =
             vedtaksperiodeBehandlingRepository
@@ -90,7 +91,7 @@ class ManglendeInntektsmeldingAndreVarsel(
         fnr: String,
         sendtFoer: Instant,
         dryRun: Boolean,
-        now: OffsetDateTime,
+        now: Instant,
     ): CronJobStatus {
         if (!dryRun && environmentToggles.isProduction()) {
             return CronJobStatus.ANDRE_MANGLER_INNTEKTSMELDING_VARSEL_DISABLET_I_PROD
@@ -114,7 +115,7 @@ class ManglendeInntektsmeldingAndreVarsel(
         val harFattVarselNylig =
             venterPaaArbeidsgiver
                 .mapNotNull { it.vedtaksperiode.sisteVarslingstatusTidspunkt }
-                .any { it.isAfter(now.toInstant().minus(duration)) }
+                .any { it.isAfter(now.minus(duration)) }
 
         if (harFattVarselNylig) {
             return CronJobStatus.HAR_FATT_NYLIG_VARSEL
@@ -165,8 +166,8 @@ class ManglendeInntektsmeldingAndreVarsel(
                 vedtaksperiodeBehandlingStatusRepository.save(
                     VedtaksperiodeBehandlingStatusDbRecord(
                         vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
-                        opprettetDatabase = now.toInstant(),
-                        tidspunkt = now.toInstant(),
+                        opprettetDatabase = now,
+                        tidspunkt = now,
                         status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
                         brukervarselId = brukervarselId,
                         dittSykefravaerMeldingId = meldingBestillingId,
@@ -176,8 +177,8 @@ class ManglendeInntektsmeldingAndreVarsel(
                 vedtaksperiodeBehandlingRepository.save(
                     perioden.vedtaksperiode.copy(
                         sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
-                        sisteVarslingstatusTidspunkt = now.toInstant(),
-                        oppdatertDatabase = now.toInstant(),
+                        sisteVarslingstatusTidspunkt = now,
+                        oppdatertDatabase = now,
                     ),
                 )
             }
