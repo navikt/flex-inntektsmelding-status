@@ -121,11 +121,6 @@ class ManglendeInntektsmeldingAndreVarsel(
         }
 
         venterPaaArbeidsgiver.forEachIndexed { idx, perioden ->
-            if (dryRun) {
-                log.info(
-                    "Ville sendt andre manglende inntektsmelding varsel til vedtaksperiodeID ${perioden.vedtaksperiode.vedtaksperiodeId}",
-                )
-            }
             if (!dryRun) {
                 val soknaden = perioden.soknader.sortedBy { it.sendt }.last()
 
