@@ -148,7 +148,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             }
 
             Behandlingstatustype.BEHANDLES_UTENFOR_SPEIL -> {
-                // TODO ER DENNE TESTET I EN INTEGRASJOENSTEST?
                 meldingOgBrukervarselDone.doneSendteManglerImVarsler(
                     oppdatertStatusVedtaksperiodeBehandling,
                     soknad?.fnr,
