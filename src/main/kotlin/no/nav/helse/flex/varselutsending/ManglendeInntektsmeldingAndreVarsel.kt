@@ -29,7 +29,7 @@ class ManglendeInntektsmeldingAndreVarselFinnPersoner(
     environmentToggles: EnvironmentToggles,
 ) {
     private val log = logger()
-    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 400 else 7
+    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 800 else 7
     private val maxAntallUtsendelsePerKjoring = if (environmentToggles.isProduction()) 250 else 4
 
     fun hentOgProsseser(now: Instant): Map<CronJobStatus, Int> {
@@ -74,7 +74,6 @@ class ManglendeInntektsmeldingAndreVarselFinnPersoner(
 class ManglendeInntektsmeldingAndreVarsel(
     private val hentAltForPerson: HentAltForPerson,
     private val lockRepository: LockRepository,
-    private val environmentToggles: EnvironmentToggles,
     private val meldingOgBrukervarselDone: MeldingOgBrukervarselDone,
     private val brukervarsel: Brukervarsel,
     private val organisasjonRepository: OrganisasjonRepository,
@@ -90,9 +89,6 @@ class ManglendeInntektsmeldingAndreVarsel(
         dryRun: Boolean,
         now: Instant,
     ): CronJobStatus {
-        if (!dryRun && environmentToggles.isProduction()) {
-            return CronJobStatus.ANDRE_MANGLER_INNTEKTSMELDING_VARSEL_DISABLET_I_PROD
-        }
         if (!dryRun) {
             lockRepository.settAdvisoryTransactionLock(fnr)
         }
