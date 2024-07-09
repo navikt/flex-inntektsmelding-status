@@ -148,7 +148,7 @@ class ForsinketSaksbehandlingVarslingRevarsel(
         }
 
         if (!dryRun) {
-            val randomGenerator = SeededUuid(revarslingsperiode.statuser.minByOrNull { it.tidspunkt }!!.id!!)
+            val randomGenerator = SeededUuid(revarslingsperiode.statuser.maxByOrNull { it.tidspunkt }!!.id!!)
             meldingOgBrukervarselDone.doneForsinketSbVarsel(revarslingsperiode.vedtaksperiode, fnr)
             val brukervarselId = randomGenerator.nextUUID()
 

@@ -172,6 +172,7 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
 
         val varselStatusen =
             vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
+                .sortedBy { it.tidspunkt }
                 .first { it.status == REVARSLET_VENTER_PÅ_SAKSBEHANDLER }
 
         val beskjedCR = varslingRecords.last()
@@ -236,7 +237,8 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
 
         val varselStatusen =
             vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
-                .first { it.status == REVARSLET_VENTER_PÅ_SAKSBEHANDLER }
+                .sortedBy { it.tidspunkt }
+                .last { it.status == REVARSLET_VENTER_PÅ_SAKSBEHANDLER }
 
         val beskjedCR = varslingRecords.last()
         val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
@@ -265,6 +267,24 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
         opprettMelding.synligFremTil.shouldNotBeNull()
+    }
+
+    @Test
+    @Order(9)
+    fun `Alle brukervarselIDer skal være unike`() {
+        val status =
+            vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
+                Testdata.vedtaksperiodeId,
+                Testdata.behandlingId,
+            )!!
+        val brukerVarselIder =
+            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
+                .sortedBy { it.opprettetDatabase }
+                .filter { !it.status.toString().contains("DONE") }
+                .mapNotNull { it.brukervarselId }
+
+        // Alle brukervarselIDer skal være unike
+        brukerVarselIder.size shouldBeEqualTo brukerVarselIder.toSet().size
     }
 
     @Test
