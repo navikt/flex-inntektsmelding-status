@@ -18,10 +18,9 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
-import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
-import java.time.temporal.ChronoUnit
+import java.time.temporal.ChronoUnit.DAYS
 
 @Component
 class ManglendeInntektsmeldingAndreVarselFinnPersoner(
@@ -34,7 +33,7 @@ class ManglendeInntektsmeldingAndreVarselFinnPersoner(
     private val maxAntallUtsendelsePerKjoring = if (environmentToggles.isProduction()) 250 else 4
 
     fun hentOgProsseser(now: Instant): Map<CronJobStatus, Int> {
-        val sendtFoer = now.minus(28, ChronoUnit.DAYS)
+        val sendtFoer = now.minus(28, DAYS)
 
         val fnrListe =
             vedtaksperiodeBehandlingRepository
@@ -113,7 +112,7 @@ class ManglendeInntektsmeldingAndreVarsel(
         val harFattVarselNylig =
             venterPaaArbeidsgiver
                 .mapNotNull { it.vedtaksperiode.sisteVarslingstatusTidspunkt }
-                .any { it.isAfter(now.minus(Duration.ofDays(10))) }
+                .any { it.isAfter(now.minus(10, DAYS)) }
 
         if (harFattVarselNylig) {
             return CronJobStatus.HAR_FATT_NYLIG_VARSEL

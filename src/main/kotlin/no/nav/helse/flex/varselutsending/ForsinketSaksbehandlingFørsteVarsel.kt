@@ -22,10 +22,10 @@ import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatus
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
-import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit.DAYS
 
 @Component
 class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
@@ -121,7 +121,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
         val nyligVarslet =
             allePerioder
                 .flatMap { it.statuser }
-                .filter { it.tidspunkt.isAfter(now.minus(Duration.ofDays(12))) }
+                .filter { it.tidspunkt.isAfter(now.minus(12, DAYS)) }
                 .any {
                     listOf(
                         VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,

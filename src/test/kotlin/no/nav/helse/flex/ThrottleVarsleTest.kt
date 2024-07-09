@@ -4,7 +4,6 @@ import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeNull
 import org.amshove.kluent.shouldHaveSize
-import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
@@ -12,7 +11,6 @@ import org.junit.jupiter.api.TestMethodOrder
 import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
-import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class ThrottleVarsleTest : FellesTestOppsett() {
@@ -53,8 +51,6 @@ class ThrottleVarsleTest : FellesTestOppsett() {
     @Test
     @Order(4)
     fun `Vi sender ut de andre inntektsmelding varsel etter 29 dager`() {
-        await().pollDelay(1, TimeUnit.SECONDS).until { true }
-
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(29))
         cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING].shouldBeNull()
         cronjobResultat[FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBeEqualTo 0

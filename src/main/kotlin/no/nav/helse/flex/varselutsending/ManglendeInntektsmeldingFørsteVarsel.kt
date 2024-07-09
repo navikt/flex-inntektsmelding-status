@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.OffsetDateTime
-import java.time.temporal.ChronoUnit
+import java.time.temporal.ChronoUnit.DAYS
 
 @Component
 class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
@@ -33,7 +33,7 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
     private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 2000 else 7
 
     fun hentOgProsseser(now: Instant): Map<CronJobStatus, Int> {
-        val sendtFoer = now.minus(15, ChronoUnit.DAYS)
+        val sendtFoer = now.minus(15, DAYS)
 
         val fnrListe =
             vedtaksperiodeBehandlingRepository
