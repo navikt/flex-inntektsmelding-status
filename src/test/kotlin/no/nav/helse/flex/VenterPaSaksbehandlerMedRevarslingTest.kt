@@ -204,11 +204,75 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
     }
 
     @Test
+    @Order(6)
+    fun `Etter 70 dager skjer ingenting`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(70))
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 0
+        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING].shouldBeNull()
+        cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING].shouldBeNull()
+    }
+
+    @Test
+    @Order(7)
+    fun `Etter 95 dager sender vi igjen revarsel om forsinket saksbehandling`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(95))
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING].shouldBeNull()
+        cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+
+        val status =
+            awaitOppdatertStatus(
+                forventetSisteSpleisstatus = VENTER_PÅ_SAKSBEHANDLER,
+                forventetSisteVarselstatus = REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
+            )
+
+        val varslingRecords = varslingConsumer.ventPåRecords(2)
+
+        val varselStatusen =
+            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
+                .first { it.status == REVARSLET_VENTER_PÅ_SAKSBEHANDLER }
+
+        val beskjedCR = varslingRecords.last()
+        val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
+        beskjedInput.ident shouldBeEqualTo fnr
+        beskjedInput.varselId shouldBeEqualTo varselStatusen.brukervarselId
+        beskjedInput.eksternVarsling.shouldNotBeNull()
+        beskjedInput.link shouldBeEqualTo SAKSBEHANDLINGSTID_URL
+        beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
+        @Suppress("ktlint:standard:max-line-length")
+        beskjedInput.tekster.first().tekst shouldBeEqualTo
+            "Beklager, men behandlingen av søknaden din om sykepenger tar enda lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører."
+
+        val meldingRecords = meldingKafkaConsumer.ventPåRecords(2)
+
+        val meldingCR = meldingRecords.last()
+        val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
+        melding.fnr shouldBeEqualTo fnr
+        melding.lukkMelding.shouldBeNull()
+
+        val opprettMelding = melding.opprettMelding.shouldNotBeNull()
+        opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_REVARSEL"
+        @Suppress("ktlint:standard:max-line-length")
+        opprettMelding.tekst shouldBeEqualTo
+            "Beklager, men behandlingen av søknaden din om sykepenger tar enda lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører."
+        opprettMelding.lenke shouldBeEqualTo SAKSBEHANDLINGSTID_URL
+        opprettMelding.lukkbar shouldBeEqualTo false
+        opprettMelding.variant shouldBeEqualTo Variant.INFO
+        opprettMelding.synligFremTil.shouldNotBeNull()
+    }
+
+    @Test
     @Order(10)
-    fun `Saken blir behandlet og vi donner meldingene`() {
+    fun `Saken blir ferdigbehandlet eller kastet ut og vi donner meldingene`() {
         sendBehandlingsstatusMelding(
             behandlingstatusmelding.copy(
-                status = Behandlingstatustype.FERDIG,
+                status = listOf(Behandlingstatustype.FERDIG, Behandlingstatustype.BEHANDLES_UTENFOR_SPEIL).random(),
             ),
         )
 
