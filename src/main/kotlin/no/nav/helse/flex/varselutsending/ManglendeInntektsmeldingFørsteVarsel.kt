@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit.DAYS
 
 @Component
 class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
@@ -31,8 +32,8 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
     private val maxAntallUtsendelsePerKjoring = if (environmentToggles.isProduction()) 250 else 4
     private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 2000 else 7
 
-    fun hentOgProsseser(now: OffsetDateTime): Map<CronJobStatus, Int> {
-        val sendtFoer = now.minusDays(15).toInstant()
+    fun hentOgProsseser(now: Instant): Map<CronJobStatus, Int> {
+        val sendtFoer = now.minus(15, DAYS)
 
         val fnrListe =
             vedtaksperiodeBehandlingRepository
@@ -48,6 +49,7 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
                 fnr,
                 sendtFoer,
                 dryRun = true,
+                now = now,
             )
         }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING)
             .also { returMap[CronJobStatus.FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] = it }
@@ -57,6 +59,7 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
                 fnr,
                 sendtFoer,
                 dryRun = false,
+                now = now,
             )
                 .also {
                     returMap.increment(it)
@@ -90,6 +93,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
         fnr: String,
         sendtFoer: Instant,
         dryRun: Boolean,
+        now: Instant,
     ): CronJobStatus {
         if (!dryRun) {
             lockRepository.settAdvisoryTransactionLock(fnr)
@@ -156,8 +160,8 @@ class ManglendeInntektsmeldingFørsteVarsel(
                 vedtaksperiodeBehandlingStatusRepository.save(
                     VedtaksperiodeBehandlingStatusDbRecord(
                         vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
-                        opprettetDatabase = Instant.now(),
-                        tidspunkt = Instant.now(),
+                        opprettetDatabase = now,
+                        tidspunkt = now,
                         status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
                         brukervarselId = brukervarselId,
                         dittSykefravaerMeldingId = meldingBestillingId,
@@ -167,8 +171,8 @@ class ManglendeInntektsmeldingFørsteVarsel(
                 vedtaksperiodeBehandlingRepository.save(
                     perioden.vedtaksperiode.copy(
                         sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
-                        sisteVarslingstatusTidspunkt = Instant.now(),
-                        oppdatertDatabase = Instant.now(),
+                        sisteVarslingstatusTidspunkt = now,
+                        oppdatertDatabase = now,
                     ),
                 )
             }

@@ -217,13 +217,12 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
 
         varslingConsumer.ventPåRecords(1)
         meldingKafkaConsumer.ventPåRecords(1)
-        await().pollDelay(1, TimeUnit.SECONDS).until { true }
     }
 
     @Test
     @Order(5)
-    fun `Vi sender ikke ut forsinket saksbehandling varsel etter 31 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(31))
+    fun `Vi sender ikke ut forsinket saksbehandling varsel etter 42 dager`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(42))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
         cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
