@@ -92,14 +92,14 @@ interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBeha
         AND vbs.vedtaksperiode_behandling_id = v.id
           AND v.siste_spleisstatus = 'VENTER_PÅ_SAKSBEHANDLER' 
           AND v.siste_varslingstatus  in (
-            'VARSLET_VENTER_PÅ_SAKSBEHANDLER', 
+            'VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE', 
             'REVARSLET_VENTER_PÅ_SAKSBEHANDLER'
          )
          AND  siste_varslingstatus_tidspunkt < :varsletFoer
         group by v.vedtaksperiode_id, v.behandling_id
         """,
     )
-    fun finnPersonerForRevarslingSomVenterPåSaksbehandlger(
+    fun finnPersonerForRevarslingSomVenterPåSaksbehandler(
         @Param("varsletFoer") varsletFoer: Instant,
     ): List<String>
 }

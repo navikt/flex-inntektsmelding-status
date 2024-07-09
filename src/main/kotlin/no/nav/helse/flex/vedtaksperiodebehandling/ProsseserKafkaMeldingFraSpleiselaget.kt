@@ -145,10 +145,10 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                     oppdatertStatusVedtaksperiodeBehandling,
                     soknad?.fnr,
                 )
-                // TODO  tenk igjennom hva vi skal gjøre her
             }
 
             Behandlingstatustype.BEHANDLES_UTENFOR_SPEIL -> {
+                // TODO ER DENNE TESTET I EN INTEGRASJOENSTEST?
                 meldingOgBrukervarselDone.doneSendteManglerImVarsler(
                     oppdatertStatusVedtaksperiodeBehandling,
                     soknad?.fnr,
@@ -168,7 +168,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                     oppdatertStatusVedtaksperiodeBehandling,
                     soknad?.fnr,
                 )
-                // TODO fjern sendte revarslinger forsinket SB
             }
 
             Behandlingstatustype.OPPRETTET -> {

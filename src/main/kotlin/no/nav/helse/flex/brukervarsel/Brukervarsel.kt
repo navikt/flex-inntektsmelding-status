@@ -2,10 +2,7 @@ package no.nav.helse.flex.brukervarsel
 
 import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
 import no.nav.helse.flex.logger
-import no.nav.helse.flex.varseltekst.SAKSBEHANDLINGSTID_URL
-import no.nav.helse.flex.varseltekst.skapForsinketSaksbehandling28Tekst
-import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding15Tekst
-import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding28Tekst
+import no.nav.helse.flex.varseltekst.*
 import no.nav.tms.varsel.action.*
 import no.nav.tms.varsel.builder.VarselActionBuilder
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -67,6 +64,7 @@ class Brukervarsel(
         fnr: String,
         bestillingId: String,
         synligFremTil: Instant,
+        revarsel: Boolean,
     ) {
         val opprettVarsel =
             VarselActionBuilder.opprett {
@@ -77,7 +75,12 @@ class Brukervarsel(
                 tekst =
                     Tekst(
                         spraakkode = "nb",
-                        tekst = skapForsinketSaksbehandling28Tekst(),
+                        tekst =
+                            if (revarsel) {
+                                skapRevarselForsinketSaksbehandlingTekst()
+                            } else {
+                                skapForsinketSaksbehandling28Tekst()
+                            },
                         default = true,
                     )
                 aktivFremTil = synligFremTil.atZone(UTC)

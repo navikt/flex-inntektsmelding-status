@@ -49,7 +49,7 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] = fnrListe.size
 
         fnrListe.map { fnr ->
-            forsinketSaksbehandlingVarslingFørsteVarsel.prosseserManglendeInntektsmelding28(
+            forsinketSaksbehandlingVarslingFørsteVarsel.prosesserForsteForsinketSaksbehandlingVarsel(
                 fnr,
                 sendtFoer,
                 dryRun = true,
@@ -59,7 +59,7 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
             .also { returMap[CronJobStatus.FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL_DRY_RUN] = it }
 
         fnrListe.forEachIndexed { idx, fnr ->
-            forsinketSaksbehandlingVarslingFørsteVarsel.prosseserManglendeInntektsmelding28(
+            forsinketSaksbehandlingVarslingFørsteVarsel.prosesserForsteForsinketSaksbehandlingVarsel(
                 fnr,
                 sendtFoer,
                 false,
@@ -92,7 +92,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
     private val log = logger()
 
     @Transactional(propagation = Propagation.REQUIRED)
-    fun prosseserManglendeInntektsmelding28(
+    fun prosesserForsteForsinketSaksbehandlingVarsel(
         fnr: String,
         sendtFoer: Instant,
         dryRun: Boolean,
@@ -216,6 +216,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                     fnr = fnr,
                     bestillingId = brukervarselId,
                     synligFremTil = synligFremTil,
+                    revarsel = false,
                 )
 
                 val meldingBestillingId = randomGenerator.nextUUID()

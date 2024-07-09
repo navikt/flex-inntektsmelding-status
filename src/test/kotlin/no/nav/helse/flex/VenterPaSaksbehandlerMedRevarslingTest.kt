@@ -159,17 +159,22 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
-        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING].shouldBeNull()
+        cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
 
         val status =
             awaitOppdatertStatus(
                 forventetSisteSpleisstatus = VENTER_PÅ_SAKSBEHANDLER,
-                forventetSisteVarselstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
+                forventetSisteVarselstatus = REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
             )
+
+        val varslingRecords = varslingConsumer.ventPåRecords(2)
+
         val varselStatusen =
             vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
-                .first { it.status == VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE }
-        val beskjedCR = varslingConsumer.ventPåRecords(1).first()
+                .first { it.status == REVARSLET_VENTER_PÅ_SAKSBEHANDLER }
+
+        val beskjedCR = varslingRecords.last()
         val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
         beskjedInput.ident shouldBeEqualTo fnr
         beskjedInput.varselId shouldBeEqualTo varselStatusen.brukervarselId
@@ -178,25 +183,25 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over normal saksbehandlingstid."
+            "Beklager, men behandlingen av søknaden din om sykepenger tar enda lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører."
 
-        val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
+        val meldingRecords = meldingKafkaConsumer.ventPåRecords(2)
+
+        val meldingCR = meldingRecords.last()
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
         melding.fnr shouldBeEqualTo fnr
         melding.lukkMelding.shouldBeNull()
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
-        opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL"
+        opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_REVARSEL"
         @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
-            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over normal saksbehandlingstid."
+            "Beklager, men behandlingen av søknaden din om sykepenger tar enda lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører."
         opprettMelding.lenke shouldBeEqualTo SAKSBEHANDLINGSTID_URL
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
         opprettMelding.synligFremTil.shouldNotBeNull()
     }
-
-
 
     @Test
     @Order(10)
