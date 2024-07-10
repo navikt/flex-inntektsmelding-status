@@ -8,7 +8,6 @@ import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
-import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.util.increment
@@ -50,7 +49,7 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] = fnrListe.size
 
         fnrListe.map { fnr ->
-            forsinketSaksbehandlingVarslingFørsteVarsel.prosseserManglendeInntektsmelding28(
+            forsinketSaksbehandlingVarslingFørsteVarsel.prosesserForsteForsinketSaksbehandlingVarsel(
                 fnr,
                 sendtFoer,
                 dryRun = true,
@@ -60,7 +59,7 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
             .also { returMap[CronJobStatus.FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL_DRY_RUN] = it }
 
         fnrListe.forEachIndexed { idx, fnr ->
-            forsinketSaksbehandlingVarslingFørsteVarsel.prosseserManglendeInntektsmelding28(
+            forsinketSaksbehandlingVarslingFørsteVarsel.prosesserForsteForsinketSaksbehandlingVarsel(
                 fnr,
                 sendtFoer,
                 false,
@@ -85,7 +84,6 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
     private val hentAltForPerson: HentAltForPerson,
     private val lockRepository: LockRepository,
     private val brukervarsel: Brukervarsel,
-    private val organisasjonRepository: OrganisasjonRepository,
     private val meldingKafkaProducer: MeldingKafkaProducer,
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
@@ -94,7 +92,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
     private val log = logger()
 
     @Transactional(propagation = Propagation.REQUIRED)
-    fun prosseserManglendeInntektsmelding28(
+    fun prosesserForsteForsinketSaksbehandlingVarsel(
         fnr: String,
         sendtFoer: Instant,
         dryRun: Boolean,
@@ -211,16 +209,14 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
             if (!dryRun) {
                 val brukervarselId = randomGenerator.nextUUID()
 
-                val orgnavn = organisasjonRepository.findByOrgnummer(soknaden.orgnummer!!)?.navn ?: soknaden.orgnummer
-
                 log.info("Sender første forsinket saksbehandling varsel til vedtaksperiode ${perioden.vedtaksperiode.vedtaksperiodeId}")
 
                 val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
                 brukervarsel.beskjedForsinketSaksbehandling(
                     fnr = fnr,
                     bestillingId = brukervarselId,
-                    orgNavn = orgnavn,
                     synligFremTil = synligFremTil,
+                    revarsel = false,
                 )
 
                 val meldingBestillingId = randomGenerator.nextUUID()

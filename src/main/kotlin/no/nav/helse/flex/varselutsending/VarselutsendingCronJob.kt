@@ -14,6 +14,7 @@ class VarselutsendingCronJob(
     private val manglendeInntektsmeldingFørsteVarselFinnPersoner: ManglendeInntektsmeldingFørsteVarselFinnPersoner,
     private val manglendeInntektsmeldingAndreVarselFinnPersoner: ManglendeInntektsmeldingAndreVarselFinnPersoner,
     private val forsinketSaksbehandlingFørsteVarselFinnPersoner: ForsinketSaksbehandlingFørsteVarselFinnPersoner,
+    private val forsinketSaksbehandlingRevarselFinnPersoner: ForsinketSaksbehandlingRevarselFinnPersoner,
 ) {
     private val log = logger()
 
@@ -43,6 +44,7 @@ class VarselutsendingCronJob(
         manglendeInntektsmeldingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
         manglendeInntektsmeldingAndreVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
         forsinketSaksbehandlingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+        forsinketSaksbehandlingRevarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
 
         log.info(
             "Resultat fra VarselutsendingCronJob: ${
@@ -60,6 +62,7 @@ enum class CronJobStatus {
     SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING,
     SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING,
     SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING,
+    SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING,
 
     UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING,
     UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING,
@@ -72,6 +75,7 @@ enum class CronJobStatus {
     THROTTLET_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL,
     THROTTLET_ANDRE_MANGLER_INNTEKTSMELDING_VARSEL,
     THROTTLET_FØRSTE_FORSINKER_SAKSBEHANDLING_VARSEL,
+    THROTTLET_REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL,
 
     VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
     FANT_INGEN_INNTEKTSMELDING,
@@ -81,4 +85,11 @@ enum class CronJobStatus {
     FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN,
     ANDRE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN,
     FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL_DRY_RUN,
+    REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL_DRY_RUN,
+
+    FANT_FLERE_ENN_EN_VEDTAKSPERIODE_FOR_REVARSEL,
+    INGEN_PERIODE_FUNNET_FOR_REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL,
+    UNIKE_FNR_KANDIDATER_REVARSEL_FORSINKET_SAKSBEHANDLING,
+
+    REVARSLING_DISABLET_I_PRODUKSJON,
 }

@@ -145,7 +145,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                     oppdatertStatusVedtaksperiodeBehandling,
                     soknad?.fnr,
                 )
-                // TODO  tenk igjennom hva vi skal gjøre her
             }
 
             Behandlingstatustype.BEHANDLES_UTENFOR_SPEIL -> {
@@ -168,7 +167,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                     oppdatertStatusVedtaksperiodeBehandling,
                     soknad?.fnr,
                 )
-                // TODO fjern sendte revarslinger forsinket SB
             }
 
             Behandlingstatustype.OPPRETTET -> {
