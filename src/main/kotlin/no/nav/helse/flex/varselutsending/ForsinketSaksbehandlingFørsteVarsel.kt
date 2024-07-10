@@ -60,7 +60,12 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
             .also { returMap[CronJobStatus.FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL_DRY_RUN] = it }
 
         fnrListe.forEachIndexed { idx, fnr ->
-            forsinketSaksbehandlingVarslingFørsteVarsel.prosseserManglendeInntektsmelding28(fnr, sendtFoer, false, now = now)
+            forsinketSaksbehandlingVarslingFørsteVarsel.prosseserManglendeInntektsmelding28(
+                fnr,
+                sendtFoer,
+                false,
+                now = now,
+            )
                 .also {
                     returMap.increment(it)
                 }
@@ -172,7 +177,10 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
             val inntektsmelding =
                 finnLikesteInntektsmelding(inntektsmeldinger, perioden, soknaden)
             if (inntektsmelding == null) {
-                log.warn("Fant ikke inntektsmelding for vedtaksperiodeId ${perioden.vedtaksperiode.vedtaksperiodeId}")
+                log.info(
+                    "Fant ikke inntektsmelding for vedtaksperiodeId ${perioden.vedtaksperiode.vedtaksperiodeId} " +
+                        "med start syketilfelle ${soknaden.startSyketilfelle}",
+                )
                 return CronJobStatus.FANT_INGEN_INNTEKTSMELDING
             }
 
