@@ -211,7 +211,13 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             }
 
             Behandlingstatustype.FERDIG -> {
-                sjekkStatus(listOf(StatusVerdi.VENTER_PÅ_SAKSBEHANDLER, StatusVerdi.VENTER_PÅ_ARBEIDSGIVER))
+                sjekkStatus(
+                    listOf(
+                        StatusVerdi.VENTER_PÅ_SAKSBEHANDLER,
+                        StatusVerdi.VENTER_PÅ_ARBEIDSGIVER,
+                        StatusVerdi.VENTER_PÅ_ANNEN_PERIODE,
+                    ),
+                )
             }
 
             else -> {
