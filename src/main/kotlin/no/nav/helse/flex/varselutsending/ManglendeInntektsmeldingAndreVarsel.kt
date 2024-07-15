@@ -29,7 +29,7 @@ class ManglendeInntektsmeldingAndreVarselFinnPersoner(
     environmentToggles: EnvironmentToggles,
 ) {
     private val log = logger()
-    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 800 else 7
+    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 4000 else 7
     private val maxAntallUtsendelsePerKjoring = if (environmentToggles.isProduction()) 250 else 4
 
     fun hentOgProsseser(now: Instant): Map<CronJobStatus, Int> {
