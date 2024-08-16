@@ -120,6 +120,13 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                 }
                 .sortedBy { it.soknader.first().orgnummer }
 
+        val varslerAlleredeOmSbPaaPeriode = allePerioder.any {
+            listOf(
+                VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
+                REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
+            ).contains(it.vedtaksperiode.sisteVarslingstatus)
+        }
+
         // hvis varsel på nummer en så setter vi egen status på de andre orgnumrene
         val nyligVarslet =
             allePerioder
@@ -127,14 +134,21 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                 .filter { it.tidspunkt.isAfter(now.minus(12, DAYS)) }
                 .any {
                     listOf(
-                        VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
-                        REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
                         VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
                         VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
                     ).contains(it.status)
                 }
-
-        if (nyligVarslet) {
+        val nyligVarsletVenterSB =
+            allePerioder
+                .flatMap { it.statuser }
+                .filter { it.tidspunkt.isAfter(now.minus(12, DAYS)) }
+                .any {
+                    listOf(
+                        VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
+                        REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
+                    ).contains(it.status)
+                }
+        if (nyligVarsleVenterIm || nyligVarsletVenterSB ) {
             return CronJobStatus.HAR_FATT_NYLIG_VARSEL
         }
         if (forstePerArbeidsgiver.isEmpty()) {
