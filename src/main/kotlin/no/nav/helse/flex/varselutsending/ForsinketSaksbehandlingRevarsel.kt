@@ -106,7 +106,7 @@ class ForsinketSaksbehandlingVarslingRevarsel(
         val nyligVarslet =
             allePerioder
                 .flatMap { it.statuser }
-                .filter { it.tidspunkt.isAfter(now.minus(12, DAYS)) }
+                .filter { it.tidspunkt.isAfter(now.minus(28, DAYS)) }
                 .any {
                     listOf(
                         VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
@@ -131,17 +131,9 @@ class ForsinketSaksbehandlingVarslingRevarsel(
                 }
                 .filter { it.vedtaksperiode.sisteVarslingstatusTidspunkt?.isBefore(varsletFør) == true }
 
-        if (revarslingsperioder.size > 1) {
-            log.error(
-                "Fant ${revarslingsperioder.size} perioder for revarsel for vedtaksperioder " +
-                    "${revarslingsperioder.map { it.vedtaksperiode.vedtaksperiodeId }}",
-            )
-            // Dette skal ikke skje
-            return CronJobStatus.FANT_FLERE_ENN_EN_VEDTAKSPERIODE_FOR_REVARSEL
-        }
+        // Sorter og velg eldste revaslingsperiode basert på sisteVarslingstatusTidspunkt
+        val revarslingsperiode = revarslingsperioder.minByOrNull { it.vedtaksperiode.sisteVarslingstatusTidspunkt!! }
 
-        // Forvent en revarslingsperiode. log error og returner egen status hvis ikke riktig
-        val revarslingsperiode = revarslingsperioder.firstOrNull()
         if (revarslingsperiode == null) {
             log.error("Fant ingen perioder for revarsel for fnr $fnr")
             return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL
