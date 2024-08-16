@@ -227,7 +227,7 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
         cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
         cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING].shouldBeNull()
-        cronjobResultat[INGEN_PERIODE_FUNNET_FOR_FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL] shouldBeEqualTo 1
+        cronjobResultat[VARSLER_ALLEREDE_OM_VENTER_PA_SAKSBEHANDLER] shouldBeEqualTo 1
 
         varslingConsumer.ventPåRecords(0)
         meldingKafkaConsumer.ventPåRecords(0)

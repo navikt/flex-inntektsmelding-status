@@ -76,7 +76,7 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
         sendSoknad(
             Arbeidsgiver2.soknad1.copy(
                 status = SoknadsstatusDTO.SENDT,
-                sendtNav = LocalDateTime.now().plusDays(15),
+                sendtNav = LocalDateTime.now().plusDays(11),
             ),
         )
 
@@ -137,7 +137,9 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
         )
 
         val perioderSomVenterPaaArbeidsgiver =
-            vedtaksperiodeBehandlingRepository.finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(Instant.now())
+            vedtaksperiodeBehandlingRepository.finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(
+                Instant.now(),
+            )
         perioderSomVenterPaaArbeidsgiver.shouldHaveSize(1)
         perioderSomVenterPaaArbeidsgiver.first() shouldBeEqualTo fnr
 
@@ -195,11 +197,50 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
 
     @Test
     @Order(5)
-    fun `Vi sender ikke ut forsinket saksbehandling varsel etter 45 dager uten at det har gått nok sleep tid`() {
+    fun `Vi sender ikke ut forsinket saksbehandling varsel på annen orgnummer fordi den andre har aktiv varsling`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(40))
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[VARSLER_ALLEREDE_OM_VENTER_PA_SAKSBEHANDLER] shouldBeEqualTo 1
+        cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
+        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING].shouldBeNull()
+        cronjobResultat[INGEN_PERIODE_FUNNET_FOR_FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL].shouldBeNull()
+
+        varslingConsumer.ventPåRecords(0)
+        meldingKafkaConsumer.ventPåRecords(0)
+    }
+
+    // Lukk den ene perioden
+
+    @Test
+    @Order(6)
+    fun `Den ene perioden blir ferdig`() {
+        sendBehandlingsstatusMelding(
+            Behandlingstatusmelding(
+                vedtaksperiodeId = Arbeidsgiver1.vedtaksperiodeId1,
+                behandlingId = Arbeidsgiver1.behandlingId1,
+                status = Behandlingstatustype.FERDIG,
+                tidspunkt = OffsetDateTime.now(),
+                eksterneSøknadIder = emptyList(),
+            ),
+        )
+        awaitOppdatertStatus(
+            FERDIG,
+            vedtaksperiodeId = Arbeidsgiver1.vedtaksperiodeId1,
+            behandlingId = Arbeidsgiver1.behandlingId1,
+        )
+        varslingConsumer.ventPåRecords(1)
+        meldingKafkaConsumer.ventPåRecords(1)
+    }
+
+    @Test
+    @Order(7)
+    fun `Vi sender ikke ut forsinket saksbehandling varsel uten at det har gått nok tid`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(40))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
         cronjobResultat[HAR_FATT_NYLIG_VARSEL] shouldBeEqualTo 1
+        cronjobResultat[VARSLER_ALLEREDE_OM_VENTER_PA_SAKSBEHANDLER].shouldBeNull()
         cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
         cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING].shouldBeNull()
         cronjobResultat[INGEN_PERIODE_FUNNET_FOR_FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL].shouldBeNull()
@@ -209,7 +250,7 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
     }
 
     @Test
-    @Order(6)
+    @Order(8)
     fun `Vi sender ut forsinket saksbehandling varsel etter 45 dager når det har gått nok sleep tid`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(45))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0

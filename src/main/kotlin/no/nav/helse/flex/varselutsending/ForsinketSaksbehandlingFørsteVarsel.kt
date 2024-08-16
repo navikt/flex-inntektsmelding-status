@@ -104,6 +104,17 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
 
         val allePerioder = hentAltForPerson.hentAltForPerson(fnr)
 
+        val varslerAlleredeOmVenterSbPaaPeriode =
+            allePerioder.any {
+                listOf(
+                    VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
+                    REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
+                ).contains(it.vedtaksperiode.sisteVarslingstatus)
+            }
+        if (varslerAlleredeOmVenterSbPaaPeriode) {
+            return CronJobStatus.VARSLER_ALLEREDE_OM_VENTER_PA_SAKSBEHANDLER
+        }
+
         val forstePerArbeidsgiver =
             allePerioder
                 .filter { it.vedtaksperiode.sisteSpleisstatus == VENTER_PÅ_SAKSBEHANDLER }
