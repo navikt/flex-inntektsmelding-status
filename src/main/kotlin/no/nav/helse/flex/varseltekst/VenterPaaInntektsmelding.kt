@@ -13,14 +13,12 @@ fun skapVenterPåInntektsmelding15Tekst(
 }
 
 fun skapVenterPåInntektsmelding28Tekst(orgnavn: String): String {
-    @Suppress("ktlint:standard:max-line-length")
-
-    return "Saksbehandlingen er forsinket fordi vi fortsatt mangler inntektsmelding fra $orgnavn. Etter vi har mottatt inntektsmelding vil søknaden forhåpentligvis være ferdigbehandlet innen 4 uker."
+    return "Saksbehandlingen er forsinket fordi vi fortsatt mangler inntektsmelding fra $orgnavn."
 }
 
 fun skapForsinketSaksbehandling28Tekst(): String {
     @Suppress("ktlint:standard:max-line-length")
-    return "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over normal saksbehandlingstid."
+    return "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over forventet saksbehandlingstid."
 }
 
 fun skapRevarselForsinketSaksbehandlingTekst(): String {
