@@ -122,6 +122,9 @@ class ManglendeInntektsmeldingFørsteVarsel(
                     SeededUuid(perioden.statuser.first { it.status == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }.id!!)
 
                 val brukervarselId = randomGenerator.nextUUID()
+                if (soknaden.orgnummer == null) {
+                    log.error("Søknad ${soknaden.id} har ingen orgnummer")
+                }
 
                 val orgnavn = organisasjonRepository.findByOrgnummer(soknaden.orgnummer!!)?.navn ?: soknaden.orgnummer
 
