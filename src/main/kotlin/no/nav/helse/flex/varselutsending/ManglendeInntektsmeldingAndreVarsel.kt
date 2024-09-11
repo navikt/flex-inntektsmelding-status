@@ -8,6 +8,7 @@ import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
+import no.nav.helse.flex.sykepengesoknad.kafka.SoknadstypeDTO
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.util.increment
@@ -125,7 +126,15 @@ class ManglendeInntektsmeldingAndreVarsel(
 
                 val brukervarselId = randomGenerator.nextUUID()
 
-                val orgnavn = organisasjonRepository.findByOrgnummer(soknaden.orgnummer!!)?.navn ?: soknaden.orgnummer
+                val orgnavn =
+                    if (soknaden.orgnummer == null) {
+                        if (soknaden.soknadstype == SoknadstypeDTO.ARBEIDSTAKERE.name) {
+                            throw RuntimeException("Søknad ${soknaden.sykepengesoknadUuid} har ingen orgnummer")
+                        }
+                        "arbeidsgiver"
+                    } else {
+                        organisasjonRepository.findByOrgnummer(soknaden.orgnummer)?.navn ?: soknaden.orgnummer
+                    }
 
                 val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
                 brukervarsel.beskjedManglerInntektsmelding(
