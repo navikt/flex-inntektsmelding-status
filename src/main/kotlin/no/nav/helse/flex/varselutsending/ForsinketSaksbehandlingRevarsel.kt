@@ -82,7 +82,6 @@ class ForsinketSaksbehandlingVarslingRevarsel(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
     private val meldingOgBrukervarselDone: MeldingOgBrukervarselDone,
-    private val environmentToggles: EnvironmentToggles,
 ) {
     private val log = logger()
 
@@ -93,10 +92,6 @@ class ForsinketSaksbehandlingVarslingRevarsel(
         dryRun: Boolean,
         now: Instant,
     ): CronJobStatus {
-        if (environmentToggles.isProduction() && !dryRun) {
-            return CronJobStatus.REVARSLING_DISABLET_I_PRODUKSJON
-        }
-
         if (!dryRun) {
             lockRepository.settAdvisoryTransactionLock(fnr)
         }
