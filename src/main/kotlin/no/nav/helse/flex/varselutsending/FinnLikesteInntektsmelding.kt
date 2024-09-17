@@ -20,6 +20,7 @@ fun finnLikesteInntektsmelding(
     val matchPaVedtaksperiodeId =
         inntektsmeldinger
             .filter { it.vedtaksperiodeId == perioden.vedtaksperiode.vedtaksperiodeId }
+            .sortedByDescending { it.mottattDato }
             .firstOrNull()
 
     if (matchPaVedtaksperiodeId != null) {
