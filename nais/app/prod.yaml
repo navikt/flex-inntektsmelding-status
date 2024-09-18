@@ -3,7 +3,7 @@ environment: prod
 replicas_min: 1
 replicas_max: 1
 cpu: 600m
-memory: 700Mi
+memory: 2000Mi
 db_tier: db-custom-1-3840
 db_highAvailability: true
 db_pointInTimeRecovery: true
