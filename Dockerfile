@@ -4,4 +4,4 @@ ENV JDK_JAVA_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+UseParallelGC -XX:ActivePro
 
 COPY build/libs/app.jar /app/
 WORKDIR /app
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["app.jar"]
