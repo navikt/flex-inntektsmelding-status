@@ -2,15 +2,15 @@ package no.nav.helse.flex
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.Testdata.fnr
+import no.nav.helse.flex.Testdata.fnrFlexer
 import no.nav.helse.flex.api.FlexInternalFrontendController.HentVedtaksperioderPostRequest
 import no.nav.helse.flex.api.FlexInternalFrontendController.VedtakOgInntektsmeldingerResponse
+import no.nav.helse.flex.auditlogging.AuditEntry
+import no.nav.helse.flex.auditlogging.EventType
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.inntektsmelding.INNTEKTSMELDING_TOPIC
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
-import no.nav.helse.flex.kafka.DITT_SYKEFRAVAER_MELDING_TOPIC
-import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
-import no.nav.helse.flex.kafka.SIS_TOPIC
-import no.nav.helse.flex.kafka.SYKEPENGESOKNAD_TOPIC
+import no.nav.helse.flex.kafka.*
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
@@ -20,6 +20,8 @@ import no.nav.inntektsmeldingkontrakt.Inntektsmelding
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.tms.varsel.builder.VarselActionBuilder
+import org.amshove.kluent.`should be`
+import org.amshove.kluent.`should be equal to`
 import org.amshove.kluent.shouldBeEmpty
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
@@ -42,6 +44,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
+import java.net.URI
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -95,6 +98,9 @@ abstract class FellesTestOppsett {
     @Autowired
     lateinit var hentAltForPerson: HentAltForPerson
 
+    @Autowired
+    lateinit var auditlogKafkaConsumer: Consumer<String, String>
+
     companion object {
         init {
 
@@ -125,6 +131,8 @@ abstract class FellesTestOppsett {
         meldingKafkaConsumer.subscribeHvisIkkeSubscribed(DITT_SYKEFRAVAER_MELDING_TOPIC)
         varslingConsumer.hentProduserteRecords().shouldBeEmpty()
         meldingKafkaConsumer.hentProduserteRecords().shouldBeEmpty()
+        auditlogKafkaConsumer.subscribeHvisIkkeSubscribed(AUDIT_TOPIC)
+        auditlogKafkaConsumer.hentProduserteRecords().shouldBeEmpty()
     }
 
     @BeforeAll
@@ -249,6 +257,22 @@ abstract class FellesTestOppsett {
 
         val response: VedtakOgInntektsmeldingerResponse = objectMapper.readValue(responseString)
         return response.vedtaksperioder
+    }
+
+    fun verifiserAuditlogging() {
+        auditlogKafkaConsumer.ventPåRecords(1).first().let {
+            val auditEntry: AuditEntry = objectMapper.readValue(it.value())
+            with(auditEntry) {
+                appNavn `should be equal to` "flex-internal"
+                utførtAv `should be equal to` fnrFlexer
+                oppslagPå `should be equal to` fnr
+                eventType `should be equal to` EventType.READ
+                forespørselTillatt `should be` true
+                beskrivelse `should be equal to` "Henter inntektsmeldinger"
+                requestUrl `should be equal to` URI.create("http://localhost/api/v1/vedtak-og-inntektsmeldinger")
+                requestMethod `should be equal to` "POST"
+            }
+        }
     }
 }
 
