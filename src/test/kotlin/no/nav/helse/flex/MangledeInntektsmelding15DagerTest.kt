@@ -9,7 +9,7 @@ import no.nav.helse.flex.Testdata.soknadId
 import no.nav.helse.flex.Testdata.vedtaksperiodeId
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.Variant
-import no.nav.helse.flex.sykepengesoknad.kafka.*
+import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
 import no.nav.helse.flex.varselutsending.CronJobStatus
 import no.nav.helse.flex.varselutsending.CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING
 import no.nav.helse.flex.varselutsending.CronJobStatus.UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING
@@ -92,6 +92,8 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
         response[0].soknader.first().orgnummer shouldBeEqualTo orgNr
         response[0].statuser shouldHaveSize 2
         response[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_ARBEIDSGIVER
+
+        verifiserAuditlogging()
     }
 
     @Test
@@ -206,6 +208,8 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
         response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE
+
+        verifiserAuditlogging()
     }
 
     @Test
@@ -264,6 +268,8 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_SAKSBEHANDLER
         response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE
+
+        verifiserAuditlogging()
     }
 
     @Test

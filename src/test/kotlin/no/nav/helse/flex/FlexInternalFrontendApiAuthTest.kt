@@ -28,7 +28,7 @@ class FlexInternalFrontendApiAuthTest : FellesTestOppsett() {
     }
 
     @Test
-    fun `Trenger  auth header for å hente data med api`() {
+    fun `Trenger auth header for å hente data med api`() {
         mockMvc
             .perform(
                 MockMvcRequestBuilders

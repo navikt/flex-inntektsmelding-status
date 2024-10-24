@@ -14,6 +14,7 @@ const val INNTEKTSMELDING_STATUS_TOPIC = "tbd." + "inntektsmeldingstatus"
 const val SIS_TOPIC = "tbd." + "sis"
 const val INNTEKTSMELDING_STATUS_TESTDATA_TOPIC = "flex." + "inntektsmeldingstatus-testdata"
 const val SYKEPENGESOKNAD_TOPIC = "flex" + ".sykepengesoknad"
+const val AUDIT_TOPIC = "flex.auditlogging"
 
 @Configuration
 class AivenKafkaConfig(

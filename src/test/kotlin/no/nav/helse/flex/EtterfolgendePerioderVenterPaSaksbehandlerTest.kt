@@ -196,6 +196,7 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
         response[0].soknader.first().orgnummer shouldBeEqualTo orgNr
         response[0].statuser shouldHaveSize 3
         response[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_SAKSBEHANDLER
+        verifiserAuditlogging()
     }
 
     @Test

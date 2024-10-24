@@ -176,6 +176,8 @@ class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
         response[0].soknader.first().orgnummer shouldBeEqualTo orgNr
         response[0].statuser shouldHaveSize 2
         response[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_ARBEIDSGIVER
+
+        verifiserAuditlogging()
     }
 
     @Test
