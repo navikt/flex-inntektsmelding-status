@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component
 
 @Component
 @Profile("forelagteopplysninger")
-class ForelagteOpplysningerListener(
-) {
+class ForelagteOpplysningerListener() {
     val log = logger()
+
     @KafkaListener(
         topics = [FORELAGTE_OPPLYSNINGER_TOPIC],
         containerFactory = "aivenKafkaListenerContainerFactory",
@@ -26,4 +26,3 @@ class ForelagteOpplysningerListener(
 }
 
 const val FORELAGTE_OPPLYSNINGER_TOPIC = "tbd.forelagte-opplysninger"
-
