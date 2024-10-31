@@ -5,14 +5,11 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import java.time.Instant
 
-
-
-@Table("FORELAGTE_OPPLYSNINGER_AINNTEKT")
+@Table("forelagte_opplysninger_ainntekt")
 data class ForelagteOpplysningerDbRecord(
     @Id
     val id: String? = null,
     val fnr: String? = null,
-    val melding: String,
     val vedtaksperiodeId: String,
     val behandlingId: String,
     val forelagteOpplysningerMelding: PGobject,

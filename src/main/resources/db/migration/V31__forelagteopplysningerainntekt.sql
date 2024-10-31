@@ -2,7 +2,6 @@ CREATE TABLE FORELAGTE_OPPLYSNINGER_AINNTEKT
 (
     ID                             VARCHAR(36) DEFAULT UUID_GENERATE_V4() PRIMARY KEY,
     FNR                            VARCHAR(11) NULL,
-    MELDING                        JSONB                    NOT NULL,
     VEDTAKSPERIODE_ID              VARCHAR(36)              NOT NULL,
     BEHANDLING_ID                  VARCHAR(36)              NOT NULL,
     FORELAGTE_OPPLYSNINGER_MELDING JSONB                    NOT NULL,
