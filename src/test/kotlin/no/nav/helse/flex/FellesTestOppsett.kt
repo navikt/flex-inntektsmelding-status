@@ -8,6 +8,7 @@ import no.nav.helse.flex.api.FlexInternalFrontendController.VedtakOgInntektsmeld
 import no.nav.helse.flex.auditlogging.AuditEntry
 import no.nav.helse.flex.auditlogging.EventType
 import no.nav.helse.flex.database.LockRepository
+import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerRepository
 import no.nav.helse.flex.inntektsmelding.INNTEKTSMELDING_TOPIC
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.kafka.*
@@ -64,6 +65,9 @@ abstract class FellesTestOppsett {
 
     @Autowired
     lateinit var organisasjonRepository: OrganisasjonRepository
+
+    @Autowired
+    lateinit var forelagteOpplysningerRepository: ForelagteOpplysningerRepository
 
     @Autowired
     lateinit var varselutsendingCronJob: VarselutsendingCronJob
