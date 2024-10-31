@@ -1,4 +1,4 @@
-package no.nav.helse.flex.forelagteopplysningerfraainntekt
+package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import no.nav.helse.flex.logger
 import org.apache.kafka.clients.consumer.ConsumerRecord
