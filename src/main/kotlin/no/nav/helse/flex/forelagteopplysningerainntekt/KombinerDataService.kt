@@ -18,22 +18,21 @@ class KombinerDataService(
 
     fun mergeForelagteOpplysningerWithSykepengesoknad(vedtaksperiodeId: String, behandlingId: String): List<KombinerteData> {
 
-        // Fetch forelagte opplysninger
         val opplysninger = forelagteOpplysningerRepository.findByVedtaksperiodeIdAndBehandlingId(vedtaksperiodeId, behandlingId)
 
-        // Fetch vedtaksperiode behandling record
         val behandlingRecord = vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(vedtaksperiodeId, behandlingId)
 
+
+
         if (behandlingRecord != null && opplysninger != null) {
-            // Fetch related vedtaksperiode_behandling_sykepengesoknad records
+
+            // finn id fra vedtaksperiode_behandling  ved å søke på behandlingsid og vedtaksperiode_id
             val behandlingSykepengesoknadRecords = vedtaksperiodeBehandlingSykepengesoknadRepository
                 .findByVedtaksperiodeBehandlingIdIn(listOf(behandlingRecord.id!!))
 
-            // Collect UUIDs to fetch matching sykepengesoknad records
             val sykepengesoknadUuids = behandlingSykepengesoknadRecords.map { it.sykepengesoknadUuid }
             val sykepengesoknader = sykepengesoknadRepository.findAllById(sykepengesoknadUuids) // Unresolved reference: findByIdIn
 
-            // Map the result
             return sykepengesoknader.map { sykepengesoknad ->
                 KombinerteData(
                     opplysninger = opplysninger,
