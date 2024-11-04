@@ -17,6 +17,7 @@ CREATE TABLE vedtaksperiode_behandling
 
 );
 
+-- vedtaksperiode til sykepengesoknad ligger her
 CREATE TABLE vedtaksperiode_behandling_sykepengesoknad
 (
     id                           VARCHAR(36) DEFAULT uuid_generate_v4() PRIMARY KEY,

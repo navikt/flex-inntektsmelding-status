@@ -131,6 +131,8 @@ interface VedtaksperiodeBehandlingSykepengesoknadRepository : CrudRepository<Ved
     fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
 
     fun findBySykepengesoknadUuidIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
+
+    fun findByFnrIn(fnr: String): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
 }
 
 @Repository
