@@ -36,15 +36,28 @@ public final data class ForelagteOpplysningerDbRecord(
     val forelagt: Instant?
 )
          */
-        val fnr = forelagteOpplysninger.fnr
+        // val fnr = forelagteOpplysninger.fnr
+
+        val vedtaksperiodeBehandlingId =  vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(vedtaksperiodeId = forelagteOpplysninger.vedtaksperiodeId, behandlingId = forelagteOpplysninger.behandlingId)!!.id
+
+        val relevanteSykepengesoknadUuider = vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingIdIn(listOf(vedtaksperiodeBehandlingId!!)).map{it.sykepengesoknadUuid}
+
+        val relevanteSykepengesoknader = sykepengesoknadRepository.findBySykepengesoknadUuidIn(relevanteSykepengesoknadUuider)
 
 
-        val vedtaksperiodeBehandlingerViaVeBeIder = vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingIdIn(listOf(forelagteOpplysninger.behandlingId)).map(sykepengesoknadRepository)
 
 
-        val sykepengesoknader = if (fnr != null) sykepengesoknadRepository.findByFnr(fnr) else emptyList()
 
-        val vedtaksperiodeBehandlinger = if (sykepengesoknader.isNotEmpty()) vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(sykepengesoknader.map { it.sykepengesoknadUuid}) else emptyList()
+
+        // val relevantSykepengesoknader = if (vedtaksperiodeBehandling?.id != null) vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingIdIn(listOf(vedtaksperiodeBehandling.id)) else emptyList()
+
+
+        // val vedtaksperiodeBehandlingerViaVeBeIder = vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingIdIn(listOf(forelagteOpplysninger.behandlingId)).map(sykepengesoknadRepository)
+
+
+        // val sykepengesoknader = if (fnr != null) sykepengesoknadRepository.findByFnr(fnr) else emptyList()
+
+        // val vedtaksperiodeBehandlinger = if (sykepengesoknader.isNotEmpty()) vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(sykepengesoknader.map { it.sykepengesoknadUuid}) else emptyList()
 
 
 
