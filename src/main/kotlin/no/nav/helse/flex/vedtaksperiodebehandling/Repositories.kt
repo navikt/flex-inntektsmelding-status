@@ -1,5 +1,6 @@
 package no.nav.helse.flex.vedtaksperiodebehandling
 
+import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
 import org.springframework.data.annotation.Id
 import org.springframework.data.jdbc.repository.query.Query
 import org.springframework.data.relational.core.mapping.Table
@@ -7,6 +8,8 @@ import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.YearMonth
 
 @Repository
 interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBehandlingDbRecord, String> {
@@ -114,15 +117,15 @@ data class VedtaksperiodeBehandlingDbRecord(
     val sisteSpleisstatusTidspunkt: Instant,
     val sisteVarslingstatus: StatusVerdi?,
     val sisteVarslingstatusTidspunkt: Instant?,
-    val vedtaksperiodeId: String,
-    val behandlingId: String,
+    val vedtaksperiodeId: String, // samme som i forelagteopplysninger
+    val behandlingId: String,// samme som i forelagteopplysninger
 )
 
 @Table("vedtaksperiode_behandling_sykepengesoknad")
 data class VedtaksperiodeBehandlingSykepengesoknadDbRecord(
     @Id
     val id: String? = null,
-    val vedtaksperiodeBehandlingId: String,
+    val vedtaksperiodeBehandlingId: String, // @Table("vedtaksperiode_behandling") ... samme som val id
     val sykepengesoknadUuid: String,
 )
 
@@ -139,6 +142,47 @@ interface VedtaksperiodeBehandlingSykepengesoknadRepository : CrudRepository<Ved
 interface VedtaksperiodeBehandlingStatusRepository : CrudRepository<VedtaksperiodeBehandlingStatusDbRecord, String> {
     fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingStatusDbRecord>
 }
+
+//package no.nav.helse.flex.forelagteopplysningerainntekt
+//
+//import org.springframework.data.repository.CrudRepository
+//import org.springframework.stereotype.Repository
+//import java.time.LocalDateTime
+//import java.time.YearMonth
+//import java.util.*
+
+
+@Repository
+interface ForelagteOpplysningerRepository : CrudRepository<ForelagteOpplysningerDbRecord, String> {
+    fun existsByVedtaksperiodeIdAndBehandlingId(
+        vedtaksperiodeId: String,
+        behandlingId: String,
+    ): Boolean
+
+
+    fun findAllByForelagtIsNull(): List<ForelagteOpplysningerDbRecord>
+
+    fun findByVedtaksperiodeIdAndBehandlingId(
+        vedtaksperiodeId: String,
+        behandlingId: String
+    ): ForelagteOpplysningerDbRecord?
+
+}
+
+
+
+
+
+data class ForelagteOpplysningerMelding(
+    val vedtaksperiodeId: String,
+    val behandlingId: String,
+    val tidsstempel: LocalDateTime,
+    val omregnetÅrsinntekt: Double,
+    val skatteinntekter: List<Skatteinntekt>,
+) {
+    data class Skatteinntekt(val måned: YearMonth, val beløp: Double)
+}
+
 
 @Table("vedtaksperiode_behandling_status")
 data class VedtaksperiodeBehandlingStatusDbRecord(

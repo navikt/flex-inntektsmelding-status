@@ -1,5 +1,7 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
+// import no.nav.helse.flex.vedtaksperiodebehandling.ForelagteOpplysningerRepository
+import no.nav.helse.flex.vedtaksperiodebehandling.ForelagteOpplysningerRepository
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -17,6 +19,21 @@ class HentUsendteMeldingerEtc(
             val usendteMeldingerEtc: List<ForelagteOpplysningerDbRecord>  = forelagteOpplysningerRepository.findAllByForelagtIsNull()
 
             val usendtMelding = usendteMeldingerEtc.firstOrNull()!!
+
+            /*
+            finn det relevante orgnr:
+            @Table(value = "forelagte_opplysninger_ainntekt")
+public final data class ForelagteOpplysningerDbRecord(
+    val id: String? = null,
+    val fnr: String? = null,
+    val vedtaksperiodeId: String,
+    val behandlingId: String,
+    val forelagteOpplysningerMelding: PGobject,
+    val opprettet: Instant,
+    val forelagt: Instant?
+)
+
+             */
 
 
 
