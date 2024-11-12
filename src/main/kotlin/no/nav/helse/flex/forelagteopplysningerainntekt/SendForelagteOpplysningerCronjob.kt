@@ -109,13 +109,23 @@ class SendForelagteOpplysningerCronjob(
 
             // todo finn alle meldinger knyttet til samme person istedenfor, og kutt så ned på dem med disse filtrene samt splitt ut to subsets i form av i usendt og nylig sendt
             // todo should filter for last sent when I make this
-            val nyligSendteMeldingerTilPerson = sendteMeldinger.filter { it.fnr == fnr }.filter {
-                    it.opprettet.isAfter(
-                        now.minus(
-                            Duration.ofDays(28),
-                        ),
-                    )
-                }
+//            val nyligSendteMeldingerTilPerson = sendteMeldinger.filter { it.fnr == fnr }.filter {
+//                    it.opprettet.isAfter(
+//                        now.minus(
+//                            Duration.ofDays(28),
+//                        ),
+//                    )
+//                }
+
+            val meldingerTilPerson = forelagteOpplysningerRepository.findByFnrIn(fnr)
+
+            val nyligSendteMeldingerTilPerson = meldingerTilPerson.filter{ it.opprettet != null }. filter {
+                it.opprettet.isAfter(
+                    now.minus(
+                        Duration.ofDays(28),
+                    ),
+                )
+            }
 
             if (nyligSendteMeldingerTilPerson.isNotEmpty()) {
 
@@ -130,7 +140,7 @@ class SendForelagteOpplysningerCronjob(
 
 
             } else {
-                // todo do I need this?
+                // todo log no need to check because no recent messages
             }
 
 
@@ -138,7 +148,6 @@ class SendForelagteOpplysningerCronjob(
 
         }
 
-        // finn varslinger nyere enn 2 mnd, finn ut om de hører til det samme orgnr
 
         log.info(
             "Resultat fra VarselutsendingCronJob: ${
