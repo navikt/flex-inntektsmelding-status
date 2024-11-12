@@ -60,7 +60,6 @@ class SendForelagteOpplysningerCronjob(
 
         val usendteMeldinger: List<ForelagteOpplysningerDbRecord> = forelagteOpplysningerRepository.findAllByForelagtIsNull()
 
-        // val vedtaksperiodeBehandlingId =  vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(vedtaksperiodeId = forelagteOpplysningerRe.vedtaksperiodeId, behandlingId = forelagteOpplysninger.behandlingId)!!.id
 
         val altForPerson = hentAltForPerson.hentAltForPerson(usendteMeldinger.first().fnr!!)
 
@@ -68,41 +67,8 @@ class SendForelagteOpplysningerCronjob(
 
         fun finnOrgNrForMeldinger(
             melding: ForelagteOpplysningerDbRecord,
-            // vedtaksperiodeBehandling: FullVedtaksperiodeBehandling,
         ): List<String>
-
-            // List<RelevantMeldingInfo>
         {
-//            @Table(value = "forelagte_opplysninger_ainntekt")
-// public final data class ForelagteOpplysningerDbRecord(
-//    val id: String? = null,
-//    val fnr: String? = null,
-//    val vedtaksperiodeId: String,
-//    val behandlingId: String,
-//    val forelagteOpplysningerMelding: PGobject,
-//    val opprettet: Instant,
-//    val forelagt: Instant?
-// )
-
-            /*
-
-            finn id fra vedtaksperiode_behandling  ved å søke på behandlingsid og vedtaksperiode_id
-07:19
-denne iden finner du igjen som vedtaksperiode_behandling_id  i tabellen vedtaksperiode_behandling_sykepengesoknad  som da også har sykepengesoknad_uuid
-07:20
-image.png
-
-image.png
-
-
-07:21
-og da finner man orgnummer i tabellen sykepengesoknad  via SYKEPENGESOKNAD_UUID
-07:21
-og videre orgnavn organisasjonRepository.findByOrgnummer(soknaden.orgnummer)?.navn
-
-
-
-             */
 
             val relevantBehandlingsid = melding.behandlingId
             val relevantVedtaksperiodeid = melding.vedtaksperiodeId
@@ -125,19 +91,6 @@ og videre orgnavn organisasjonRepository.findByOrgnummer(soknaden.orgnummer)?.na
                     },
                 )
 
-//            val returnValue =
-//                relevanteSykepengesoknader.mapNotNull {
-//                    if (it.sykepengesoknadUuid != null && it.orgnummer != null) {
-//                        RelevantMeldingInfo(
-//                            vedtaksperiodeBehandlingId = vedtaksperiodeBehandlingId!!,
-//                            sykepengesoknadUuid = it.sykepengesoknadUuid,
-//                            orgnummer = it.orgnummer,
-//                        )
-//                    } else {
-//                        null
-//                    }
-//                }
-
 
             val relevanteOrgnr = relevanteSykepengesoknader.mapNotNull{it.orgnummer}
 
@@ -153,6 +106,8 @@ og videre orgnavn organisasjonRepository.findByOrgnummer(soknaden.orgnummer)?.na
                 continue
             }
 
+
+            // todo finn alle meldinger knyttet til samme person istedenfor, og kutt så ned på dem med disse filtrene samt splitt ut to subsets i form av i usendt og nylig sendt
             // todo should filter for last sent when I make this
             val nyligSendteMeldingerTilPerson = sendteMeldinger.filter { it.fnr == fnr }.filter {
                     it.opprettet.isAfter(
@@ -174,17 +129,8 @@ og videre orgnavn organisasjonRepository.findByOrgnummer(soknaden.orgnummer)?.na
                 }
 
 
-                // val altForVedtaksperiode = hentAltForPerson.hentAltForVedtaksperiode(usendtMelding.vedtaksperiodeId)
-                //relevantOrgnrOgSykepengesoknadUuid = finnOrgNrForMeldinger(usendtMelding, altForVedtaksperiode)
-                // altForVedtaksperiode.first().soknader.first().orgnummer
-
-//                  val usendteMeldingerTilPerson =
-//                usendteMeldinger.filter { it.fnr == fnr }
-
-            // val altForPerson = hentAltForPerson.hentAltForPerson(fnr)
-
             } else {
-
+                // todo do I need this?
             }
 
 
