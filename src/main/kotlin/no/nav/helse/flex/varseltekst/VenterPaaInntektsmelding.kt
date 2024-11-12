@@ -33,4 +33,9 @@ fun skapRevarselForsinketSaksbehandlingTekst(): String {
     return "Beklager, men behandlingen av søknaden din om sykepenger tar enda lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører."
 }
 
+fun skapForelagteOpplysningerTekst(): String {
+    @Suppress("ktlint:standard:max-line-length")
+    return "Vi har forelagt opplysninger om inntekt for deg. Du kan se opplysningene i sykefraværet ditt." // TODO: add final version of this
+}
+
 const val SAKSBEHANDLINGSTID_URL = "https://www.nav.no/saksbehandlingstider#sykepenger"

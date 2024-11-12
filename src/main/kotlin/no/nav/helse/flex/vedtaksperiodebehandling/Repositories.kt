@@ -118,7 +118,7 @@ data class VedtaksperiodeBehandlingDbRecord(
     val sisteVarslingstatus: StatusVerdi?,
     val sisteVarslingstatusTidspunkt: Instant?,
     val vedtaksperiodeId: String, // samme som i forelagteopplysninger
-    val behandlingId: String,// samme som i forelagteopplysninger
+    val behandlingId: String, // samme som i forelagteopplysninger
 )
 
 @Table("vedtaksperiode_behandling_sykepengesoknad")
@@ -133,6 +133,8 @@ data class VedtaksperiodeBehandlingSykepengesoknadDbRecord(
 interface VedtaksperiodeBehandlingSykepengesoknadRepository : CrudRepository<VedtaksperiodeBehandlingSykepengesoknadDbRecord, String> {
     fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
 
+    fun findByVedtaksperiodeBehandlingId(id: String): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
+
     fun findBySykepengesoknadUuidIn(ider: List<String>): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
 
     fun findByFnrIn(fnr: String): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
@@ -143,14 +145,13 @@ interface VedtaksperiodeBehandlingStatusRepository : CrudRepository<Vedtaksperio
     fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingStatusDbRecord>
 }
 
-//package no.nav.helse.flex.forelagteopplysningerainntekt
+// package no.nav.helse.flex.forelagteopplysningerainntekt
 //
-//import org.springframework.data.repository.CrudRepository
-//import org.springframework.stereotype.Repository
-//import java.time.LocalDateTime
-//import java.time.YearMonth
-//import java.util.*
-
+// import org.springframework.data.repository.CrudRepository
+// import org.springframework.stereotype.Repository
+// import java.time.LocalDateTime
+// import java.time.YearMonth
+// import java.util.*
 
 @Repository
 interface ForelagteOpplysningerRepository : CrudRepository<ForelagteOpplysningerDbRecord, String> {
@@ -159,19 +160,17 @@ interface ForelagteOpplysningerRepository : CrudRepository<ForelagteOpplysninger
         behandlingId: String,
     ): Boolean
 
-
     fun findAllByForelagtIsNull(): List<ForelagteOpplysningerDbRecord>
+
+    fun findAllByForelagtIsNotNull(): List<ForelagteOpplysningerDbRecord>
+
+    fun findByFnrIn(fnr: String): List<VedtaksperiodeBehandlingSykepengesoknadDbRecord>
 
     fun findByVedtaksperiodeIdAndBehandlingId(
         vedtaksperiodeId: String,
-        behandlingId: String
+        behandlingId: String,
     ): ForelagteOpplysningerDbRecord?
-
 }
-
-
-
-
 
 data class ForelagteOpplysningerMelding(
     val vedtaksperiodeId: String,
@@ -182,7 +181,6 @@ data class ForelagteOpplysningerMelding(
 ) {
     data class Skatteinntekt(val måned: YearMonth, val beløp: Double)
 }
-
 
 @Table("vedtaksperiode_behandling_status")
 data class VedtaksperiodeBehandlingStatusDbRecord(
