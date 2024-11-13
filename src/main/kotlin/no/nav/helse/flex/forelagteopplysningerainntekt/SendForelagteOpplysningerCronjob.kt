@@ -53,30 +53,18 @@ class SendForelagteOpplysningerCronjob(
         val resultat = HashMap<CronJobStatus, Int>()
         val tekstViSender = skapForelagteOpplysningerTekst()
 
-        //        manglendeInntektsmeldingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
-        //        manglendeInntektsmeldingAndreVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
-        //        forsinketSaksbehandlingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
-        //        forsinketSaksbehandlingRevarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
 
         val usendteMeldinger: List<ForelagteOpplysningerDbRecord> = forelagteOpplysningerRepository.findAllByForelagtIsNull()
 
-
-        val altForPerson = hentAltForPerson.hentAltForPerson(usendteMeldinger.first().fnr!!)
+        // val altForPerson = hentAltForPerson.hentAltForPerson(usendteMeldinger.first().fnr!!)
 
         val sendteMeldinger: List<ForelagteOpplysningerDbRecord> = forelagteOpplysningerRepository.findAllByForelagtIsNotNull() // todo bør bare gjelde for siste x mnd
 
-        fun finnOrgNrForMeldinger(
-            melding: ForelagteOpplysningerDbRecord,
-        ): List<String>
-        {
-
-            val relevantBehandlingsid = melding.behandlingId
-            val relevantVedtaksperiodeid = melding.vedtaksperiodeId
-
+        fun finnOrgNrForMelding(melding: ForelagteOpplysningerDbRecord): List<String> {
             val vedtaksperiodeBehandlingId =
                 vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
-                    vedtaksperiodeId = relevantVedtaksperiodeid,
-                    behandlingId = relevantBehandlingsid,
+                    vedtaksperiodeId = melding.vedtaksperiodeId,
+                    behandlingId = melding.behandlingId,
                 )!!.id
 
             val relevanteVedtaksperiodebehandlingSykepengesoknaderRelations =
@@ -91,21 +79,17 @@ class SendForelagteOpplysningerCronjob(
                     },
                 )
 
-
-            val relevanteOrgnr = relevanteSykepengesoknader.mapNotNull{it.orgnummer}
+            val relevanteOrgnr = relevanteSykepengesoknader.mapNotNull { it.orgnummer }
 
             return relevanteOrgnr
         }
 
-
-
         for (usendtMelding in usendteMeldinger) {
             val fnr = usendtMelding.fnr
-            //val orgnummerForMelding = finnOrgNrForMeldinger(usendtMelding)
+            // val orgnummerForMelding = finnOrgNrForMeldinger(usendtMelding)
             if (fnr == null) {
                 continue
             }
-
 
             // todo finn alle meldinger knyttet til samme person istedenfor, og kutt så ned på dem med disse filtrene samt splitt ut to subsets i form av i usendt og nylig sendt
             // todo should filter for last sent when I make this
@@ -119,35 +103,28 @@ class SendForelagteOpplysningerCronjob(
 
             val meldingerTilPerson = forelagteOpplysningerRepository.findByFnrIn(fnr)
 
-            val nyligSendteMeldingerTilPerson = meldingerTilPerson.filter{ it.opprettet != null }. filter {
-                it.opprettet.isAfter(
-                    now.minus(
-                        Duration.ofDays(28),
-                    ),
-                )
-            }
+            val nyligSendteMeldingerTilPerson =
+                meldingerTilPerson.filter { it.opprettet != null }.filter {
+                    it.opprettet.isAfter(
+                        now.minus(
+                            Duration.ofDays(28),
+                        ),
+                    )
+                }
 
             if (nyligSendteMeldingerTilPerson.isNotEmpty()) {
-
-                val orgnrForUsendtMelding = finnOrgNrForMeldinger(usendtMelding).firstOrNull()
-                val orgnummerForSendtMeldinger = sendteMeldinger.flatMap {finnOrgNrForMeldinger(it)}
+                val orgnrForUsendtMelding = finnOrgNrForMelding(usendtMelding).firstOrNull()
+                val orgnummerForSendtMeldinger = sendteMeldinger.flatMap { finnOrgNrForMelding(it) }
 
                 if (orgnrForUsendtMelding != null && orgnummerForSendtMeldinger.contains(orgnrForUsendtMelding)) {
                     resultat[CronJobStatus.HAR_FATT_NYLIG_VARSEL] = (resultat[CronJobStatus.HAR_FATT_NYLIG_VARSEL] ?: 0) + 1
                 } else {
                     // todo send varsel
                 }
-
-
             } else {
                 // todo log no need to check because no recent messages
             }
-
-
-
-
         }
-
 
         log.info(
             "Resultat fra VarselutsendingCronJob: ${
