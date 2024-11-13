@@ -62,7 +62,7 @@ class SendForelagteOpplysningerCronjob(
         val randomGenerator = SeededUuid(melding.id!!)
         val brukervarselId = randomGenerator.nextUUID()
         val meldingBestillingId = randomGenerator.nextUUID()
-        val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
+        val synligFremTil = OffsetDateTime.now().plusWeeks(3).toInstant()
 
         // Send notification to user
         brukervarsel.beskjedForelagteOpplysninger(
@@ -173,7 +173,7 @@ class SendForelagteOpplysningerCronjob(
 
             if (nyligSendteMeldingerTilPerson.isNotEmpty()) {
                 val orgnrForUsendtMelding = finnOrgNrForMelding(usendtMelding).firstOrNull() // er det greit å anta vi bare har en?
-                val orgnummerForSendtMeldinger = sendteMeldinger.flatMap { finnOrgNrForMelding(it) }
+                val orgnummerForSendtMeldinger = meldingerTilPerson.flatMap { finnOrgNrForMelding(it) }
 
                 if (orgnrForUsendtMelding != null && orgnummerForSendtMeldinger.contains(orgnrForUsendtMelding)) {
 
