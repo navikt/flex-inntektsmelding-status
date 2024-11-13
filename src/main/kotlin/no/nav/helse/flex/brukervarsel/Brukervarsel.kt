@@ -28,6 +28,7 @@ class Brukervarsel(
         synligFremTil: Instant,
         forsinketSaksbehandling: Boolean,
         brukEksternVarsling: Boolean,
+        sendt: Instant,
     ) {
         val opprettVarsel =
             VarselActionBuilder.opprett {
@@ -40,9 +41,9 @@ class Brukervarsel(
                         spraakkode = "nb",
                         tekst =
                             if (forsinketSaksbehandling) {
-                                skapVenterPåInntektsmelding28Tekst(orgNavn)
+                                skapVenterPåInntektsmelding28Tekst(orgNavn, sendt)
                             } else {
-                                skapVenterPåInntektsmelding15Tekst(fom, orgNavn)
+                                skapVenterPåInntektsmelding15Tekst(orgNavn, sendt)
                             },
                         default = true,
                     )

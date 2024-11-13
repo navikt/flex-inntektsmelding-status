@@ -142,6 +142,7 @@ class ManglendeInntektsmeldingAndreVarsel(
                     bestillingId = brukervarselId,
                     orgNavn = orgnavn,
                     fom = soknaden.startSyketilfelle,
+                    sendt = soknaden.sendt,
                     synligFremTil = synligFremTil,
                     forsinketSaksbehandling = true,
                     brukEksternVarsling = idx == 0,
@@ -155,7 +156,7 @@ class ManglendeInntektsmeldingAndreVarsel(
                             fnr = fnr,
                             opprettMelding =
                                 OpprettMelding(
-                                    tekst = skapVenterPåInntektsmelding28Tekst(orgnavn),
+                                    tekst = skapVenterPåInntektsmelding28Tekst(orgnavn, soknaden.sendt),
                                     lenke = inntektsmeldingManglerUrl,
                                     variant = Variant.INFO,
                                     lukkbar = false,

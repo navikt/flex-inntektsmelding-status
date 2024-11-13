@@ -1,19 +1,26 @@
 package no.nav.helse.flex.varseltekst
 
 import no.nav.helse.flex.util.norskDateFormat
-import java.time.LocalDate
+import no.nav.helse.flex.util.tilLocalDate
+import java.time.Instant
 
 fun skapVenterPåInntektsmelding15Tekst(
-    fom: LocalDate,
     orgnavn: String,
+    sendt: Instant,
 ): String {
-    val dato = fom.format(norskDateFormat)
-
-    return "Vi venter på inntektsmeldingen fra $orgnavn for sykefraværet som startet $dato."
+    return "Vi venter på inntektsmelding fra $orgnavn. Når vi får den kan vi behandle søknaden om sykepenger du sendte ${sendt.formater()}."
 }
 
-fun skapVenterPåInntektsmelding28Tekst(orgnavn: String): String {
-    return "Saksbehandlingen er forsinket fordi vi fortsatt mangler inntektsmelding fra $orgnavn."
+fun Instant.formater(): String? {
+    return this.tilLocalDate().format(norskDateFormat)
+}
+
+fun skapVenterPåInntektsmelding28Tekst(
+    orgnavn: String,
+    sendt: Instant,
+): String {
+    return "Saksbehandlingen for søknaden om sykepenger du sendte ${sendt.formater()} er forsinket fordi " +
+        "vi fortsatt venter på inntektsmelding fra $orgnavn."
 }
 
 fun skapForsinketSaksbehandling28Tekst(): String {

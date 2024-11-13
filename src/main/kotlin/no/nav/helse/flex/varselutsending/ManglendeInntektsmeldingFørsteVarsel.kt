@@ -146,6 +146,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
                     synligFremTil = synligFremTil,
                     forsinketSaksbehandling = false,
                     brukEksternVarsling = idx == 0,
+                    sendt = soknaden.sendt,
                 )
 
                 val meldingBestillingId = randomGenerator.nextUUID()
@@ -156,7 +157,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
                             fnr = fnr,
                             opprettMelding =
                                 OpprettMelding(
-                                    tekst = skapVenterPåInntektsmelding15Tekst(soknaden.startSyketilfelle, orgnavn),
+                                    tekst = skapVenterPåInntektsmelding15Tekst(orgnavn, soknaden.sendt),
                                     lenke = inntektsmeldingManglerUrl,
                                     variant = Variant.INFO,
                                     lukkbar = false,
