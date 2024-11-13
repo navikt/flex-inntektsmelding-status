@@ -1,10 +1,9 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
+import ForelagteOpplysningerMelding
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
-import no.nav.helse.flex.vedtaksperiodebehandling.ForelagteOpplysningerMelding
-import no.nav.helse.flex.vedtaksperiodebehandling.ForelagteOpplysningerRepository
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.postgresql.util.PGobject
 import org.springframework.context.annotation.Profile

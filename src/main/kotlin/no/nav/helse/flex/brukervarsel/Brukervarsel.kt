@@ -61,6 +61,34 @@ class Brukervarsel(
         log.info("Bestilte beskjed for manglende inntektsmelding $bestillingId")
     }
 
+
+    fun beskjedForelagteOpplysninger(
+        fnr: String,
+        bestillingId: String,
+        orgNavn: String,
+        synligFremTil: Instant,
+    ) {
+        val opprettVarsel =
+            VarselActionBuilder.opprett {
+                type = Varseltype.Beskjed
+                varselId = bestillingId
+                sensitivitet = Sensitivitet.High
+                ident = fnr
+                tekst =
+                    Tekst(
+                        spraakkode = "nb",
+                        tekst = "Forelagte opplysninger tekst her", // todo, fyll ut
+                        default = true,
+                    )
+                aktivFremTil = synligFremTil.atZone(UTC)
+                link = inntektsmeldingManglerUrl
+                eksternVarsling = EksternVarslingBestilling()
+            }
+
+        kafkaProducer.send(ProducerRecord(MINSIDE_BRUKERVARSEL, bestillingId, opprettVarsel)).get()
+        log.info("Bestilte beskjed for forelagte opplysninger $bestillingId")
+    }
+
     fun beskjedForsinketSaksbehandling(
         fnr: String,
         bestillingId: String,

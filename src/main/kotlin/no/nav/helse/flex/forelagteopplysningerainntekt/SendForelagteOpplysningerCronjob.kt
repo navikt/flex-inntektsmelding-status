@@ -1,7 +1,15 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
+import no.nav.helse.flex.brukervarsel.Brukervarsel
+import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.logger
+import no.nav.helse.flex.melding.MeldingKafkaDto
+import no.nav.helse.flex.melding.MeldingKafkaProducer
+import no.nav.helse.flex.melding.OpprettMelding
+import no.nav.helse.flex.melding.Variant
+import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
+import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.util.tilOsloZone
 import no.nav.helse.flex.varseltekst.skapForelagteOpplysningerTekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
@@ -20,6 +28,10 @@ class SendForelagteOpplysningerCronjob(
     private val hentAltForPerson: HentAltForPerson,
     private val vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository,
     private val sykepengesoknadRepository: SykepengesoknadRepository,
+    private val lockRepository: LockRepository,
+    private val organisasjonRepository: OrganisasjonRepository,
+    private val brukervarsel: Brukervarsel,
+    private val meldingKafkaProducer: MeldingKafkaProducer,
 ) {
     private val log = logger()
 
@@ -28,6 +40,66 @@ class SendForelagteOpplysningerCronjob(
         val sykepengesoknadUuid: String,
         val orgnummer: String,
     )
+
+    fun sendForelagteMelding(
+    fnr: String,
+    orgnummer: String?,
+    melding: ForelagteOpplysningerDbRecord,
+    now: Instant,
+    dryRun: Boolean = false
+): CronJobStatus {
+    if (!dryRun) {
+        lockRepository.settAdvisoryTransactionLock(fnr)
+    }
+
+    val orgnavn = if (orgnummer == null) {
+        "arbeidsgiver"
+    } else {
+        organisasjonRepository.findByOrgnummer(orgnummer)?.navn ?: orgnummer
+    }
+
+    if (!dryRun) {
+        val randomGenerator = SeededUuid(melding.id!!)
+        val brukervarselId = randomGenerator.nextUUID()
+        val meldingBestillingId = randomGenerator.nextUUID()
+        val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
+
+        // Send notification to user
+        brukervarsel.beskjedForelagteOpplysninger(
+            fnr = fnr,
+            bestillingId = brukervarselId,
+            orgNavn = orgnavn,
+            synligFremTil = synligFremTil,
+        )
+
+        // Publish message to Kafka
+        meldingKafkaProducer.produserMelding(
+            meldingUuid = meldingBestillingId,
+            meldingKafkaDto = MeldingKafkaDto(
+                fnr = fnr,
+                opprettMelding = OpprettMelding(
+                    tekst = skapForelagteOpplysningerTekst(),
+                    lenke = "eksempelurl", // todo fiks denne// "$SYKEFRAVAER_URL/prelagt/${melding.id}",
+                    variant = Variant.INFO,
+                    lukkbar = false,
+                    synligFremTil = synligFremTil,
+                    meldingType = "FORELAGTE_OPPLYSNINGER",
+                )
+            )
+        )
+
+        // Update the database record
+        forelagteOpplysningerRepository.save(
+            melding.copy(
+                forelagt = now,
+            )
+        )
+
+        log.info("Sendt forelagte opplysninger varsel for vedtaksperiode ${melding.vedtaksperiodeId}")
+    }
+
+    return CronJobStatus.SENDT_FORELAGTE_OPPLYSNINGER
+}
 
     @Scheduled(initialDelay = 1, fixedDelay = 15, timeUnit = TimeUnit.MINUTES)
     fun run(): Map<CronJobStatus, Int> {
@@ -100,13 +172,19 @@ class SendForelagteOpplysningerCronjob(
                 }
 
             if (nyligSendteMeldingerTilPerson.isNotEmpty()) {
-                val orgnrForUsendtMelding = finnOrgNrForMelding(usendtMelding).firstOrNull()
+                val orgnrForUsendtMelding = finnOrgNrForMelding(usendtMelding).firstOrNull() // er det greit å anta vi bare har en?
                 val orgnummerForSendtMeldinger = sendteMeldinger.flatMap { finnOrgNrForMelding(it) }
 
                 if (orgnrForUsendtMelding != null && orgnummerForSendtMeldinger.contains(orgnrForUsendtMelding)) {
-                    resultat[CronJobStatus.HAR_FATT_NYLIG_VARSEL] = (resultat[CronJobStatus.HAR_FATT_NYLIG_VARSEL] ?: 0) + 1
+
                 } else {
                     // todo send varsel
+                    sendForelagteMelding(
+                        fnr = fnr,
+                        orgnummer = orgnrForUsendtMelding,
+                        melding = usendtMelding,
+                        now = now,
+                    )
                 }
             } else {
                 // todo log no need to check because no recent messages
@@ -125,38 +203,5 @@ class SendForelagteOpplysningerCronjob(
     }
 }
 
-enum class CronJobStatus {
-    SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING,
-    SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING,
-    SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING,
-    SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING,
+enum class CronJobStatus { SENDT_FORELAGTE_OPPLYSNINGER }
 
-    UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING,
-    UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING,
-    UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING,
-
-    INGEN_PERIODE_FUNNET_FOR_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL,
-    INGEN_PERIODE_FUNNET_FOR_ANDER_MANGLER_INNTEKTSMELDING_VARSEL,
-    INGEN_PERIODE_FUNNET_FOR_FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL,
-
-    THROTTLET_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL,
-    THROTTLET_ANDRE_MANGLER_INNTEKTSMELDING_VARSEL,
-    THROTTLET_FØRSTE_FORSINKER_SAKSBEHANDLING_VARSEL,
-    THROTTLET_REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL,
-
-    VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
-    FANT_INGEN_INNTEKTSMELDING,
-
-    HAR_FATT_NYLIG_VARSEL,
-
-    FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN,
-    ANDRE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN,
-    FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL_DRY_RUN,
-    REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL_DRY_RUN,
-
-    FANT_FLERE_ENN_EN_VEDTAKSPERIODE_FOR_REVARSEL,
-    INGEN_PERIODE_FUNNET_FOR_REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL,
-    UNIKE_FNR_KANDIDATER_REVARSEL_FORSINKET_SAKSBEHANDLING,
-
-    VARSLER_ALLEREDE_OM_VENTER_PA_SAKSBEHANDLER,
-}
