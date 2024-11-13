@@ -56,8 +56,6 @@ class SendForelagteOpplysningerCronjob(
 
         val usendteMeldinger: List<ForelagteOpplysningerDbRecord> = forelagteOpplysningerRepository.findAllByForelagtIsNull()
 
-        // val altForPerson = hentAltForPerson.hentAltForPerson(usendteMeldinger.first().fnr!!)
-
         val sendteMeldinger: List<ForelagteOpplysningerDbRecord> = forelagteOpplysningerRepository.findAllByForelagtIsNotNull() // todo bør bare gjelde for siste x mnd
 
         fun finnOrgNrForMelding(melding: ForelagteOpplysningerDbRecord): List<String> {
@@ -86,21 +84,10 @@ class SendForelagteOpplysningerCronjob(
 
         for (usendtMelding in usendteMeldinger) {
             val fnr = usendtMelding.fnr
-            // val orgnummerForMelding = finnOrgNrForMeldinger(usendtMelding)
             if (fnr == null) {
                 continue
             }
-
-            // todo finn alle meldinger knyttet til samme person istedenfor, og kutt så ned på dem med disse filtrene samt splitt ut to subsets i form av i usendt og nylig sendt
-            // todo should filter for last sent when I make this
-//            val nyligSendteMeldingerTilPerson = sendteMeldinger.filter { it.fnr == fnr }.filter {
-//                    it.opprettet.isAfter(
-//                        now.minus(
-//                            Duration.ofDays(28),
-//                        ),
-//                    )
-//                }
-
+            
             val meldingerTilPerson = forelagteOpplysningerRepository.findByFnrIn(fnr)
 
             val nyligSendteMeldingerTilPerson =
