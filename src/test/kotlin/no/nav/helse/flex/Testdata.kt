@@ -1,10 +1,14 @@
 package no.nav.helse.flex
 
 import no.nav.helse.flex.sykepengesoknad.kafka.*
+import no.nav.helse.flex.sykepengesoknad.tilOsloZone
+import no.nav.helse.flex.util.tilOsloLocalDateTime
+import no.nav.helse.flex.util.tilOsloZone
 import no.nav.inntektsmeldingkontrakt.*
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
+import java.time.ZoneOffset
 import java.util.*
 
 object Testdata {
@@ -16,6 +20,8 @@ object Testdata {
     val fnrFlexer = "10987654321"
     val fom = LocalDate.of(2022, 5, 29)
     val tom = LocalDate.of(2022, 6, 30)
+    val sendtTidspunkt = LocalDate.of(2022, 7, 1).atStartOfDay().plusHours(10).atOffset(ZoneOffset.UTC).tilOsloZone()
+
     val soknad =
         SykepengesoknadDTO(
             fnr = fnr,
@@ -23,6 +29,8 @@ object Testdata {
             type = SoknadstypeDTO.ARBEIDSTAKERE,
             status = SoknadsstatusDTO.NY,
             startSyketilfelle = fom,
+            sendtArbeidsgiver = sendtTidspunkt.tilOsloLocalDateTime(),
+            sendtNav = sendtTidspunkt.tilOsloLocalDateTime(),
             fom = fom,
             tom = tom,
             arbeidssituasjon = ArbeidssituasjonDTO.ARBEIDSTAKER,

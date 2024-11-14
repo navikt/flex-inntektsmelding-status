@@ -33,7 +33,7 @@ class SykepengesoknadLagring(
                     sendt = soknad.sendtArbeidsgiver!!.tilOsloZone()
                 }
                 if (sendt == null) {
-                    sendt = LocalDateTime.now().tilOsloZone()
+                    throw RuntimeException("Fant ikke sendt tidspunkt for søknad ${soknad.id}. Det skal den ha")
                 }
 
                 log.info("Lagrer sykepengesøknad ${soknad.id} sendt=$sendt")
