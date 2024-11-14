@@ -3,6 +3,7 @@ package no.nav.helse.flex
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.Testdata.fnr
 import no.nav.helse.flex.Testdata.orgNr
+import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.Testdata.soknad
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.Variant
@@ -22,7 +23,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -89,7 +89,6 @@ class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
             sendSoknad(
                 it.copy(
                     status = SoknadsstatusDTO.SENDT,
-                    sendtNav = LocalDateTime.now(),
                 ),
             )
         }
@@ -164,7 +163,7 @@ class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
         perioderSomVenterPaaArbeidsgiver.first() shouldBeEqualTo fnr
 
         vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
-            OffsetDateTime.now().minusHours(3).toInstant(),
+            sendtTidspunkt.minusHours(3).toInstant(),
         ).shouldBeEmpty()
     }
 
@@ -183,7 +182,7 @@ class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
     @Test
     @Order(3)
     fun `Vi sender ikke ut mangler inntektsmelding varsel etter 14 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(14))
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(14))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
     }
@@ -191,7 +190,7 @@ class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
     @Test
     @Order(2)
     fun `Vi sender ut mangler inntektsmelding varsel etter 15 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(16))
         cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
 
@@ -233,7 +232,7 @@ class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
     @Test
     @Order(10)
     fun `Cronjob resultat til slutt`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(18))
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(18))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
         cronjobResultat[CronJobStatus.INGEN_PERIODE_FUNNET_FOR_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL] shouldBeEqualTo 1
         cronjobResultat[CronJobStatus.UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0

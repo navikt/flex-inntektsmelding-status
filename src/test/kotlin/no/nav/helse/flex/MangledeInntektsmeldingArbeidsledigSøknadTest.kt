@@ -1,5 +1,6 @@
 package no.nav.helse.flex
 
+import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
 import no.nav.helse.flex.sykepengesoknad.kafka.SoknadstypeDTO
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
@@ -12,8 +13,6 @@ import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
-import java.time.Instant
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 
@@ -22,14 +21,13 @@ class MangledeInntektsmeldingArbeidsledigSøknadTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn arbeidsledig søknad`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.toInstant())
             .shouldBeEmpty()
         val soknad = Testdata.soknad.copy(type = SoknadstypeDTO.ARBEIDSLEDIG, arbeidsgiver = null)
         sendSoknad(soknad)
         sendSoknad(
             soknad.copy(
                 status = SoknadsstatusDTO.SENDT,
-                sendtNav = LocalDateTime.now(),
             ),
         )
 
@@ -63,7 +61,7 @@ class MangledeInntektsmeldingArbeidsledigSøknadTest : FellesTestOppsett() {
     @Test
     @Order(2)
     fun `Første mangler inntektsmelding varsel`() {
-        varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(15))
+        varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(15).plusMinutes(1))
 
         meldingKafkaConsumer.ventPåRecords(1)
         val varslingRecords = varslingConsumer.ventPåRecords(1)
@@ -78,7 +76,7 @@ class MangledeInntektsmeldingArbeidsledigSøknadTest : FellesTestOppsett() {
     @Test
     @Order(3)
     fun `Andre mangler inntektsmelding varsel`() {
-        varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(32))
+        varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(32))
 
         awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
 

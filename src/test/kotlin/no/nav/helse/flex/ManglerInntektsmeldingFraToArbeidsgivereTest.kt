@@ -3,6 +3,7 @@ package no.nav.helse.flex
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.Testdata.behandlingId
 import no.nav.helse.flex.Testdata.fnr
+import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.Testdata.soknad
 import no.nav.helse.flex.Testdata.soknadId
 import no.nav.helse.flex.Testdata.vedtaksperiodeId
@@ -22,7 +23,6 @@ import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
 import java.time.Instant
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -48,7 +48,6 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
         sendSoknad(
             soknad.copy(
                 status = SoknadsstatusDTO.SENDT,
-                sendtNav = LocalDateTime.now(),
             ),
         )
 
@@ -56,7 +55,6 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
         sendSoknad(
             annenSoknad.copy(
                 status = SoknadsstatusDTO.SENDT,
-                sendtNav = LocalDateTime.now(),
             ),
         )
 
@@ -71,7 +69,7 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
     @Test
     @Order(1)
     fun `Vi får beskjed at periodene venter på arbeidsgiver`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.plusSeconds(1).toInstant())
             .shouldBeEmpty()
 
         val tidspunkt = OffsetDateTime.now()
@@ -111,19 +109,19 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
         )
 
         val perioderSomVenterPaaArbeidsgiver =
-            vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+            vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.plusSeconds(1).toInstant())
         perioderSomVenterPaaArbeidsgiver.shouldHaveSize(1)
         perioderSomVenterPaaArbeidsgiver.first() shouldBeEqualTo fnr
 
         vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
-            OffsetDateTime.now().minusHours(3).toInstant(),
+            sendtTidspunkt.minusHours(3).toInstant(),
         ).shouldBeEmpty()
     }
 
     @Test
     @Order(2)
     fun `Vi sender ut mangler inntektsmelding varsel etter 15 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(16))
         cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
 
