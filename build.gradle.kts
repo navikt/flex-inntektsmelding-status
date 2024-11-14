@@ -78,7 +78,7 @@ tasks {
             events("PASSED", "FAILED", "SKIPPED")
             exceptionFormat = FULL
         }
-        failFast = false
+        failFast = true
     }
 }
 

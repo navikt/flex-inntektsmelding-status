@@ -1,10 +1,12 @@
 package no.nav.helse.flex
 
 import no.nav.helse.flex.Testdata.behandlingId
+import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.Testdata.soknad
 import no.nav.helse.flex.Testdata.soknadId
 import no.nav.helse.flex.Testdata.vedtaksperiodeId
 import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
+import no.nav.helse.flex.util.tilOsloLocalDateTime
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.VENTER_PÅ_ARBEIDSGIVER
@@ -16,7 +18,6 @@ import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
 import java.time.Instant
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -33,7 +34,8 @@ class KorrigertSoknadVarslingTest : FellesTestOppsett() {
         sendSoknad(
             soknad.copy(
                 status = SoknadsstatusDTO.SENDT,
-                sendtNav = LocalDateTime.now().minusDays(20),
+                sendtNav = sendtTidspunkt.tilOsloLocalDateTime(),
+                sendtArbeidsgiver = sendtTidspunkt.tilOsloLocalDateTime(),
             ),
         )
         sendSoknad(
@@ -41,7 +43,8 @@ class KorrigertSoknadVarslingTest : FellesTestOppsett() {
                 id = korrigerendeSoknadId,
                 status = SoknadsstatusDTO.SENDT,
                 korrigerer = soknadId,
-                sendtNav = LocalDateTime.now().minusDays(2),
+                sendtNav = sendtTidspunkt.plusDays(18).tilOsloLocalDateTime(),
+                sendtArbeidsgiver = sendtTidspunkt.plusDays(18).tilOsloLocalDateTime(),
             ),
         )
     }
@@ -71,12 +74,12 @@ class KorrigertSoknadVarslingTest : FellesTestOppsett() {
         awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
 
         vedtaksperiodeBehandlingRepository
-            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.plusMinutes(1).toInstant())
             .shouldHaveSize(1)
 
         vedtaksperiodeBehandlingRepository
-            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(OffsetDateTime.now().minusDays(21).toInstant())
-            .shouldHaveSize(0)
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.plusDays(18).plusMinutes(1).toInstant())
+            .shouldHaveSize(1)
     }
 
     @Test
@@ -97,15 +100,11 @@ class KorrigertSoknadVarslingTest : FellesTestOppsett() {
         awaitOppdatertStatus(VENTER_PÅ_SAKSBEHANDLER)
 
         vedtaksperiodeBehandlingRepository
-            .finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(Instant.now())
+            .finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(sendtTidspunkt.plusDays(29).toInstant())
             .shouldHaveSize(1)
 
         vedtaksperiodeBehandlingRepository
-            .finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(OffsetDateTime.now().minusDays(3).toInstant())
-            .shouldHaveSize(0)
-
-        vedtaksperiodeBehandlingRepository
-            .finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(OffsetDateTime.now().minusDays(21).toInstant())
+            .finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(sendtTidspunkt.plusDays(1).toInstant())
             .shouldHaveSize(0)
     }
 }

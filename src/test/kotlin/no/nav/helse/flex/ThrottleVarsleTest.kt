@@ -1,5 +1,6 @@
 package no.nav.helse.flex
 
+import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeNull
@@ -9,8 +10,6 @@ import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
 import java.time.Duration
-import java.time.Instant
-import java.time.OffsetDateTime
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class ThrottleVarsleTest : FellesTestOppsett() {
@@ -20,14 +19,14 @@ class ThrottleVarsleTest : FellesTestOppsett() {
         (0 until 6).forEach { index -> sendSoknaderSomVenterPaArbeidsgiver(index) }
 
         val perioderSomVenterPaaArbeidsgiver =
-            vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+            vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.plusSeconds(1).toInstant())
         perioderSomVenterPaaArbeidsgiver.shouldHaveSize(6)
     }
 
     @Test
     @Order(2)
     fun `Vi sender ut mangler inntektsmelding varsel etter 15 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(16))
         cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 4
         cronjobResultat[FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBeEqualTo 6
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 6
@@ -39,7 +38,7 @@ class ThrottleVarsleTest : FellesTestOppsett() {
     @Test
     @Order(3)
     fun `Vi sender ut de to siste inntektsmelding varsel etter 15 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(16))
         cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 2
         cronjobResultat[FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBeEqualTo 2
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 2
@@ -51,7 +50,7 @@ class ThrottleVarsleTest : FellesTestOppsett() {
     @Test
     @Order(4)
     fun `Vi sender ut de andre inntektsmelding varsel etter 29 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(29))
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(29))
         cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING].shouldBeNull()
         cronjobResultat[FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
@@ -71,7 +70,7 @@ class ThrottleVarsleTest : FellesTestOppsett() {
     @Test
     @Order(5)
     fun `Vi sender ut de to siste andre inntektsmelding varsel etter 29 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(29))
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(29))
         cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING].shouldBeNull()
         cronjobResultat[FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0

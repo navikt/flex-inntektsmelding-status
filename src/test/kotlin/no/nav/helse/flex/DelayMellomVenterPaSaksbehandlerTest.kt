@@ -17,7 +17,6 @@ import org.junit.jupiter.api.TestMethodOrder
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -76,7 +75,8 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
         sendSoknad(
             Arbeidsgiver2.soknad1.copy(
                 status = SoknadsstatusDTO.SENDT,
-                sendtNav = Arbeidsgiver2.soknad1.sendtNav!!.plusDays(11)
+                sendtNav = Arbeidsgiver2.soknad1.sendtNav!!.plusDays(11),
+                sendtArbeidsgiver = Arbeidsgiver2.soknad1.sendtNav!!.plusDays(11),
             ),
         )
 

@@ -2,6 +2,7 @@ package no.nav.helse.flex
 
 import no.nav.helse.flex.Testdata.fnr
 import no.nav.helse.flex.Testdata.orgNr
+import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.Testdata.soknad
 import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
@@ -15,9 +16,7 @@ import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
 import java.math.BigDecimal
-import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -84,7 +83,6 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
             sendSoknad(
                 it.copy(
                     status = SoknadsstatusDTO.SENDT,
-                    sendtNav = LocalDateTime.now(),
                 ),
             )
         }
@@ -153,7 +151,9 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
         )
 
         val perioderSomVenterPaaArbeidsgiver =
-            vedtaksperiodeBehandlingRepository.finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(Instant.now())
+            vedtaksperiodeBehandlingRepository.finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(
+                sendtTidspunkt.plusDays(29).toInstant(),
+            )
         perioderSomVenterPaaArbeidsgiver.shouldHaveSize(1)
         perioderSomVenterPaaArbeidsgiver.first() shouldBeEqualTo fnr
 
@@ -202,7 +202,7 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
     @Test
     @Order(3)
     fun `Vi sender ikke ut mangler inntektsmelding varsel etter 16 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(16))
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(16))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
     }
@@ -210,7 +210,7 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
     @Test
     @Order(4)
     fun `Vi sender ut forsinket saksbehandling varsel etter 30 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(30))
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(30))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
         cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
@@ -223,7 +223,7 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
     @Test
     @Order(5)
     fun `Vi sender ikke ut forsinket saksbehandling varsel etter 42 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(42))
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(42))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
         cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
@@ -237,7 +237,7 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
     @Test
     @Order(10)
     fun `Cronjob resultat til slutt`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(50))
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(50))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1

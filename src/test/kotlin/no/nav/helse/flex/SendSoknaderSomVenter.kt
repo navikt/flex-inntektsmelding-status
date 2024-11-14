@@ -2,15 +2,16 @@ package no.nav.helse.flex
 
 import no.nav.helse.flex.Testdata.fom
 import no.nav.helse.flex.Testdata.orgNr
+import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.Testdata.tom
 import no.nav.helse.flex.sykepengesoknad.kafka.*
+import no.nav.helse.flex.util.tilOsloLocalDateTime
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.VENTER_PÅ_ARBEIDSGIVER
 import org.awaitility.Awaitility.await
 import java.math.BigDecimal
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -32,7 +33,7 @@ fun FellesTestOppsett.sendSoknaderSomVenterPaArbeidsgiver(index: Int) {
     sendSoknad(
         soknaden.copy(
             status = SoknadsstatusDTO.SENDT,
-            sendtNav = LocalDateTime.now(),
+            sendtNav = sendtTidspunkt.tilOsloLocalDateTime(),
         ),
     )
 
@@ -81,7 +82,7 @@ fun FellesTestOppsett.sendSoknaderSomVenterPaSaksbehandler(index: Int) {
     sendSoknad(
         soknaden.copy(
             status = SoknadsstatusDTO.SENDT,
-            sendtNav = LocalDateTime.now(),
+            sendtNav = sendtTidspunkt.tilOsloLocalDateTime(),
         ),
     )
 
