@@ -20,8 +20,6 @@ fun Instant.tilLocalDate(): LocalDate = this.tilOsloLocalDateTime().toLocalDate(
 
 fun Instant.tilOsloLocalDateTime(): LocalDateTime = this.tilOsloZone().toLocalDateTime()
 
-fun LocalDateTime.tilOsloZone(): OffsetDateTime = this.atZone(osloZone).toOffsetDateTime()
+fun OffsetDateTime.tilOsloLocalDateTime(): LocalDateTime = this.toInstant().tilOsloLocalDateTime()
 
-fun OffsetDateTime.tilOsloLocalDateTime(): LocalDateTime {
-    return this.toInstant().tilOsloLocalDateTime()
-}
+fun LocalDateTime.tilOsloZone(): OffsetDateTime = this.atZone(osloZone).toOffsetDateTime()
