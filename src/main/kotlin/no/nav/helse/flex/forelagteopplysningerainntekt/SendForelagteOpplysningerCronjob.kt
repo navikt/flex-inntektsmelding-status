@@ -9,7 +9,6 @@ import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
-import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.util.tilOsloZone
 import no.nav.helse.flex.varseltekst.skapForelagteOpplysningerTekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
@@ -42,64 +41,67 @@ class SendForelagteOpplysningerCronjob(
     )
 
     fun sendForelagteMelding(
-    fnr: String,
-    orgnummer: String?,
-    melding: ForelagteOpplysningerDbRecord,
-    now: Instant,
-    dryRun: Boolean = false
-): CronJobStatus {
-    if (!dryRun) {
-        lockRepository.settAdvisoryTransactionLock(fnr)
-    }
+        fnr: String,
+        orgnummer: String?,
+        melding: ForelagteOpplysningerDbRecord,
+        now: Instant,
+        dryRun: Boolean = false,
+    ): CronJobStatus {
+        if (!dryRun) {
+            lockRepository.settAdvisoryTransactionLock(fnr)
+        }
 
-    val orgnavn = if (orgnummer == null) {
-        "arbeidsgiver"
-    } else {
-        organisasjonRepository.findByOrgnummer(orgnummer)?.navn ?: orgnummer
-    }
+        val orgnavn =
+            if (orgnummer == null) {
+                "arbeidsgiver"
+            } else {
+                organisasjonRepository.findByOrgnummer(orgnummer)?.navn ?: orgnummer
+            }
 
-    if (!dryRun) {
-        val randomGenerator = SeededUuid(melding.id!!)
-        val brukervarselId = randomGenerator.nextUUID()
-        val meldingBestillingId = randomGenerator.nextUUID()
-        val synligFremTil = OffsetDateTime.now().plusWeeks(3).toInstant()
+        if (!dryRun) {
+            val forelagtOpplysningId = melding.id!!
+            val synligFremTil = OffsetDateTime.now().plusWeeks(3).toInstant()
+            val lenkeTilForelagteOpplysninger = "/syk/sykefravaer/forelagt/$forelagtOpplysningId"
 
-        // Send notification to user
-        brukervarsel.beskjedForelagteOpplysninger(
-            fnr = fnr,
-            bestillingId = brukervarselId,
-            orgNavn = orgnavn,
-            synligFremTil = synligFremTil,
-        )
-
-        // Publish message to Kafka
-        meldingKafkaProducer.produserMelding(
-            meldingUuid = meldingBestillingId,
-            meldingKafkaDto = MeldingKafkaDto(
+            // Send notification to user
+            brukervarsel.beskjedForelagteOpplysninger(
                 fnr = fnr,
-                opprettMelding = OpprettMelding(
-                    tekst = skapForelagteOpplysningerTekst(),
-                    lenke = "eksempelurl", // todo fiks denne// "$SYKEFRAVAER_URL/prelagt/${melding.id}",
-                    variant = Variant.INFO,
-                    lukkbar = false,
-                    synligFremTil = synligFremTil,
-                    meldingType = "FORELAGTE_OPPLYSNINGER",
-                )
+                bestillingId = forelagtOpplysningId,
+                orgNavn = orgnavn,
+                synligFremTil = synligFremTil,
+                // lenke = lenkeTil..
             )
-        )
 
-        // Update the database record
-        forelagteOpplysningerRepository.save(
-            melding.copy(
-                forelagt = now,
+            // Publish message to Kafka
+            meldingKafkaProducer.produserMelding(
+                meldingUuid = forelagtOpplysningId,
+                meldingKafkaDto =
+                    MeldingKafkaDto(
+                        fnr = fnr,
+                        opprettMelding =
+                            OpprettMelding(
+                                tekst = skapForelagteOpplysningerTekst(),
+                                lenke = "eksempelurl", // todo fiks denne// "$SYKEFRAVAER_URL/prelagt/${melding.id}",
+                                variant = Variant.INFO,
+                                lukkbar = false,
+                                synligFremTil = synligFremTil,
+                                meldingType = "FORELAGTE_OPPLYSNINGER",
+                            ),
+                    ),
             )
-        )
 
-        log.info("Sendt forelagte opplysninger varsel for vedtaksperiode ${melding.vedtaksperiodeId}")
+            // Update the database record
+            forelagteOpplysningerRepository.save(
+                melding.copy(
+                    forelagt = now,
+                ),
+            )
+
+            log.info("Sendt forelagte opplysninger varsel for vedtaksperiode ${melding.vedtaksperiodeId}")
+        }
+
+        return CronJobStatus.SENDT_FORELAGTE_OPPLYSNINGER
     }
-
-    return CronJobStatus.SENDT_FORELAGTE_OPPLYSNINGER
-}
 
     @Scheduled(initialDelay = 1, fixedDelay = 15, timeUnit = TimeUnit.MINUTES)
     fun run(): Map<CronJobStatus, Int> {
@@ -124,7 +126,6 @@ class SendForelagteOpplysningerCronjob(
         log.info("Starter VarselutsendingCronJob")
         val resultat = HashMap<CronJobStatus, Int>()
         val tekstViSender = skapForelagteOpplysningerTekst()
-
 
         val usendteMeldinger: List<ForelagteOpplysningerDbRecord> = forelagteOpplysningerRepository.findAllByForelagtIsNull()
 
@@ -159,7 +160,7 @@ class SendForelagteOpplysningerCronjob(
             if (fnr == null) {
                 continue
             }
-            
+
             val meldingerTilPerson = forelagteOpplysningerRepository.findByFnrIn(fnr)
 
             val nyligSendteMeldingerTilPerson =
@@ -176,7 +177,6 @@ class SendForelagteOpplysningerCronjob(
                 val orgnummerForSendtMeldinger = meldingerTilPerson.flatMap { finnOrgNrForMelding(it) }
 
                 if (orgnrForUsendtMelding != null && orgnummerForSendtMeldinger.contains(orgnrForUsendtMelding)) {
-
                 } else {
                     // todo send varsel
                     sendForelagteMelding(
@@ -204,4 +204,3 @@ class SendForelagteOpplysningerCronjob(
 }
 
 enum class CronJobStatus { SENDT_FORELAGTE_OPPLYSNINGER }
-

@@ -61,7 +61,6 @@ class Brukervarsel(
         log.info("Bestilte beskjed for manglende inntektsmelding $bestillingId")
     }
 
-
     fun beskjedForelagteOpplysninger(
         fnr: String,
         bestillingId: String,

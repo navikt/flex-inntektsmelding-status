@@ -12,4 +12,5 @@ azureTenant: trygdeetaten.no
 env:
   SPRING_PROFILES_ACTIVE: default, testdata, forelagteopplysninger
   INNTEKTSMELDING_MANGLER_URL: https://www.ekstern.dev.nav.no/syk/sykefravaer/inntektsmelding
+  FORELAGTE_OPPLYSNINGER_BASE_URL: https://www.ekstern.dev.nav.no/syk/sykefravaer/forelagte
   KAFKA_AUTO_OFFSET_RESET: earliest

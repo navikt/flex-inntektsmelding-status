@@ -1,6 +1,5 @@
 package no.nav.helse.flex.vedtaksperiodebehandling
 
-import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
 import org.springframework.data.annotation.Id
 import org.springframework.data.jdbc.repository.query.Query
 import org.springframework.data.relational.core.mapping.Table
@@ -8,8 +7,6 @@ import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.YearMonth
 
 @Repository
 interface VedtaksperiodeBehandlingRepository : CrudRepository<VedtaksperiodeBehandlingDbRecord, String> {
@@ -144,7 +141,6 @@ interface VedtaksperiodeBehandlingSykepengesoknadRepository : CrudRepository<Ved
 interface VedtaksperiodeBehandlingStatusRepository : CrudRepository<VedtaksperiodeBehandlingStatusDbRecord, String> {
     fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingStatusDbRecord>
 }
-
 
 @Table("vedtaksperiode_behandling_status")
 data class VedtaksperiodeBehandlingStatusDbRecord(
