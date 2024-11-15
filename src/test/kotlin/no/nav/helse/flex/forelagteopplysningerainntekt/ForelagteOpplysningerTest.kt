@@ -5,7 +5,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.serialisertTilString
+import org.amshove.kluent.should
 import org.amshove.kluent.`should be equal to`
+import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeFalse
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.awaitility.Awaitility.await
@@ -70,7 +72,21 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
     }
 
     @Test
-    fun `Sender varsel`(){
+    fun `Henter og sender ut brukernotifikasjon om forelagte inntektsopplysninger fra ainntekt`(){
+        val forelagteOpplysningerMelding =
+            ForelagteOpplysningerMelding(
+                vedtaksperiodeId = "hent-test-opplysning",
+                behandlingId = "hent-test-opplysning",
+                tidsstempel = LocalDateTime.parse("2024-11-15T00:00:00"),
+                omregnetÅrsinntekt = 0.0,
+                skatteinntekter = listOf(
+                    ForelagteOpplysningerMelding.Skatteinntekt(
+                        måned = YearMonth.of(2024, 1),
+                        beløp = 0.0,
+                    )
+                ),
+            )
 
+        //forelagteOpplysningerRepository.save(forelagteOpplysningerMelding)
     }
 }

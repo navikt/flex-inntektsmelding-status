@@ -1,5 +1,9 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
+import ForelagteOpplysningerMelding
+import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.helse.flex.objectMapper
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.postgresql.util.PGobject
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
@@ -15,4 +19,23 @@ data class ForelagteOpplysningerDbRecord(
     val forelagteOpplysningerMelding: PGobject,
     val opprettet: Instant,
     val forelagt: Instant?,
-)
+) {
+    companion object {
+        fun parseConsumerRecord(consumerRecord: ConsumerRecord<String, String>): ForelagteOpplysningerDbRecord {
+            val forelagteOpplysningerMelding: ForelagteOpplysningerMelding = objectMapper.readValue(consumerRecord.value())
+            return ForelagteOpplysningerDbRecord(
+                id = null,
+                fnr = null,
+                vedtaksperiodeId = forelagteOpplysningerMelding.vedtaksperiodeId,
+                behandlingId = forelagteOpplysningerMelding.behandlingId,
+                forelagteOpplysningerMelding =
+                PGobject().also {
+                    it.type = "json"
+                    it.value = consumerRecord.value()
+                },
+                opprettet = Instant.now(),
+                forelagt = null,
+            )
+        }
+    }
+}
