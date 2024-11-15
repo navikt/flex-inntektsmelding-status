@@ -9,6 +9,7 @@ import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
+import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.util.tilOsloZone
 import no.nav.helse.flex.varseltekst.skapForelagteOpplysningerTekst
@@ -16,10 +17,7 @@ import no.nav.helse.flex.vedtaksperiodebehandling.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.time.DayOfWeek
-import java.time.Duration
-import java.time.Instant
-import java.time.OffsetDateTime
+import java.time.*
 import java.util.concurrent.TimeUnit
 
 @Component
@@ -129,35 +127,27 @@ class SendForelagteOpplysningerCronjob(
 
         val sendteMeldinger: List<ForelagteOpplysningerDbRecord> = forelagteOpplysningerRepository.findAllByForelagtIsNotNull() // todo bør bare gjelde for siste x mnd
 
-        fun finnOrgNrForMelding(melding: ForelagteOpplysningerDbRecord): List<String> {
-            val vedtaksperiodeBehandlingId =
-                vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
-                    vedtaksperiodeId = melding.vedtaksperiodeId,
-                    behandlingId = melding.behandlingId,
-                )!!.id
-
-            val relevanteVedtaksperiodebehandlingSykepengesoknaderRelations =
-                vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingId(
-                    vedtaksperiodeBehandlingId!!,
-                )
-
-            val relevanteSykepengesoknader =
-                sykepengesoknadRepository.findBySykepengesoknadUuidIn(
-                    relevanteVedtaksperiodebehandlingSykepengesoknaderRelations.map {
-                        it.sykepengesoknadUuid
-                    },
-                )
-
-            val relevanteOrgnr = relevanteSykepengesoknader.mapNotNull { it.orgnummer }
-
-            return relevanteOrgnr
-        }
 
         for (usendtMelding in usendteMeldinger) {
-            val fnr = usendtMelding.fnr
-            if (fnr == null) {
+            val relevanteSykepengesoknader = finnSykepengesoknader(
+                vedtaksperiodeId = usendtMelding.vedtaksperiodeId,
+                behandlingId = usendtMelding.behandlingId
+            )
+            if (relevanteSykepengesoknader.isEmpty()) {
+                log.warn("Fant ingen sykepengesøknader relatert til forelagte opplysninger: ${usendtMelding.id}")
                 continue
             }
+
+            val relevanteOrgnr = relevanteSykepengesoknader.mapNotNull { it.orgnummer }
+            val sykepengesoknadFnr = relevanteSykepengesoknader.maxByOrNull { it.tom }!!.fnr
+
+            val fnr = usendtMelding.fnr ?: sykepengesoknadFnr
+
+            val skalIkkeSendeUt = usendtMelding.opprettet.plus(Duration.ofDays(28)).isAfter(now)
+            if (skalIkkeSendeUt) {
+                continue
+            }
+
 
             val meldingerTilPerson = forelagteOpplysningerRepository.findByFnr(fnr)
 
@@ -198,6 +188,46 @@ class SendForelagteOpplysningerCronjob(
             }",
         )
         return resultat
+    }
+
+    private fun sjekkOmPersonErForelagtNylig(fnr: String, orgnr: String, now: Instant): Boolean {
+        val soknaderForOrg = sykepengesoknadRepository.findByFnr(fnr).filter { it.orgnummer == orgnr }
+
+        val finnesNyligeForeleggelser = forelagteOpplysningerRepository.findByFnr(fnr)
+            .map {  }
+            .filter {  sykepengesoknadRepository.find .findByFnr(it.fnr) }
+            .filter { it.forelagt != null }
+            .any {
+                val erForNy = it.opprettet.plus(Duration.ofDays(28)).isAfter(now)
+                erForNy
+            }
+        return finnesNyligeForeleggelser
+    }
+
+    private fun finnSykepengesoknader(vedtaksperiodeId: String, behandlingId: String): List<Sykepengesoknad> {
+        val vedtaksperiodeBehandlingId =
+            vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
+                vedtaksperiodeId = vedtaksperiodeId,
+                behandlingId = behandlingId,
+            )!!.id
+
+        val relevanteVedtaksperiodebehandlingSykepengesoknaderRelations =
+            vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingId(
+                vedtaksperiodeBehandlingId!!,
+            )
+
+        val relevanteSykepengesoknader =
+            sykepengesoknadRepository.findBySykepengesoknadUuidIn(
+                relevanteVedtaksperiodebehandlingSykepengesoknaderRelations.map {
+                    it.sykepengesoknadUuid
+                },
+            )
+
+        return relevanteSykepengesoknader
+    }
+
+    private fun finnVedtaksPeriodeIdForSoknad(sykepengesoknad: Sykepengesoknad): String {
+        return ""
     }
 }
 
