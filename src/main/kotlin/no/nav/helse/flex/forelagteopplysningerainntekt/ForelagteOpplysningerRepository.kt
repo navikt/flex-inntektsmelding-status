@@ -14,7 +14,7 @@ interface ForelagteOpplysningerRepository : CrudRepository<ForelagteOpplysninger
 
     fun findAllByForelagtIsNotNull(): List<ForelagteOpplysningerDbRecord>
 
-    fun findByFnrIn(fnr: String): List<ForelagteOpplysningerDbRecord>
+    fun findByFnr(fnr: String): List<ForelagteOpplysningerDbRecord>
 
     fun findByVedtaksperiodeIdAndBehandlingId(
         vedtaksperiodeId: String,

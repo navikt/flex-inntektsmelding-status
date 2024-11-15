@@ -24,8 +24,6 @@ data class ForelagteOpplysningerDbRecord(
         fun parseConsumerRecord(consumerRecord: ConsumerRecord<String, String>): ForelagteOpplysningerDbRecord {
             val forelagteOpplysningerMelding: ForelagteOpplysningerMelding = objectMapper.readValue(consumerRecord.value())
             return ForelagteOpplysningerDbRecord(
-                id = null,
-                fnr = null,
                 vedtaksperiodeId = forelagteOpplysningerMelding.vedtaksperiodeId,
                 behandlingId = forelagteOpplysningerMelding.behandlingId,
                 forelagteOpplysningerMelding =

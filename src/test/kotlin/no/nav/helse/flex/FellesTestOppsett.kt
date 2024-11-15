@@ -9,6 +9,7 @@ import no.nav.helse.flex.auditlogging.AuditEntry
 import no.nav.helse.flex.auditlogging.EventType
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerRepository
+import no.nav.helse.flex.forelagteopplysningerainntekt.SendForelagteOpplysningerCronjob
 import no.nav.helse.flex.inntektsmelding.INNTEKTSMELDING_TOPIC
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.kafka.*
@@ -71,6 +72,9 @@ abstract class FellesTestOppsett {
 
     @Autowired
     lateinit var varselutsendingCronJob: VarselutsendingCronJob
+
+    @Autowired
+    lateinit var sendForelagteOpplysningerCronjob: SendForelagteOpplysningerCronjob
 
     @Autowired
     lateinit var sykepengesoknadRepository: SykepengesoknadRepository

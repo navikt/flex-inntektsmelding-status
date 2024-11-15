@@ -1,9 +1,6 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
-import ForelagteOpplysningerMelding
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.logger
-import no.nav.helse.flex.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.postgresql.util.PGobject
 import org.springframework.context.annotation.Profile
@@ -27,37 +24,23 @@ class ForelagteOpplysningerListener(
         cr: ConsumerRecord<String, String>,
         acknowledgment: Acknowledgment,
     ) {
-        val valueDeserialisert: ForelagteOpplysningerMelding = objectMapper.readValue(cr.value())
+        val forelagtOpplysningerDbRecord = ForelagteOpplysningerDbRecord.parseConsumerRecord(cr)
 
         if (forelagteOpplysningerRepository.existsByVedtaksperiodeIdAndBehandlingId(
-                vedtaksperiodeId = valueDeserialisert.vedtaksperiodeId,
-                behandlingId = valueDeserialisert.behandlingId,
+                vedtaksperiodeId = forelagtOpplysningerDbRecord.vedtaksperiodeId,
+                behandlingId = forelagtOpplysningerDbRecord.behandlingId,
             )
         ) {
             log.info(
-                "Forelagte opplysninger for vedtaksperiode (${valueDeserialisert.vedtaksperiodeId}) " +
-                    "og behandlingsid (${valueDeserialisert.behandlingId}) finnes allerede.",
+                "Forelagte opplysninger for vedtaksperiode (${forelagtOpplysningerDbRecord.vedtaksperiodeId}) " +
+                    "og behandlingsid (${forelagtOpplysningerDbRecord.behandlingId}) finnes allerede.",
             )
         } else {
             log.info(
-                "Lagret forelagte opplysninger melding for vedtaksperiode (${valueDeserialisert.vedtaksperiodeId}) " +
-                    "og behandlingsid (${valueDeserialisert.behandlingId})",
+                "Lagret forelagte opplysninger melding for vedtaksperiode (${forelagtOpplysningerDbRecord.vedtaksperiodeId}) " +
+                    "og behandlingsid (${forelagtOpplysningerDbRecord.behandlingId})",
             )
-            forelagteOpplysningerRepository.save(
-                ForelagteOpplysningerDbRecord(
-                    id = null,
-                    fnr = null,
-                    vedtaksperiodeId = valueDeserialisert.vedtaksperiodeId,
-                    behandlingId = valueDeserialisert.behandlingId,
-                    forelagteOpplysningerMelding =
-                        PGobject().also {
-                            it.type = "json"
-                            it.value = cr.value()
-                        },
-                    opprettet = Instant.now(),
-                    forelagt = null,
-                ),
-            )
+            forelagteOpplysningerRepository.save(forelagtOpplysningerDbRecord)
         }
         acknowledgment.acknowledge()
     }

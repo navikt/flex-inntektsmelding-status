@@ -117,11 +117,7 @@ class SendForelagteOpplysningerCronjob(
             return emptyMap()
         }
 
-        return runMedParameter(Instant.now())
-    }
-
-    fun runMedParameter(now: OffsetDateTime): Map<CronJobStatus, Int> {
-        return runMedParameter(now.toInstant())
+        return runMedParameter(osloDatetimeNow.toInstant())
     }
 
     fun runMedParameter(now: Instant): Map<CronJobStatus, Int> {
@@ -163,7 +159,7 @@ class SendForelagteOpplysningerCronjob(
                 continue
             }
 
-            val meldingerTilPerson = forelagteOpplysningerRepository.findByFnrIn(fnr)
+            val meldingerTilPerson = forelagteOpplysningerRepository.findByFnr(fnr)
 
             val nyligSendteMeldingerTilPerson =
                 meldingerTilPerson.filter { it.opprettet != null }.filter {
