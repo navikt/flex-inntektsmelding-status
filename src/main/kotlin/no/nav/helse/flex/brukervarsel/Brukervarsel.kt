@@ -66,6 +66,7 @@ class Brukervarsel(
         bestillingId: String,
         orgNavn: String,
         synligFremTil: Instant,
+        lenke: String
     ) {
         val opprettVarsel =
             VarselActionBuilder.opprett {
@@ -76,11 +77,12 @@ class Brukervarsel(
                 tekst =
                     Tekst(
                         spraakkode = "nb",
-                        tekst = "Forelagte opplysninger tekst her", // todo, fyll ut
+                        //TODO: Legg inn dato
+                        tekst = "Vi har hentet opplysninger om inntekten din fra Aa-ordningen for sykefraværet som startet [dato]. Vi trenger at du sjekker om de stemmer.",
                         default = true,
                     )
                 aktivFremTil = synligFremTil.atZone(UTC)
-                link = inntektsmeldingManglerUrl
+                link = lenke
                 eksternVarsling = EksternVarslingBestilling()
             }
 

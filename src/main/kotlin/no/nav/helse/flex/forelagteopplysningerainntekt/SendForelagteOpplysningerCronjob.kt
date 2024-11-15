@@ -7,11 +7,13 @@ import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
+import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.util.tilOsloZone
 import no.nav.helse.flex.varseltekst.skapForelagteOpplysningerTekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.DayOfWeek
@@ -31,6 +33,7 @@ class SendForelagteOpplysningerCronjob(
     private val organisasjonRepository: OrganisasjonRepository,
     private val brukervarsel: Brukervarsel,
     private val meldingKafkaProducer: MeldingKafkaProducer,
+    @Value("\${FORELAGTE_OPPLYSNINGER_BASE_URL}") private val forelagteOpplysninger: String,
 ) {
     private val log = logger()
 
@@ -61,18 +64,16 @@ class SendForelagteOpplysningerCronjob(
         if (!dryRun) {
             val forelagtOpplysningId = melding.id!!
             val synligFremTil = OffsetDateTime.now().plusWeeks(3).toInstant()
-            val lenkeTilForelagteOpplysninger = "/syk/sykefravaer/forelagt/$forelagtOpplysningId"
+            val lenkeTilForelagteOpplysninger = "$forelagteOpplysninger/$forelagtOpplysningId"
 
-            // Send notification to user
             brukervarsel.beskjedForelagteOpplysninger(
                 fnr = fnr,
                 bestillingId = forelagtOpplysningId,
                 orgNavn = orgnavn,
                 synligFremTil = synligFremTil,
-                // lenke = lenkeTil..
+                lenke = lenkeTilForelagteOpplysninger
             )
 
-            // Publish message to Kafka
             meldingKafkaProducer.produserMelding(
                 meldingUuid = forelagtOpplysningId,
                 meldingKafkaDto =
@@ -81,11 +82,12 @@ class SendForelagteOpplysningerCronjob(
                         opprettMelding =
                             OpprettMelding(
                                 tekst = skapForelagteOpplysningerTekst(),
-                                lenke = "eksempelurl", // todo fiks denne// "$SYKEFRAVAER_URL/prelagt/${melding.id}",
+                                lenke = lenkeTilForelagteOpplysninger,
                                 variant = Variant.INFO,
                                 lukkbar = false,
                                 synligFremTil = synligFremTil,
                                 meldingType = "FORELAGTE_OPPLYSNINGER",
+                                metadata = objectMapper.readTree(melding.forelagteOpplysningerMelding.toString())
                             ),
                     ),
             )

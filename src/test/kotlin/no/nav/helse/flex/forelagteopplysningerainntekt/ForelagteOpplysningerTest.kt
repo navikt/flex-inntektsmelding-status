@@ -1,10 +1,10 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
+import ForelagteOpplysningerMelding
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.serialisertTilString
-import no.nav.helse.flex.sykepengesoknad.kafka.*
 import org.amshove.kluent.`should be equal to`
 import org.amshove.kluent.shouldBeFalse
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -67,5 +67,10 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
         val meldingFraDb: ForelagteOpplysningerMelding = objectMapper.readValue(record.forelagteOpplysningerMelding.value!!)
 
         meldingFraDb `should be equal to` forelagteOpplysningerMelding
+    }
+
+    @Test
+    fun `Sender varsel`(){
+
     }
 }
