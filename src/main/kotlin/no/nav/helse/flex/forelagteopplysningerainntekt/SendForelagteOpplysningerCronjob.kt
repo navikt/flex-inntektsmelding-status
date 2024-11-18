@@ -134,6 +134,7 @@ class SendForelagteOpplysningerCronjob(
                 continue
             }
 
+            // TODO: Sjekk at det er riktig/holder å bruke siste fnr
             val sykepengesoknadFnr = relevanteSykepengesoknader.maxByOrNull { it.tom }!!.fnr
 
             val fnr = usendtForelagtOpplysning.fnr ?: sykepengesoknadFnr
