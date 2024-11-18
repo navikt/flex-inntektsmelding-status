@@ -143,7 +143,7 @@ class SendForelagteOpplysningerCronjob(
                     log.warn("Orgnummer er tom")
                     return@forEach
                 }
-                if (!harForelagtNyligForOrgnr(it, now)) {
+                if (!harForelagtNyligForOrgnr(it.fnr, it.orgnummer, now)) {
                     sendForelagteMelding(
                         fnr = fnr,
                         orgnummer = it.orgnummer,
@@ -166,14 +166,16 @@ class SendForelagteOpplysningerCronjob(
     }
 
     private fun harForelagtNyligForOrgnr(
-        soknad: Sykepengesoknad,
+        fnr: String,
+        orgnr: String,
         now: Instant,
     ): Boolean {
-        val tidspunkt = now.minus(Duration.ofDays(28))
-        val forelagteOpplysninger = finnForelagteOpplysningerForSoknad(soknad)
-
-
-        return true
+        val forelagtEtter = now.minus(Duration.ofDays(28))
+        val forelagteOpplysninger = finnForelagteOpplysningerForPersonOgOrg(fnr, orgnr)
+        val finnesOpplysningerForelagtNylig = forelagteOpplysninger
+            .mapNotNull { it.forelagt }
+            .any { it.isAfter(forelagtEtter) }
+        return finnesOpplysningerForelagtNylig
     }
 
     private fun finnSykepengesoknader(
@@ -201,13 +203,14 @@ class SendForelagteOpplysningerCronjob(
         return relevanteSykepengesoknader
     }
 
-    private fun finnForelagteOpplysningerForSoknad(soknad: Sykepengesoknad): List<ForelagteOpplysningerDbRecord> {
+    private fun finnForelagteOpplysningerForPersonOgOrg(fnr: String, orgnr: String): List<ForelagteOpplysningerDbRecord> {
+        val sykepengesoknader = sykepengesoknadRepository.findByFnr(fnr)
+            .filter { it.orgnummer == orgnr }
+        val sykepengesoknadUuids = sykepengesoknader.map { it.sykepengesoknadUuid }
         val relasjoner =
-            vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(listOf(soknad.sykepengesoknadUuid))
-        val vedtaksperiodeBehandlinger = relasjoner.flatMap {
-            vedtaksperiodeBehandlingRepository.findByVedtaksperiodeId(
-                vedtaksperiodeId = it.vedtaksperiodeBehandlingId,
-            )
+            vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(sykepengesoknadUuids)
+        val vedtaksperiodeBehandlinger = relasjoner.map {
+            vedtaksperiodeBehandlingRepository.findById(it.vedtaksperiodeBehandlingId).get()
         }
         return vedtaksperiodeBehandlinger.flatMap {
             forelagteOpplysningerRepository.findAllByVedtaksperiodeIdAndBehandlingId(it.vedtaksperiodeId, it.behandlingId)

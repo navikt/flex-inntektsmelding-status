@@ -20,11 +20,12 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 import org.postgresql.util.PGobject
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.SpyBean
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -33,8 +34,9 @@ import java.time.YearMonth
 import java.util.*
 import java.util.concurrent.TimeUnit
 
+
 class ForelagteOpplysningerTest : FellesTestOppsett() {
-    @MockBean
+    @Mock
     lateinit var brukervarsel: Brukervarsel
 
     @Test
@@ -179,7 +181,7 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
         }
 
         sendForelagteOpplysningerCronjob.runMedParameter(nowTidspunkt)
-        verify(brukervarsel, times(0)).beskjedForelagteOpplysninger(any(), any(), any(), any())
+        verify(brukervarsel, never()).beskjedForelagteOpplysninger(any(), any(), any(), any())
     }
 
     private fun lagreSykepengesoknad(
