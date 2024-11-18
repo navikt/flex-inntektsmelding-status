@@ -67,9 +67,8 @@ class SendForelagteOpplysningerCronjob(
             brukervarsel.beskjedForelagteOpplysninger(
                 fnr = fnr,
                 bestillingId = forelagtOpplysningId,
-                orgNavn = orgnavn,
                 synligFremTil = synligFremTil,
-                lenke = lenkeTilForelagteOpplysninger
+                lenke = lenkeTilForelagteOpplysninger,
             )
 
             meldingKafkaProducer.produserMelding(
@@ -85,12 +84,11 @@ class SendForelagteOpplysningerCronjob(
                                 lukkbar = false,
                                 synligFremTil = synligFremTil,
                                 meldingType = "FORELAGTE_OPPLYSNINGER",
-                                metadata = objectMapper.readTree(melding.forelagteOpplysningerMelding.toString())
+                                metadata = objectMapper.readTree(melding.forelagteOpplysningerMelding.toString()),
                             ),
                     ),
             )
 
-            // Update the database record
             forelagteOpplysningerRepository.save(
                 melding.copy(
                     forelagt = now,
@@ -121,61 +119,37 @@ class SendForelagteOpplysningerCronjob(
     fun runMedParameter(now: Instant): Map<CronJobStatus, Int> {
         log.info("Starter VarselutsendingCronJob")
         val resultat = HashMap<CronJobStatus, Int>()
-        val tekstViSender = skapForelagteOpplysningerTekst()
 
-        val usendteMeldinger: List<ForelagteOpplysningerDbRecord> = forelagteOpplysningerRepository.findAllByForelagtIsNull()
+        val usendteForelagteOpplysninger: List<ForelagteOpplysningerDbRecord> =
+            forelagteOpplysningerRepository.findAllByForelagtIsNull()
 
-        val sendteMeldinger: List<ForelagteOpplysningerDbRecord> = forelagteOpplysningerRepository.findAllByForelagtIsNotNull() // todo bør bare gjelde for siste x mnd
-
-
-        for (usendtMelding in usendteMeldinger) {
-            val relevanteSykepengesoknader = finnSykepengesoknader(
-                vedtaksperiodeId = usendtMelding.vedtaksperiodeId,
-                behandlingId = usendtMelding.behandlingId
-            )
+        for (usendtForelagtOpplysning in usendteForelagteOpplysninger) {
+            val relevanteSykepengesoknader =
+                finnSykepengesoknader(
+                    vedtaksperiodeId = usendtForelagtOpplysning.vedtaksperiodeId,
+                    behandlingId = usendtForelagtOpplysning.behandlingId,
+                )
             if (relevanteSykepengesoknader.isEmpty()) {
-                log.warn("Fant ingen sykepengesøknader relatert til forelagte opplysninger: ${usendtMelding.id}")
+                log.warn("Fant ingen sykepengesøknader relatert til forelagte opplysninger: ${usendtForelagtOpplysning.id}")
                 continue
             }
 
-            val relevanteOrgnr = relevanteSykepengesoknader.mapNotNull { it.orgnummer }
             val sykepengesoknadFnr = relevanteSykepengesoknader.maxByOrNull { it.tom }!!.fnr
 
-            val fnr = usendtMelding.fnr ?: sykepengesoknadFnr
-
-            val skalIkkeSendeUt = usendtMelding.opprettet.plus(Duration.ofDays(28)).isAfter(now)
-            if (skalIkkeSendeUt) {
-                continue
-            }
-
-
-            val meldingerTilPerson = forelagteOpplysningerRepository.findByFnr(fnr)
-
-            val nyligSendteMeldingerTilPerson =
-                meldingerTilPerson.filter { it.opprettet != null }.filter {
-                    it.opprettet.isAfter(
-                        now.minus(
-                            Duration.ofDays(28),
-                        ),
-                    )
+            val fnr = usendtForelagtOpplysning.fnr ?: sykepengesoknadFnr
+            relevanteSykepengesoknader.forEach {
+                if (it.orgnummer == null) {
+                    log.warn("Orgnummer er tom")
+                    return@forEach
                 }
-
-            if (nyligSendteMeldingerTilPerson.isNotEmpty()) {
-                val orgnrForUsendtMelding = finnOrgNrForMelding(usendtMelding).firstOrNull() // er det greit å anta vi bare har en?
-                val orgnummerForSendtMeldinger = meldingerTilPerson.flatMap { finnOrgNrForMelding(it) }
-
-                if (orgnrForUsendtMelding != null && orgnummerForSendtMeldinger.contains(orgnrForUsendtMelding)) {
-                } else {
-                    // todo send varsel
+                if (!harForelagtNyligForOrgnr(fnr, it.orgnummer, now)) {
                     sendForelagteMelding(
                         fnr = fnr,
-                        orgnummer = orgnrForUsendtMelding,
-                        melding = usendtMelding,
+                        orgnummer = it.orgnummer,
+                        melding = usendtForelagtOpplysning,
                         now = now,
                     )
                 }
-            } else {
-                // todo log no need to check because no recent messages
             }
         }
 
@@ -190,30 +164,33 @@ class SendForelagteOpplysningerCronjob(
         return resultat
     }
 
-    private fun sjekkOmPersonErForelagtNylig(fnr: String, orgnr: String, now: Instant): Boolean {
-        val soknaderForOrg = sykepengesoknadRepository.findByFnr(fnr).filter { it.orgnummer == orgnr }
+    private fun harForelagtNyligForOrgnr(
+        fnr: String,
+        orgnr: String,
+        now: Instant,
+    ): Boolean {
+        val tidspunkt = now.minus(Duration.ofDays(28))
+        val nyligeForeleggelser = forelagteOpplysningerRepository.findByFnrAndForelagtGreaterThan(fnr, tidspunkt)
+        val soknaderMedForeleggelser =
+            nyligeForeleggelser.map { finnSykepengesoknader(it.vedtaksperiodeId, it.behandlingId) }.flatten()
+        val soknaderMedOrgnr = soknaderMedForeleggelser.filter { it.orgnummer == orgnr }
 
-        val finnesNyligeForeleggelser = forelagteOpplysningerRepository.findByFnr(fnr)
-            .map {  }
-            .filter {  sykepengesoknadRepository.find .findByFnr(it.fnr) }
-            .filter { it.forelagt != null }
-            .any {
-                val erForNy = it.opprettet.plus(Duration.ofDays(28)).isAfter(now)
-                erForNy
-            }
-        return finnesNyligeForeleggelser
+        return soknaderMedOrgnr.isNotEmpty()
     }
 
-    private fun finnSykepengesoknader(vedtaksperiodeId: String, behandlingId: String): List<Sykepengesoknad> {
+    private fun finnSykepengesoknader(
+        vedtaksperiodeId: String,
+        behandlingId: String,
+    ): List<Sykepengesoknad> {
         val vedtaksperiodeBehandlingId =
             vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
                 vedtaksperiodeId = vedtaksperiodeId,
                 behandlingId = behandlingId,
-            )!!.id
+            )?.id
 
         val relevanteVedtaksperiodebehandlingSykepengesoknaderRelations =
             vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingId(
-                vedtaksperiodeBehandlingId!!,
+                vedtaksperiodeBehandlingId ?: "",
             )
 
         val relevanteSykepengesoknader =
@@ -224,10 +201,6 @@ class SendForelagteOpplysningerCronjob(
             )
 
         return relevanteSykepengesoknader
-    }
-
-    private fun finnVedtaksPeriodeIdForSoknad(sykepengesoknad: Sykepengesoknad): String {
-        return ""
     }
 }
 

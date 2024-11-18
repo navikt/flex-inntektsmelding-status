@@ -28,10 +28,10 @@ data class ForelagteOpplysningerDbRecord(
                 vedtaksperiodeId = forelagteOpplysningerMelding.vedtaksperiodeId,
                 behandlingId = forelagteOpplysningerMelding.behandlingId,
                 forelagteOpplysningerMelding =
-                PGobject().also {
-                    it.type = "json"
-                    it.value = consumerRecord.value()
-                },
+                    PGobject().also {
+                        it.type = "json"
+                        it.value = consumerRecord.value()
+                    },
                 opprettet = Instant.now(),
                 forelagt = null,
             )

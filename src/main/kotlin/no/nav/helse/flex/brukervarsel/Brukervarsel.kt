@@ -2,6 +2,7 @@ package no.nav.helse.flex.brukervarsel
 
 import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
 import no.nav.helse.flex.logger
+import no.nav.helse.flex.serialisertTilString
 import no.nav.helse.flex.varseltekst.*
 import no.nav.tms.varsel.action.*
 import no.nav.tms.varsel.builder.VarselActionBuilder
@@ -64,30 +65,35 @@ class Brukervarsel(
     fun beskjedForelagteOpplysninger(
         fnr: String,
         bestillingId: String,
-        orgNavn: String,
         synligFremTil: Instant,
-        lenke: String
+        lenke: String,
     ) {
-        val opprettVarsel =
-            VarselActionBuilder.opprett {
-                type = Varseltype.Beskjed
-                varselId = bestillingId
-                sensitivitet = Sensitivitet.High
-                ident = fnr
-                tekst =
-                    Tekst(
-                        spraakkode = "nb",
-                        //TODO: Legg inn dato
-                        tekst = "Vi har hentet opplysninger om inntekten din fra Aa-ordningen for sykefraværet som startet [dato]. Vi trenger at du sjekker om de stemmer.",
-                        default = true,
-                    )
-                aktivFremTil = synligFremTil.atZone(UTC)
-                link = lenke
-                eksternVarsling = EksternVarslingBestilling()
-            }
-
-        kafkaProducer.send(ProducerRecord(MINSIDE_BRUKERVARSEL, bestillingId, opprettVarsel)).get()
-        log.info("Bestilte beskjed for forelagte opplysninger $bestillingId")
+        try {
+            val opprettVarsel =
+                VarselActionBuilder.opprett {
+                    type = Varseltype.Beskjed
+                    varselId = bestillingId
+                    sensitivitet = Sensitivitet.High
+                    ident = fnr
+                    tekst =
+                        Tekst(
+                            spraakkode = "nb",
+                            // TODO: Legg inn dato
+                            tekst =
+                                "Vi har hentet opplysninger om inntekten din fra Aa-ordningen for sykefraværet som startet [dato]. " +
+                                    "Vi trenger at du sjekker om de stemmer.",
+                            default = true,
+                        )
+                    aktivFremTil = synligFremTil.atZone(UTC)
+                    link = lenke
+                    eksternVarsling = EksternVarslingBestilling()
+                }
+            kafkaProducer.send(ProducerRecord(MINSIDE_BRUKERVARSEL, bestillingId, opprettVarsel)).get()
+            log.info("Bestilte beskjed for forelagte opplysninger $bestillingId")
+        } catch (e: VarselValidationException) {
+            log.error(e.explanation.serialisertTilString())
+            throw e
+        }
     }
 
     fun beskjedForsinketSaksbehandling(

@@ -89,6 +89,9 @@ abstract class FellesTestOppsett {
     lateinit var vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository
 
     @Autowired
+    lateinit var vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository
+
+    @Autowired
     lateinit var jdbcTemplate: JdbcTemplate
 
     @Autowired
