@@ -28,6 +28,7 @@ val varselKotlinBuilderVersion = "1.1.0"
 val sykepengesoknadKafkaVersion = "2024.10.21-14.49-932f4f94"
 val inntektsmeldingKontraktVersion = "2024.05.21-09-56-5528e"
 val tokenSupportVersion = "5.0.11"
+val mockitoKotlinVersion = "2.2.0"
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
@@ -50,6 +51,7 @@ dependencies {
 
     testImplementation(platform("org.testcontainers:testcontainers-bom:$testContainersVersion"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:$mockitoKotlinVersion")
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.testcontainers:kafka")
     testImplementation("org.awaitility:awaitility")
