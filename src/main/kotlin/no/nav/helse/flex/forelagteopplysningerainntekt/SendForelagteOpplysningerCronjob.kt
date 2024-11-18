@@ -74,19 +74,19 @@ class SendForelagteOpplysningerCronjob(
             meldingKafkaProducer.produserMelding(
                 meldingUuid = forelagtOpplysningId,
                 meldingKafkaDto =
-                    MeldingKafkaDto(
-                        fnr = fnr,
-                        opprettMelding =
-                            OpprettMelding(
-                                tekst = skapForelagteOpplysningerTekst(),
-                                lenke = lenkeTilForelagteOpplysninger,
-                                variant = Variant.INFO,
-                                lukkbar = false,
-                                synligFremTil = synligFremTil,
-                                meldingType = "FORELAGTE_OPPLYSNINGER",
-                                metadata = objectMapper.readTree(melding.forelagteOpplysningerMelding.toString()),
-                            ),
+                MeldingKafkaDto(
+                    fnr = fnr,
+                    opprettMelding =
+                    OpprettMelding(
+                        tekst = skapForelagteOpplysningerTekst(),
+                        lenke = lenkeTilForelagteOpplysninger,
+                        variant = Variant.INFO,
+                        lukkbar = false,
+                        synligFremTil = synligFremTil,
+                        meldingType = "FORELAGTE_OPPLYSNINGER",
+                        metadata = objectMapper.readTree(melding.forelagteOpplysningerMelding.toString()),
                     ),
+                ),
             )
 
             forelagteOpplysningerRepository.save(
@@ -143,7 +143,7 @@ class SendForelagteOpplysningerCronjob(
                     log.warn("Orgnummer er tom")
                     return@forEach
                 }
-                if (!harForelagtNyligForOrgnr(fnr, it.orgnummer, now)) {
+                if (!harForelagtNyligForOrgnr(it, now)) {
                     sendForelagteMelding(
                         fnr = fnr,
                         orgnummer = it.orgnummer,
@@ -166,17 +166,14 @@ class SendForelagteOpplysningerCronjob(
     }
 
     private fun harForelagtNyligForOrgnr(
-        fnr: String,
-        orgnr: String,
+        soknad: Sykepengesoknad,
         now: Instant,
     ): Boolean {
         val tidspunkt = now.minus(Duration.ofDays(28))
-        val nyligeForeleggelser = forelagteOpplysningerRepository.findByFnrAndForelagtGreaterThan(fnr, tidspunkt)
-        val soknaderMedForeleggelser =
-            nyligeForeleggelser.map { finnSykepengesoknader(it.vedtaksperiodeId, it.behandlingId) }.flatten()
-        val soknaderMedOrgnr = soknaderMedForeleggelser.filter { it.orgnummer == orgnr }
+        val forelagteOpplysninger = finnForelagteOpplysningerForSoknad(soknad)
 
-        return soknaderMedOrgnr.isNotEmpty()
+
+        return true
     }
 
     private fun finnSykepengesoknader(
@@ -202,6 +199,19 @@ class SendForelagteOpplysningerCronjob(
             )
 
         return relevanteSykepengesoknader
+    }
+
+    private fun finnForelagteOpplysningerForSoknad(soknad: Sykepengesoknad): List<ForelagteOpplysningerDbRecord> {
+        val relasjoner =
+            vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(listOf(soknad.sykepengesoknadUuid))
+        val vedtaksperiodeBehandlinger = relasjoner.flatMap {
+            vedtaksperiodeBehandlingRepository.findByVedtaksperiodeId(
+                vedtaksperiodeId = it.vedtaksperiodeBehandlingId,
+            )
+        }
+        return vedtaksperiodeBehandlinger.flatMap {
+            forelagteOpplysningerRepository.findAllByVedtaksperiodeIdAndBehandlingId(it.vedtaksperiodeId, it.behandlingId)
+        }
     }
 }
 

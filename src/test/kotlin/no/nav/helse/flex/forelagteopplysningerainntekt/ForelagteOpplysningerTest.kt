@@ -19,7 +19,10 @@ import org.amshove.kluent.shouldBeFalse
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import org.postgresql.util.PGobject
 import org.springframework.boot.test.mock.mockito.MockBean
 import java.time.Duration
@@ -129,13 +132,23 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
 
     @Test
     fun `En opplysning burde ikke bli forelagt dersom en tidligere opplysning er forelagt i nylig tid`() {
+        val sammeOrgnummer = "test-org"
+        val sammeFnr = "testFnr0000"
         lagreSykepengesoknad(
             vedtaksperiodeId = "vedtaksperiode-test-id",
             behandlingId = "behandling-test-id",
+            orgnummer = sammeOrgnummer,
+            fnr = sammeFnr,
+        )
+        lagreSykepengesoknad(
+            vedtaksperiodeId = "vedtaksperiode-test-id2",
+            behandlingId = "behandling-test-id2",
+            orgnummer = sammeOrgnummer,
+            fnr = sammeFnr,
         )
 
-        val tidligereForelagtTidspunkt = Instant.parse("2024-01-01")
-        val nowTidspunkt = Instant.parse("2024-01-28")
+        val tidligereForelagtTidspunkt = Instant.parse("2024-01-01T00:00:00.00Z")
+        val nowTidspunkt = Instant.parse("2024-01-20T00:00:00.00Z")
 
         ForelagteOpplysningerDbRecord(
             vedtaksperiodeId = "vedtaksperiode-test-id",
@@ -152,8 +165,8 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
         }
 
         ForelagteOpplysningerDbRecord(
-            vedtaksperiodeId = "vedtaksperiode-test-id",
-            behandlingId = "behandling-test-id",
+            vedtaksperiodeId = "vedtaksperiode-test-id2",
+            behandlingId = "behandling-test-id2",
             forelagteOpplysningerMelding =
             PGobject().apply {
                 type = "json"
@@ -166,16 +179,11 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
         }
 
         sendForelagteOpplysningerCronjob.runMedParameter(nowTidspunkt)
-
-        meldingKafkaConsumer.ventPåRecords(antall = 1, Duration.ofSeconds(9)).first().let {
-            it `should not be` null
-        }
-
-        varslingConsumer.ventPåRecords(antall = 1, Duration.ofSeconds(9))
+        verify(brukervarsel, times(0)).beskjedForelagteOpplysninger(any(), any(), any(), any())
     }
 
     private fun lagreSykepengesoknad(
-        sykepengesoknadUuid: String = "søknadUUID",
+        sykepengesoknadUuid: String = UUID.randomUUID().toString(),
         fnr: String = "testFnr0000",
         orgnummer: String = "test-org",
         vedtaksperiodeId: String = "vedtaksperiode-test-opplysning",
