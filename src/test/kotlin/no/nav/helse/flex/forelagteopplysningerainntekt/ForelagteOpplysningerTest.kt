@@ -2,15 +2,17 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import ForelagteOpplysningerMelding
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.never
+import com.nhaarman.mockitokotlin2.times
+import com.nhaarman.mockitokotlin2.verify
 import no.nav.helse.flex.FellesTestOppsett
-import no.nav.helse.flex.brukervarsel.Brukervarsel
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.serialisertTilString
 import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingDbRecord
-import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusDbRecord
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingSykepengesoknadDbRecord
 import no.nav.helse.flex.ventPåRecords
 import org.amshove.kluent.`should be equal to`
@@ -18,13 +20,11 @@ import org.amshove.kluent.`should not be`
 import org.amshove.kluent.shouldBeFalse
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.awaitility.Awaitility.await
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mock
-import org.mockito.Mockito
-import org.mockito.Mockito.*
+import org.junit.jupiter.api.TestMethodOrder
 import org.postgresql.util.PGobject
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.SpyBean
 import java.time.Duration
 import java.time.Instant
@@ -34,10 +34,15 @@ import java.time.YearMonth
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-
+@TestMethodOrder(MethodOrderer.Random::class)
 class ForelagteOpplysningerTest : FellesTestOppsett() {
-    @Mock
-    lateinit var brukervarsel: Brukervarsel
+    @SpyBean
+    override lateinit var sendForelagteOpplysningerCronjob: SendForelagteOpplysningerCronjob
+
+    @AfterEach
+    fun rensOppDb() {
+        forelagteOpplysningerRepository.deleteAll()
+    }
 
     @Test
     fun `Tar imot og lagrer forelagte inntektsopplysninger fra ainntekt`() {
@@ -48,16 +53,16 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
                 tidsstempel = LocalDateTime.now(),
                 omregnetÅrsinntekt = 500000.0,
                 skatteinntekter =
-                    listOf(
-                        ForelagteOpplysningerMelding.Skatteinntekt(
-                            måned = YearMonth.of(2024, 1),
-                            beløp = 42000.0,
-                        ),
-                        ForelagteOpplysningerMelding.Skatteinntekt(
-                            måned = YearMonth.of(2024, 2),
-                            beløp = 43000.0,
-                        ),
+                listOf(
+                    ForelagteOpplysningerMelding.Skatteinntekt(
+                        måned = YearMonth.of(2024, 1),
+                        beløp = 42000.0,
                     ),
+                    ForelagteOpplysningerMelding.Skatteinntekt(
+                        måned = YearMonth.of(2024, 2),
+                        beløp = 43000.0,
+                    ),
+                ),
             )
 
         forelagteOpplysningerRepository.existsByVedtaksperiodeIdAndBehandlingId(
@@ -104,17 +109,17 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
             vedtaksperiodeId = "vedtaksperiode-test-opplysning",
             behandlingId = "behandling-test-opplysning",
             forelagteOpplysningerMelding =
-                PGobject().apply {
-                    type = "json"
-                    value =
-                        ForelagteOpplysningerMelding(
-                            vedtaksperiodeId = "vedtaksperiode-test-opplysning",
-                            behandlingId = "behandling-test-opplysning",
-                            tidsstempel = LocalDateTime.parse("2024-01-16T00:00:00.00"),
-                            omregnetÅrsinntekt = 0.0,
-                            skatteinntekter = emptyList(),
-                        ).serialisertTilString()
-                },
+            PGobject().apply {
+                type = "json"
+                value =
+                    ForelagteOpplysningerMelding(
+                        vedtaksperiodeId = "vedtaksperiode-test-opplysning",
+                        behandlingId = "behandling-test-opplysning",
+                        tidsstempel = LocalDateTime.parse("2024-01-16T00:00:00.00"),
+                        omregnetÅrsinntekt = 0.0,
+                        skatteinntekter = emptyList(),
+                    ).serialisertTilString()
+            },
             opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
             forelagt = null,
         ).also {
@@ -126,7 +131,8 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
         meldingKafkaConsumer.ventPåRecords(antall = 1, Duration.ofSeconds(9)).first().let {
             it `should not be` null
             val kafkamelding: MeldingKafkaDto = objectMapper.readValue(it.value())
-            kafkamelding.opprettMelding?.metadata?.get("vedtaksperiodeId")?.asText() `should be equal to` "vedtaksperiode-test-opplysning"
+            kafkamelding.opprettMelding?.metadata?.get("vedtaksperiodeId")
+                ?.asText() `should be equal to` "vedtaksperiode-test-opplysning"
         }
 
         varslingConsumer.ventPåRecords(antall = 1, Duration.ofSeconds(9))
@@ -150,7 +156,8 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
         )
 
         val tidligereForelagtTidspunkt = Instant.parse("2024-01-01T00:00:00.00Z")
-        val nowTidspunkt = Instant.parse("2024-01-20T00:00:00.00Z")
+        val skalIkkeVarsleTidspunkt = Instant.parse("2024-01-28T00:00:00.00Z")
+        val skalVarsleTidspunkt = Instant.parse("2024-01-29T00:00:00.00Z")
 
         ForelagteOpplysningerDbRecord(
             vedtaksperiodeId = "vedtaksperiode-test-id",
@@ -166,7 +173,7 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
             forelagteOpplysningerRepository.save(it)
         }
 
-        ForelagteOpplysningerDbRecord(
+        var forelagtSomSkalSlettes = ForelagteOpplysningerDbRecord(
             vedtaksperiodeId = "vedtaksperiode-test-id2",
             behandlingId = "behandling-test-id2",
             forelagteOpplysningerMelding =
@@ -176,12 +183,21 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
             },
             opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
             forelagt = null,
-        ).also {
-            forelagteOpplysningerRepository.save(it)
-        }
+        )
+        forelagtSomSkalSlettes = forelagteOpplysningerRepository.save(forelagtSomSkalSlettes)
 
-        sendForelagteOpplysningerCronjob.runMedParameter(nowTidspunkt)
-        verify(brukervarsel, never()).beskjedForelagteOpplysninger(any(), any(), any(), any())
+
+        sendForelagteOpplysningerCronjob.runMedParameter(skalIkkeVarsleTidspunkt)
+        verify(sendForelagteOpplysningerCronjob, never()).sendForelagteMelding(any(), any(), any(), any(), any())
+
+        forelagteOpplysningerRepository.delete(forelagtSomSkalSlettes)
+        forelagteOpplysningerRepository.save(forelagtSomSkalSlettes.copy(id = null))
+
+        sendForelagteOpplysningerCronjob.runMedParameter(skalVarsleTidspunkt)
+        verify(sendForelagteOpplysningerCronjob, times(1)).sendForelagteMelding(any(), any(), any(), any(), any())
+
+        meldingKafkaConsumer.ventPåRecords(antall = 1, Duration.ofSeconds(9))
+        varslingConsumer.ventPåRecords(antall = 1, Duration.ofSeconds(9))
     }
 
     private fun lagreSykepengesoknad(
