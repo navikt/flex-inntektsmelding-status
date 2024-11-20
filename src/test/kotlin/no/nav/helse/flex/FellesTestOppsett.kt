@@ -236,6 +236,7 @@ abstract class FellesTestOppsett {
         jdbcTemplate.update("DELETE FROM vedtaksperiode_behandling_status")
         jdbcTemplate.update("DELETE FROM vedtaksperiode_behandling_sykepengesoknad")
         jdbcTemplate.update("DELETE FROM vedtaksperiode_behandling")
+        jdbcTemplate.update("DELETE FROM FORELAGTE_OPPLYSNINGER_AINNTEKT")
     }
 
     fun sendSykepengesoknad(soknad: SykepengesoknadDTO) {
