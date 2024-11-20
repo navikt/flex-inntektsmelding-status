@@ -2,10 +2,6 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import ForelagteOpplysningerMelding
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.never
-import com.nhaarman.mockitokotlin2.times
-import com.nhaarman.mockitokotlin2.verify
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.objectMapper
@@ -20,14 +16,11 @@ import org.amshove.kluent.`should not be`
 import org.amshove.kluent.shouldBeFalse
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.awaitility.Awaitility.await
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
 import org.postgresql.util.PGobject
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.SpyBean
-import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -37,12 +30,6 @@ import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.Random::class)
 class ForelagteOpplysningerTest : FellesTestOppsett() {
-
-    @AfterEach
-    fun rensOppDb() {
-        forelagteOpplysningerRepository.deleteAll()
-    }
-
     @Test
     fun `Tar imot og lagrer forelagte inntektsopplysninger fra ainntekt`() {
         val forelagteOpplysningerMelding =
@@ -127,14 +114,15 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
 
         sendForelagteOpplysningerCronjob.runMedParameter(Instant.parse("2024-11-15T12:00:00.00Z"))
 
-        meldingKafkaConsumer.ventPåRecords(antall = 1, Duration.ofSeconds(9)).first().let {
-            it `should not be` null
-            val kafkamelding: MeldingKafkaDto = objectMapper.readValue(it.value())
-            kafkamelding.opprettMelding?.metadata?.get("vedtaksperiodeId")
-                ?.asText() `should be equal to` "vedtaksperiode-test-opplysning"
-        }
+        meldingKafkaConsumer.ventPåRecords(antall = 1)
+            .first().let {
+                it `should not be` null
+                val kafkamelding: MeldingKafkaDto = objectMapper.readValue(it.value())
+                kafkamelding.opprettMelding?.metadata?.get("vedtaksperiodeId")
+                    ?.asText() `should be equal to` "vedtaksperiode-test-opplysning"
+            }
 
-        varslingConsumer.ventPåRecords(antall = 1, Duration.ofSeconds(9))
+        varslingConsumer.ventPåRecords(antall = 1)
     }
 
     private fun lagreSykepengesoknad(
@@ -184,7 +172,6 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
 
 class SendForelagteOpplysningerOppgaveTest : FellesTestOppsett() {
     @Autowired
-    @SpyBean
     lateinit var sendForelagteOpplysningerOppgave: SendForelagteOpplysningerOppgave
 
     @Test
@@ -237,16 +224,16 @@ class SendForelagteOpplysningerOppgaveTest : FellesTestOppsett() {
 
         sendForelagteOpplysningerOppgave.sendForelagteOpplysninger(nyForelagtOpplysningLagret.id!!, skalIkkeVarsleTidspunkt)
 
-        verify(sendForelagteOpplysningerOppgave, never()).sendForelagteMelding(any(), any(), any(), any(), any())
+        meldingKafkaConsumer.ventPåRecords(antall = 0)
+        varslingConsumer.ventPåRecords(antall = 0)
 
         forelagteOpplysningerRepository.delete(nyForelagtOpplysningLagret)
         nyForelagtOpplysningLagret = forelagteOpplysningerRepository.save(nyForelagtOpplysning)
 
         sendForelagteOpplysningerOppgave.sendForelagteOpplysninger(nyForelagtOpplysningLagret.id!!, skalVarsleTidspunkt)
-        verify(sendForelagteOpplysningerOppgave, times(1)).sendForelagteMelding(any(), any(), any(), any(), any())
 
-        meldingKafkaConsumer.ventPåRecords(antall = 1, Duration.ofSeconds(9))
-        varslingConsumer.ventPåRecords(antall = 1, Duration.ofSeconds(9))
+        meldingKafkaConsumer.ventPåRecords(antall = 1)
+        varslingConsumer.ventPåRecords(antall = 1)
     }
 
     private fun lagreSykepengesoknad(
