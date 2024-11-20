@@ -25,6 +25,7 @@ import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
 import org.postgresql.util.PGobject
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.SpyBean
 import java.time.Duration
 import java.time.Instant
@@ -36,8 +37,6 @@ import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.Random::class)
 class ForelagteOpplysningerTest : FellesTestOppsett() {
-    @SpyBean
-    override lateinit var sendForelagteOpplysningerCronjob: SendForelagteOpplysningerCronjob
 
     @AfterEach
     fun rensOppDb() {
@@ -138,6 +137,56 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
         varslingConsumer.ventPåRecords(antall = 1, Duration.ofSeconds(9))
     }
 
+    private fun lagreSykepengesoknad(
+        sykepengesoknadUuid: String = UUID.randomUUID().toString(),
+        fnr: String = "testFnr0000",
+        orgnummer: String = "test-org",
+        vedtaksperiodeId: String = "vedtaksperiode-test-opplysning",
+        behandlingId: String = "behandling-test-opplysning",
+    ) {
+        val soknad =
+            Sykepengesoknad(
+                sykepengesoknadUuid = sykepengesoknadUuid,
+                orgnummer = orgnummer,
+                soknadstype = "ARBEIDSTAKER",
+                startSyketilfelle = LocalDate.of(2024, 1, 1),
+                fom = LocalDate.of(2024, 1, 1),
+                tom = LocalDate.of(2024, 1, 16),
+                fnr = fnr,
+                sendt = Instant.parse("2024-01-16T00:00:00.00Z"),
+                opprettetDatabase = Instant.parse("2024-01-16T00:00:00.00Z"),
+            ).also {
+                sykepengesoknadRepository.save(it)
+            }
+
+        val vedtaksperiodeBehandling =
+            vedtaksperiodeBehandlingRepository.save(
+                VedtaksperiodeBehandlingDbRecord(
+                    opprettetDatabase = Instant.parse("2024-01-16T00:00:00.00Z"),
+                    oppdatertDatabase = Instant.parse("2024-01-16T00:00:00.00Z"),
+                    sisteSpleisstatus = StatusVerdi.VENTER_PÅ_ARBEIDSGIVER,
+                    sisteSpleisstatusTidspunkt = Instant.parse("2024-01-16T00:00:00.00Z"),
+                    sisteVarslingstatus = null,
+                    sisteVarslingstatusTidspunkt = null,
+                    vedtaksperiodeId = vedtaksperiodeId,
+                    behandlingId = behandlingId,
+                ),
+            )
+
+        vedtaksperiodeBehandlingSykepengesoknadRepository.save(
+            VedtaksperiodeBehandlingSykepengesoknadDbRecord(
+                vedtaksperiodeBehandlingId = vedtaksperiodeBehandling.id!!,
+                sykepengesoknadUuid = soknad.sykepengesoknadUuid,
+            ),
+        )
+    }
+}
+
+class SendForelagteOpplysningerOppgaveTest : FellesTestOppsett() {
+    @Autowired
+    @SpyBean
+    lateinit var sendForelagteOpplysningerOppgave: SendForelagteOpplysningerOppgave
+
     @Test
     fun `En opplysning burde ikke bli forelagt dersom en tidligere opplysning er forelagt i nylig tid`() {
         val sammeOrgnummer = "test-org"
@@ -173,7 +222,7 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
             forelagteOpplysningerRepository.save(it)
         }
 
-        var forelagtSomSkalSlettes = ForelagteOpplysningerDbRecord(
+        val nyForelagtOpplysning = ForelagteOpplysningerDbRecord(
             vedtaksperiodeId = "vedtaksperiode-test-id2",
             behandlingId = "behandling-test-id2",
             forelagteOpplysningerMelding =
@@ -184,17 +233,17 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
             opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
             forelagt = null,
         )
-        forelagtSomSkalSlettes = forelagteOpplysningerRepository.save(forelagtSomSkalSlettes)
+        var nyForelagtOpplysningLagret = forelagteOpplysningerRepository.save(nyForelagtOpplysning)
 
+        sendForelagteOpplysningerOppgave.sendForelagteOpplysninger(nyForelagtOpplysningLagret.id!!, skalIkkeVarsleTidspunkt)
 
-        sendForelagteOpplysningerCronjob.runMedParameter(skalIkkeVarsleTidspunkt)
-        verify(sendForelagteOpplysningerCronjob, never()).sendForelagteMelding(any(), any(), any(), any(), any())
+        verify(sendForelagteOpplysningerOppgave, never()).sendForelagteMelding(any(), any(), any(), any(), any())
 
-        forelagteOpplysningerRepository.delete(forelagtSomSkalSlettes)
-        forelagteOpplysningerRepository.save(forelagtSomSkalSlettes.copy(id = null))
+        forelagteOpplysningerRepository.delete(nyForelagtOpplysningLagret)
+        nyForelagtOpplysningLagret = forelagteOpplysningerRepository.save(nyForelagtOpplysning)
 
-        sendForelagteOpplysningerCronjob.runMedParameter(skalVarsleTidspunkt)
-        verify(sendForelagteOpplysningerCronjob, times(1)).sendForelagteMelding(any(), any(), any(), any(), any())
+        sendForelagteOpplysningerOppgave.sendForelagteOpplysninger(nyForelagtOpplysningLagret.id!!, skalVarsleTidspunkt)
+        verify(sendForelagteOpplysningerOppgave, times(1)).sendForelagteMelding(any(), any(), any(), any(), any())
 
         meldingKafkaConsumer.ventPåRecords(antall = 1, Duration.ofSeconds(9))
         varslingConsumer.ventPåRecords(antall = 1, Duration.ofSeconds(9))
@@ -242,16 +291,5 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
                 sykepengesoknadUuid = soknad.sykepengesoknadUuid,
             ),
         )
-
-//        VedtaksperiodeBehandlingStatusDbRecord(
-//            vedtaksperiodeBehandlingId = vedtaksperiodeBehandling.id,
-//            opprettetDatabase = Instant.parse("2024-01-16T00:00:00.00Z"),
-//            tidspunkt = Instant.parse("2024-01-16T00:00:00.00Z"),
-//            status = StatusVerdi.OPPRETTET,
-//            dittSykefravaerMeldingId = null,
-//            brukervarselId = null,
-//        ).also {
-//            vedtaksperiodeBehandlingStatusRepository.save(it)
-//        }
     }
 }
