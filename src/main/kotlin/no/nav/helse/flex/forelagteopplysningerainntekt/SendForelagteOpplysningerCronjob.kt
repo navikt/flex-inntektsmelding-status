@@ -101,7 +101,7 @@ class SendForelagteOpplysningerCronjob(
         return CronJobStatus.SENDT_FORELAGTE_OPPLYSNINGER
     }
 
-    @Scheduled(initialDelay = 1, fixedDelay = 15, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 10, fixedDelay = 15, timeUnit = TimeUnit.MINUTES)
     fun run(): Map<CronJobStatus, Int> {
         val osloDatetimeNow = OffsetDateTime.now().tilOsloZone()
         if (osloDatetimeNow.dayOfWeek in setOf(DayOfWeek.SUNDAY, DayOfWeek.SATURDAY)) {
