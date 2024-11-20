@@ -13,8 +13,6 @@ import java.time.Instant
 data class ForelagteOpplysningerDbRecord(
     @Id
     val id: String? = null,
-    // TODO: Kan fnr finnes her?
-    val fnr: String? = null,
     val vedtaksperiodeId: String,
     val behandlingId: String,
     val forelagteOpplysningerMelding: PGobject,

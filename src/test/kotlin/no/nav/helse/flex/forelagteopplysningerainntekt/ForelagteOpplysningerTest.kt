@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.objectMapper
+import no.nav.helse.flex.organisasjon.Organisasjon
 import no.nav.helse.flex.serialisertTilString
 import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
@@ -278,5 +279,17 @@ class SendForelagteOpplysningerOppgaveTest : FellesTestOppsett() {
                 sykepengesoknadUuid = soknad.sykepengesoknadUuid,
             ),
         )
+
+        Organisasjon(
+            orgnummer = orgnummer,
+            navn = "Organisasjonen",
+            opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
+            oppdatert = Instant.parse("2024-01-01T00:00:00.00Z"),
+            oppdatertAv = "personen",
+        ).also {
+            if (organisasjonRepository.findByOrgnummer(orgnummer) == null) {
+                organisasjonRepository.save(it)
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.flex.brukervarsel.Brukervarsel
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.MeldingKafkaDto
@@ -13,6 +14,7 @@ import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.util.tilOsloZone
 import no.nav.helse.flex.varseltekst.skapForelagteOpplysningerTekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
+import org.postgresql.util.PGobject
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -55,6 +57,7 @@ class SendForelagteOpplysningerCronjob(
             sendForelagteOpplysningerOppgave.sendForelagteOpplysninger(usendtForelagtOpplysning.id!!, now)
         }
 
+        //TODO:
         log.info(
             "Resultat fra VarselutsendingCronJob: ${
                 resultat.map { "${it.key}: ${it.value}" }.sorted().joinToString(
@@ -67,123 +70,69 @@ class SendForelagteOpplysningerCronjob(
     }
 }
 
+data class RelevantInfoTilForelagtOpplysning(
+    val fnr: String,
+    val orgnummer: String,
+    val orgNavn: String
+)
+
 @Component
-class SendForelagteOpplysningerOppgave(
+class HentRelevantInfoTilForelagtOpplysning(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
-    private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
     private val vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository,
     private val sykepengesoknadRepository: SykepengesoknadRepository,
     private val organisasjonRepository: OrganisasjonRepository,
-    private val brukervarsel: Brukervarsel,
-    private val meldingKafkaProducer: MeldingKafkaProducer,
-    @Value("\${FORELAGTE_OPPLYSNINGER_BASE_URL}") private val forelagteOpplysningerBaseUrl: String,
+    private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
 ) {
-    private val log = logger()
+    val log = logger()
 
-    @Transactional(propagation = Propagation.REQUIRED)
-    fun sendForelagteOpplysninger(forelagteOpplysningerId: String, now: Instant) {
-        val forelagteOpplysninger = forelagteOpplysningerRepository.findById(forelagteOpplysningerId).getOrNull()
-        if (forelagteOpplysninger == null) {
-            log.error("Forelagte opplysninger finnes ikke for id: $forelagteOpplysningerId")
-            return
+    fun hentRelevantInfoTil(forelagteOpplysninger: ForelagteOpplysningerDbRecord): RelevantInfoTilForelagtOpplysning? {
+        val sykepengeSoknader = finnSykepengesoknader(
+            vedtaksperiodeId = forelagteOpplysninger.vedtaksperiodeId,
+            behandlingId = forelagteOpplysninger.behandlingId
+        )
+        if (sykepengeSoknader.isEmpty()) {
+            log.warn("Finnes ingen sykepengesoknader relatert til forelagte opplysninger: ${forelagteOpplysninger.id}")
+            return null
+        }
+        if (sykepengeSoknader.size > 1) {
+            log.warn("Fant flere sykepengesoknader for forelagte opplysninger: ${forelagteOpplysninger.id}. Vi baserer fnr og orgnr på den siste")
+        }
+        val sisteSykepengeSoknad = sykepengeSoknader.maxBy { it.tom }
+
+        if (sisteSykepengeSoknad.orgnummer == null) {
+            log.warn("Siste sykepengesøknad for forelagte opplysninger inneholder ikke orgnummer: ${forelagteOpplysninger.id}")
+            return null
         }
 
-        val relevanteSykepengesoknader =
-            finnSykepengesoknader(
-                vedtaksperiodeId = forelagteOpplysninger.vedtaksperiodeId,
-                behandlingId = forelagteOpplysninger.behandlingId,
-            )
-        if (relevanteSykepengesoknader.isEmpty()) {
-            log.error("Fant ingen sykepengesøknader relatert til forelagte opplysninger: ${forelagteOpplysninger.id}")
-            return
+        val org = organisasjonRepository.findByOrgnummer(sisteSykepengeSoknad.orgnummer)
+        if (org == null) {
+            log.warn("Organisasjon for forelagte opplysninger finnes ikke. Forelagte opplysninger: ${forelagteOpplysninger.id}, orgnummer: ${sisteSykepengeSoknad.orgnummer}")
+            return null
         }
 
-        // TODO: Sjekk at det er riktig/holder å bruke siste fnr
-        val sykepengesoknadFnr = relevanteSykepengesoknader.maxByOrNull { it.tom }!!.fnr
-
-        val fnr = forelagteOpplysninger.fnr ?: sykepengesoknadFnr
-
-        // TODO: Holder det å logge dersom det er flere søknader, og bare bruke siste?
-        relevanteSykepengesoknader.forEach {
-            if (it.orgnummer == null) {
-                log.warn("Orgnummer er tom")
-                return@forEach
-            }
-            if (!harForelagtNyligForOrgnr(it.fnr, it.orgnummer, now)) {
-                sendForelagteMelding(
-                    fnr = fnr,
-                    orgnummer = it.orgnummer,
-                    melding = forelagteOpplysninger,
-                    now = now,
-                )
-                forelagteOpplysningerRepository.save(
-                    forelagteOpplysninger.copy(forelagt = now)
-                )
-            }
-        }
+        return RelevantInfoTilForelagtOpplysning(
+            fnr = sisteSykepengeSoknad.fnr,
+            orgnummer = sisteSykepengeSoknad.orgnummer,
+            orgNavn = org.navn
+        )
     }
 
-    private fun harForelagtNyligForOrgnr(
-        fnr: String,
-        orgnr: String,
-        now: Instant,
-    ): Boolean {
-        val forelagtEtter = now.minus(Duration.ofDays(28))
-        val forelagteOpplysninger = finnForelagteOpplysningerForPersonOgOrg(fnr, orgnr)
-        val finnesOpplysningerForelagtNylig = forelagteOpplysninger
-            .mapNotNull { it.forelagt }
-            .any { it.isAfter(forelagtEtter) }
-        return finnesOpplysningerForelagtNylig
-    }
-
-    fun sendForelagteMelding(
-        fnr: String,
-        orgnummer: String?,
-        melding: ForelagteOpplysningerDbRecord,
-        now: Instant,
-        dryRun: Boolean = false,
-    ): CronJobStatus {
-        val orgnavn =
-            if (orgnummer == null) {
-                "arbeidsgiver"
-            } else {
-                organisasjonRepository.findByOrgnummer(orgnummer)?.navn ?: orgnummer
-            }
-
-        if (!dryRun) {
-            val forelagtOpplysningId = melding.id!!
-            val synligFremTil = OffsetDateTime.now().plusWeeks(3).toInstant()
-            val lenkeTilForelagteOpplysninger = "$forelagteOpplysningerBaseUrl/$forelagtOpplysningId"
-
-            brukervarsel.beskjedForelagteOpplysninger(
-                fnr = fnr,
-                bestillingId = forelagtOpplysningId,
-                synligFremTil = synligFremTil,
-                lenke = lenkeTilForelagteOpplysninger,
-            )
-
-            meldingKafkaProducer.produserMelding(
-                meldingUuid = forelagtOpplysningId,
-                meldingKafkaDto =
-                MeldingKafkaDto(
-                    fnr = fnr,
-                    opprettMelding =
-                    OpprettMelding(
-                        tekst = skapForelagteOpplysningerTekst(),
-                        lenke = lenkeTilForelagteOpplysninger,
-                        variant = Variant.INFO,
-                        lukkbar = false,
-                        synligFremTil = synligFremTil,
-                        meldingType = "FORELAGTE_OPPLYSNINGER",
-                        metadata = objectMapper.readTree(melding.forelagteOpplysningerMelding.toString()),
-                    ),
-                ),
-            )
-
-            log.info("Sendt forelagte opplysninger varsel for vedtaksperiode ${melding.vedtaksperiodeId}")
+    fun hentForelagteOpplysningerFor(fnr: String, orgnr: String): List<ForelagteOpplysningerDbRecord> {
+        val sykepengesoknader = sykepengesoknadRepository.findByFnr(fnr)
+            .filter { it.orgnummer == orgnr }
+        val sykepengesoknadUuids = sykepengesoknader.map { it.sykepengesoknadUuid }
+        val relasjoner =
+            vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(sykepengesoknadUuids)
+        val vedtaksperiodeBehandlinger = relasjoner.map {
+            vedtaksperiodeBehandlingRepository.findById(it.vedtaksperiodeBehandlingId).get()
         }
-
-        return CronJobStatus.SENDT_FORELAGTE_OPPLYSNINGER
+        return vedtaksperiodeBehandlinger.flatMap {
+            forelagteOpplysningerRepository.findAllByVedtaksperiodeIdAndBehandlingId(
+                it.vedtaksperiodeId,
+                it.behandlingId
+            )
+        }
     }
 
     private fun finnSykepengesoknader(
@@ -210,20 +159,110 @@ class SendForelagteOpplysningerOppgave(
 
         return relevanteSykepengesoknader
     }
+}
 
-    private fun finnForelagteOpplysningerForPersonOgOrg(fnr: String, orgnr: String): List<ForelagteOpplysningerDbRecord> {
-        val sykepengesoknader = sykepengesoknadRepository.findByFnr(fnr)
-            .filter { it.orgnummer == orgnr }
-        val sykepengesoknadUuids = sykepengesoknader.map { it.sykepengesoknadUuid }
-        val relasjoner =
-            vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(sykepengesoknadUuids)
-        val vedtaksperiodeBehandlinger = relasjoner.map {
-            vedtaksperiodeBehandlingRepository.findById(it.vedtaksperiodeBehandlingId).get()
+@Component
+class SendForelagteOpplysningerOppgave(
+    private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
+    private val hentRelevantInfoTilForelagtOpplysning: HentRelevantInfoTilForelagtOpplysning,
+    private val brukervarsel: Brukervarsel,
+    private val meldingKafkaProducer: MeldingKafkaProducer,
+    @Value("\${FORELAGTE_OPPLYSNINGER_BASE_URL}") private val forelagteOpplysningerBaseUrl: String,
+) {
+    private val log = logger()
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    fun sendForelagteOpplysninger(forelagteOpplysningerId: String, now: Instant) {
+        val forelagteOpplysninger = forelagteOpplysningerRepository.findById(forelagteOpplysningerId).getOrNull()
+        if (forelagteOpplysninger == null) {
+            log.error("Forelagte opplysninger finnes ikke for id: $forelagteOpplysningerId")
+            return
         }
-        return vedtaksperiodeBehandlinger.flatMap {
-            forelagteOpplysningerRepository.findAllByVedtaksperiodeIdAndBehandlingId(it.vedtaksperiodeId, it.behandlingId)
+
+        val relevantInfoTilForelagteOpplysninger =
+            hentRelevantInfoTilForelagtOpplysning.hentRelevantInfoTil(forelagteOpplysninger)
+        if (relevantInfoTilForelagteOpplysninger == null) {
+            log.warn("Kunne ikke hente relevant info til forelagte opplysninger: ${forelagteOpplysninger.id}")
+            return
+        }
+
+        if (!harForelagtNyligForOrgnr(
+                fnr = relevantInfoTilForelagteOpplysninger.fnr,
+                orgnr = relevantInfoTilForelagteOpplysninger.orgnummer,
+                now
+            )
+        ) {
+            opprettVarslinger(
+                relevantInfoTilForelagtOpplysning = relevantInfoTilForelagteOpplysninger,
+                melding = forelagteOpplysninger,
+                now = now,
+            )
+            forelagteOpplysningerRepository.save(
+                forelagteOpplysninger.copy(forelagt = now)
+            )
         }
     }
+
+    private fun harForelagtNyligForOrgnr(
+        fnr: String,
+        orgnr: String,
+        now: Instant,
+    ): Boolean {
+        val forelagtEtter = now.minus(Duration.ofDays(28))
+        val forelagteOpplysninger =
+            hentRelevantInfoTilForelagtOpplysning.hentForelagteOpplysningerFor(fnr = fnr, orgnr = orgnr)
+        val finnesOpplysningerForelagtNylig = forelagteOpplysninger
+            .mapNotNull { it.forelagt }
+            .any { it.isAfter(forelagtEtter) }
+        return finnesOpplysningerForelagtNylig
+    }
+
+    fun opprettVarslinger(
+        relevantInfoTilForelagtOpplysning: RelevantInfoTilForelagtOpplysning,
+        melding: ForelagteOpplysningerDbRecord,
+        now: Instant,
+        dryRun: Boolean = false,
+    ): CronJobStatus {
+        if (!dryRun) {
+            val forelagtOpplysningId = melding.id!!
+            val synligFremTil = now.tilOsloZone().plusWeeks(3).toInstant()
+            val lenkeTilForelagteOpplysninger = "$forelagteOpplysningerBaseUrl/$forelagtOpplysningId"
+
+            brukervarsel.beskjedForelagteOpplysninger(
+                fnr = relevantInfoTilForelagtOpplysning.fnr,
+                bestillingId = forelagtOpplysningId,
+                synligFremTil = synligFremTil,
+                lenke = lenkeTilForelagteOpplysninger,
+            )
+
+            meldingKafkaProducer.produserMelding(
+                meldingUuid = forelagtOpplysningId,
+                meldingKafkaDto =
+                MeldingKafkaDto(
+                    fnr = relevantInfoTilForelagtOpplysning.fnr,
+                    opprettMelding =
+                    OpprettMelding(
+                        tekst = skapForelagteOpplysningerTekst(),
+                        lenke = lenkeTilForelagteOpplysninger,
+                        variant = Variant.INFO,
+                        lukkbar = false,
+                        synligFremTil = synligFremTil,
+                        meldingType = "FORELAGTE_OPPLYSNINGER",
+                        metadata = forelagtOpplysningTilMetadata(melding.forelagteOpplysningerMelding),
+                    ),
+                ),
+            )
+
+            log.info("Sendt forelagte opplysninger varsel for vedtaksperiode ${melding.vedtaksperiodeId}")
+        }
+
+        return CronJobStatus.SENDT_FORELAGTE_OPPLYSNINGER
+    }
+}
+
+//TODO: ta med organisjason info
+internal fun forelagtOpplysningTilMetadata(forelagtOpplysningMelding: PGobject): JsonNode{
+    return objectMapper.readTree(forelagtOpplysningMelding.toString())
 }
 
 enum class CronJobStatus { SENDT_FORELAGTE_OPPLYSNINGER }

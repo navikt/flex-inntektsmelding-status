@@ -13,12 +13,5 @@ interface ForelagteOpplysningerRepository : CrudRepository<ForelagteOpplysninger
 
     fun findAllByForelagtIsNull(): List<ForelagteOpplysningerDbRecord>
 
-    fun findByFnrAndForelagtGreaterThan(
-        fnr: String,
-        tidspunkt: Instant,
-    ): List<ForelagteOpplysningerDbRecord>
-
-    fun findAllByFnr(fnr: String): List<ForelagteOpplysningerDbRecord>
-
     fun findAllByVedtaksperiodeIdAndBehandlingId(vedtaksperiodeId: String, behandlingId: String): List<ForelagteOpplysningerDbRecord>
 }
