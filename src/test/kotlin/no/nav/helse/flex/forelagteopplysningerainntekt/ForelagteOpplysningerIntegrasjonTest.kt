@@ -2,7 +2,6 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.FellesTestOppsett
-import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.organisasjon.Organisasjon
 import no.nav.helse.flex.serialisertTilString
@@ -38,16 +37,16 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
                 tidsstempel = LocalDateTime.now(),
                 omregnetÅrsinntekt = 500000.0,
                 skatteinntekter =
-                listOf(
-                    ForelagteOpplysningerMelding.Skatteinntekt(
-                        måned = YearMonth.of(2024, 1),
-                        beløp = 42000.0,
+                    listOf(
+                        ForelagteOpplysningerMelding.Skatteinntekt(
+                            måned = YearMonth.of(2024, 1),
+                            beløp = 42000.0,
+                        ),
+                        ForelagteOpplysningerMelding.Skatteinntekt(
+                            måned = YearMonth.of(2024, 2),
+                            beløp = 43000.0,
+                        ),
                     ),
-                    ForelagteOpplysningerMelding.Skatteinntekt(
-                        måned = YearMonth.of(2024, 2),
-                        beløp = 43000.0,
-                    ),
-                ),
             )
 
         forelagteOpplysningerRepository.existsByVedtaksperiodeIdAndBehandlingId(
@@ -90,26 +89,27 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
             behandlingId = "behandling-test-opplysning",
         )
 
-        val forelagteOpplysningerMelding = forelagteOpplysningerRepository.save(
-            ForelagteOpplysningerDbRecord(
-                vedtaksperiodeId = "vedtaksperiode-test-opplysning",
-                behandlingId = "behandling-test-opplysning",
-                forelagteOpplysningerMelding =
-                PGobject().apply {
-                    type = "json"
-                    value =
-                        ForelagteOpplysningerMelding(
-                            vedtaksperiodeId = "vedtaksperiode-test-opplysning",
-                            behandlingId = "behandling-test-opplysning",
-                            tidsstempel = LocalDateTime.parse("2024-01-16T00:00:00.00"),
-                            omregnetÅrsinntekt = 0.0,
-                            skatteinntekter = emptyList(),
-                        ).serialisertTilString()
-                },
-                opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
-                forelagt = null
+        val forelagteOpplysningerMelding =
+            forelagteOpplysningerRepository.save(
+                ForelagteOpplysningerDbRecord(
+                    vedtaksperiodeId = "vedtaksperiode-test-opplysning",
+                    behandlingId = "behandling-test-opplysning",
+                    forelagteOpplysningerMelding =
+                        PGobject().apply {
+                            type = "json"
+                            value =
+                                ForelagteOpplysningerMelding(
+                                    vedtaksperiodeId = "vedtaksperiode-test-opplysning",
+                                    behandlingId = "behandling-test-opplysning",
+                                    tidsstempel = LocalDateTime.parse("2024-01-16T00:00:00.00"),
+                                    omregnetÅrsinntekt = 0.0,
+                                    skatteinntekter = emptyList(),
+                                ).serialisertTilString()
+                        },
+                    opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
+                    forelagt = null,
+                ),
             )
-        )
 
         sendForelagteOpplysningerCronjob.runMedParameter(Instant.parse("2024-11-15T12:00:00.00Z"))
 
@@ -177,4 +177,3 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
         }
     }
 }
-

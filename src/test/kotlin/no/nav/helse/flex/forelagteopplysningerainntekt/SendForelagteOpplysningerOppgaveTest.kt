@@ -4,9 +4,11 @@ import com.nhaarman.mockitokotlin2.any
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mock
 import org.mockito.Mockito
 import org.postgresql.util.PGobject
 import java.time.Instant
+import java.time.LocalDate
 import java.util.*
 
 class SendForelagteOpplysningerOppgaveTest {
@@ -31,6 +33,7 @@ class SendForelagteOpplysningerOppgaveTest {
             RelevantInfoTilForelagtOpplysning(
                 fnr = "identisk-test-fnr",
                 orgnummer = "identisk-test-org",
+                startSyketilfelle = LocalDate.parse("2022-06-16"),
                 orgNavn = "Test Org",
             ),
         )
@@ -46,7 +49,7 @@ class SendForelagteOpplysningerOppgaveTest {
 
         Mockito.`when`(hentRelevantInfoTilForelagtOpplysningMock.hentForelagteOpplysningerFor(any(), any())).thenReturn(
             listOf(
-                lagTestForelagteOpplysninger(forelagt = tidligereForelagtTidspunkt)
+                lagTestForelagteOpplysninger(forelagt = tidligereForelagtTidspunkt),
             ),
         )
 
@@ -59,7 +62,7 @@ class SendForelagteOpplysningerOppgaveTest {
         oppgave.sendForelagteOpplysninger("_", skalIkkeVarsleTidspunkt)
 
         Mockito.verify(opprettBrukervarselForForelagteOpplysningerMock, Mockito.times(0))
-            .opprettVarslinger(any(), any(), any(), any(), any(), any())
+            .opprettVarslinger(any(), any(), any(), any(), any(), any(), any())
     }
 
     @Test
@@ -69,8 +72,8 @@ class SendForelagteOpplysningerOppgaveTest {
 
         Mockito.`when`(hentRelevantInfoTilForelagtOpplysningMock.hentForelagteOpplysningerFor(any(), any())).thenReturn(
             listOf(
-                lagTestForelagteOpplysninger(forelagt = tidligereForelagtTidspunkt)
-            )
+                lagTestForelagteOpplysninger(forelagt = tidligereForelagtTidspunkt),
+            ),
         )
 
         val oppgave =
@@ -82,7 +85,7 @@ class SendForelagteOpplysningerOppgaveTest {
         oppgave.sendForelagteOpplysninger("_", skalVarsleTidspunkt)
 
         Mockito.verify(opprettBrukervarselForForelagteOpplysningerMock)
-            .opprettVarslinger(any(), any(), any(), any(), any(), any())
+            .opprettVarslinger(any(), any(), any(), any(), any(), any(), any())
     }
 
     @Test
@@ -103,18 +106,16 @@ class SendForelagteOpplysningerOppgaveTest {
         Mockito.verify(forelagteOpplysningerRepositoryMock).save(forelagtOpplysning.copy(forelagt = forelagtTidspunkt))
     }
 
-    fun lagTestForelagteOpplysninger(
-        forelagt: Instant? = null
-    ): ForelagteOpplysningerDbRecord {
+    fun lagTestForelagteOpplysninger(forelagt: Instant? = null): ForelagteOpplysningerDbRecord {
         return ForelagteOpplysningerDbRecord(
             id = "test-id",
             vedtaksperiodeId = "_",
             behandlingId = "_",
             forelagteOpplysningerMelding =
-            PGobject().apply {
-                type = "json"
-                value = "{}"
-            },
+                PGobject().apply {
+                    type = "json"
+                    value = "{}"
+                },
             opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
             forelagt = forelagt,
         )

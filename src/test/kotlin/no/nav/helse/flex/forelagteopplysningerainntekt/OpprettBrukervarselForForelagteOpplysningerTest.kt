@@ -12,10 +12,7 @@ import org.amshove.kluent.`should be equal to`
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.postgresql.util.PGobject
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.YearMonth
-import java.time.ZoneOffset
+import java.time.*
 
 class OpprettBrukervarselForForelagteOpplysningerTest {
     @Test
@@ -84,12 +81,14 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
             fnr = "test-fnr",
             orgNavn = "test-orgnavn",
             now = Instant.parse("2022-06-16T00:00:00.00Z"),
+            startSyketilfelle = LocalDate.parse("2022-06-16"),
             dryRun = false,
         )
 
         verify(mockBrukervarsel).beskjedForelagteOpplysninger(
             eq("test-fnr"),
             eq("test-id"),
+            any(),
             eq(LocalDateTime.parse("2022-06-16T00:00:00.00").plusWeeks(3).toInstant(ZoneOffset.UTC)),
             eq("https://test.test/test-id"),
         )

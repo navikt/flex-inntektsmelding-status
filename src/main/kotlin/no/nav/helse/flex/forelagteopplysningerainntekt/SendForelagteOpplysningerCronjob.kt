@@ -76,6 +76,7 @@ class SendForelagteOpplysningerCronjob(
 
 data class RelevantInfoTilForelagtOpplysning(
     val fnr: String,
+    val startSyketilfelle: LocalDate,
     val orgnummer: String,
     val orgNavn: String,
 )
@@ -125,6 +126,7 @@ class HentRelevantInfoTilForelagtOpplysning(
         return RelevantInfoTilForelagtOpplysning(
             fnr = sisteSykepengeSoknad.fnr,
             orgnummer = sisteSykepengeSoknad.orgnummer,
+            startSyketilfelle = sisteSykepengeSoknad.startSyketilfelle,
             orgNavn = org.navn,
         )
     }
@@ -215,6 +217,7 @@ class SendForelagteOpplysningerOppgave(
                 fnr = relevantInfoTilForelagteOpplysninger.fnr,
                 orgNavn = relevantInfoTilForelagteOpplysninger.orgnummer,
                 now = now,
+                startSyketilfelle = relevantInfoTilForelagteOpplysninger.startSyketilfelle,
                 // TODO: dry run
                 dryRun = false,
             )
@@ -253,6 +256,7 @@ class OpprettBrukervarselForForelagteOpplysninger(
         melding: PGobject,
         fnr: String,
         orgNavn: String,
+        startSyketilfelle: LocalDate,
         now: Instant,
         dryRun: Boolean = false,
     ): CronJobStatus {
@@ -264,6 +268,7 @@ class OpprettBrukervarselForForelagteOpplysninger(
                 fnr = fnr,
                 bestillingId = varselId,
                 synligFremTil = synligFremTil,
+                startSyketilfelle = startSyketilfelle,
                 lenke = lenkeTilForelagteOpplysninger,
             )
 

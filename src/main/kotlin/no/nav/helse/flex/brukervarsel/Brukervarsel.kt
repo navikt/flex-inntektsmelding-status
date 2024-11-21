@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset.UTC
+import java.time.format.DateTimeFormatter
 
 @Component
 class Brukervarsel(
@@ -65,9 +66,11 @@ class Brukervarsel(
     fun beskjedForelagteOpplysninger(
         fnr: String,
         bestillingId: String,
+        startSyketilfelle: LocalDate,
         synligFremTil: Instant,
         lenke: String,
     ) {
+        val startSyketilfelleFormatert = startSyketilfelle.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
         try {
             val opprettVarsel =
                 VarselActionBuilder.opprett {
@@ -78,9 +81,9 @@ class Brukervarsel(
                     tekst =
                         Tekst(
                             spraakkode = "nb",
-                            // TODO: Legg inn dato
                             tekst =
-                                "Vi har hentet opplysninger om inntekten din fra Aa-ordningen for sykefraværet som startet [dato]. " +
+                                "Vi har hentet opplysninger om inntekten din fra Aa-ordningen for sykefraværet " +
+                                    "som startet $startSyketilfelleFormatert. " +
                                     "Vi trenger at du sjekker om de stemmer.",
                             default = true,
                         )
