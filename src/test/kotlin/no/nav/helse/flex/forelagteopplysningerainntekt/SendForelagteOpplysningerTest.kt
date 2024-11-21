@@ -1,6 +1,5 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
-import ForelagteOpplysningerMelding
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.serialisertTilString
 import org.amshove.kluent.`should be equal to`

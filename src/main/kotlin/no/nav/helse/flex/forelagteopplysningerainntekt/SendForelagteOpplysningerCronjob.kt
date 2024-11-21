@@ -287,8 +287,9 @@ internal fun forelagtOpplysningTilMetadata(
     forelagtOpplysningMelding: PGobject,
     orgNavn: String,
 ): JsonNode {
+    val serialisertMelding = forelagtOpplysningMelding.value ?: error("Melding må ha value")
     val deserialisertMelding: ForelagteOpplysningerMelding =
-        objectMapper.readValue(forelagtOpplysningMelding.serialisertTilString())
+        objectMapper.readValue(serialisertMelding)
     val aaregInntekt =
         AaregInntekt(
             tidsstempel = deserialisertMelding.tidsstempel,

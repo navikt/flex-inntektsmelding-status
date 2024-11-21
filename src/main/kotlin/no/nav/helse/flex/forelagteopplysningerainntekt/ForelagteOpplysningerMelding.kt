@@ -1,3 +1,5 @@
+package no.nav.helse.flex.forelagteopplysningerainntekt
+
 import java.time.LocalDateTime
 import java.time.YearMonth
 

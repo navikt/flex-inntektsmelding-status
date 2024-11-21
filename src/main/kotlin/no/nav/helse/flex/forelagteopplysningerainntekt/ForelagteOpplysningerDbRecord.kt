@@ -1,6 +1,5 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
-import ForelagteOpplysningerMelding
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
