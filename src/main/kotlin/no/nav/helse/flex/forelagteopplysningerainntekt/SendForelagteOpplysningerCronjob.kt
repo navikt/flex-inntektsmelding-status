@@ -10,7 +10,6 @@ import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
-import no.nav.helse.flex.serialisertTilString
 import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.toJsonNode
@@ -180,9 +179,7 @@ class HentRelevantInfoTilForelagtOpplysning(
 class SendForelagteOpplysningerOppgave(
     private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
     private val hentRelevantInfoTilForelagtOpplysning: HentRelevantInfoTilForelagtOpplysning,
-    private val brukervarsel: Brukervarsel,
-    private val meldingKafkaProducer: MeldingKafkaProducer,
-    @Value("\${FORELAGTE_OPPLYSNINGER_BASE_URL}") private val forelagteOpplysningerBaseUrl: String,
+    private val opprettBrukervarselForForelagteOpplysninger: OpprettBrukervarselForForelagteOpplysninger,
 ) {
     private val log = logger()
 
@@ -210,10 +207,14 @@ class SendForelagteOpplysningerOppgave(
                 now,
             )
         ) {
-            opprettVarslinger(
-                relevantInfoTilForelagtOpplysning = relevantInfoTilForelagteOpplysninger,
-                melding = forelagteOpplysninger,
+            opprettBrukervarselForForelagteOpplysninger.opprettVarslinger(
+                varselId = forelagteOpplysninger.id!!,
+                melding = forelagteOpplysninger.forelagteOpplysningerMelding,
+                fnr = relevantInfoTilForelagteOpplysninger.fnr,
+                orgNavn = relevantInfoTilForelagteOpplysninger.orgnummer,
                 now = now,
+                // TODO: dry run
+                dryRun = false,
             )
             forelagteOpplysningerRepository.save(
                 forelagteOpplysninger.copy(forelagt = now),
@@ -234,52 +235,6 @@ class SendForelagteOpplysningerOppgave(
                 .mapNotNull { it.forelagt }
                 .any { it.isAfter(forelagtEtter) }
         return finnesOpplysningerForelagtNylig
-    }
-
-    fun opprettVarslinger(
-        relevantInfoTilForelagtOpplysning: RelevantInfoTilForelagtOpplysning,
-        melding: ForelagteOpplysningerDbRecord,
-        now: Instant,
-        dryRun: Boolean = false,
-    ): CronJobStatus {
-        if (!dryRun) {
-            val forelagtOpplysningId = melding.id!!
-            val synligFremTil = now.tilOsloZone().plusWeeks(3).toInstant()
-            val lenkeTilForelagteOpplysninger = "$forelagteOpplysningerBaseUrl/$forelagtOpplysningId"
-
-            brukervarsel.beskjedForelagteOpplysninger(
-                fnr = relevantInfoTilForelagtOpplysning.fnr,
-                bestillingId = forelagtOpplysningId,
-                synligFremTil = synligFremTil,
-                lenke = lenkeTilForelagteOpplysninger,
-            )
-
-            meldingKafkaProducer.produserMelding(
-                meldingUuid = forelagtOpplysningId,
-                meldingKafkaDto =
-                    MeldingKafkaDto(
-                        fnr = relevantInfoTilForelagtOpplysning.fnr,
-                        opprettMelding =
-                            OpprettMelding(
-                                tekst = skapForelagteOpplysningerTekst(),
-                                lenke = lenkeTilForelagteOpplysninger,
-                                variant = Variant.INFO,
-                                lukkbar = false,
-                                synligFremTil = synligFremTil,
-                                meldingType = "FORELAGTE_OPPLYSNINGER",
-                                metadata =
-                                    forelagtOpplysningTilMetadata(
-                                        melding.forelagteOpplysningerMelding,
-                                        relevantInfoTilForelagtOpplysning.orgNavn,
-                                    ),
-                            ),
-                    ),
-            )
-
-            log.info("Sendt forelagte opplysninger varsel for vedtaksperiode ${melding.vedtaksperiodeId}")
-        }
-
-        return CronJobStatus.SENDT_FORELAGTE_OPPLYSNINGER
     }
 }
 
@@ -314,23 +269,23 @@ class OpprettBrukervarselForForelagteOpplysninger(
             meldingKafkaProducer.produserMelding(
                 meldingUuid = forelagtOpplysningId,
                 meldingKafkaDto =
-                MeldingKafkaDto(
-                    fnr = fnr,
-                    opprettMelding =
-                    OpprettMelding(
-                        tekst = skapForelagteOpplysningerTekst(),
-                        lenke = lenkeTilForelagteOpplysninger,
-                        variant = Variant.INFO,
-                        lukkbar = false,
-                        synligFremTil = synligFremTil,
-                        meldingType = "FORELAGTE_OPPLYSNINGER",
-                        metadata =
-                        forelagtOpplysningTilMetadata(
-                            melding,
-                            orgNavn,
-                        ),
+                    MeldingKafkaDto(
+                        fnr = fnr,
+                        opprettMelding =
+                            OpprettMelding(
+                                tekst = skapForelagteOpplysningerTekst(),
+                                lenke = lenkeTilForelagteOpplysninger,
+                                variant = Variant.INFO,
+                                lukkbar = false,
+                                synligFremTil = synligFremTil,
+                                meldingType = "FORELAGTE_OPPLYSNINGER",
+                                metadata =
+                                    forelagtOpplysningTilMetadata(
+                                        melding,
+                                        orgNavn,
+                                    ),
+                            ),
                     ),
-                ),
             )
 
             log.info("Sendt forelagte opplysninger varsel med id $varselId")

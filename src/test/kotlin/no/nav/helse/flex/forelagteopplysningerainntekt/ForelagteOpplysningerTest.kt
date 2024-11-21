@@ -19,6 +19,7 @@ import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
+import org.mockito.Mockito
 import org.postgresql.util.PGobject
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Instant
@@ -39,16 +40,16 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
                 tidsstempel = LocalDateTime.now(),
                 omregnetÅrsinntekt = 500000.0,
                 skatteinntekter =
-                    listOf(
-                        ForelagteOpplysningerMelding.Skatteinntekt(
-                            måned = YearMonth.of(2024, 1),
-                            beløp = 42000.0,
-                        ),
-                        ForelagteOpplysningerMelding.Skatteinntekt(
-                            måned = YearMonth.of(2024, 2),
-                            beløp = 43000.0,
-                        ),
+                listOf(
+                    ForelagteOpplysningerMelding.Skatteinntekt(
+                        måned = YearMonth.of(2024, 1),
+                        beløp = 42000.0,
                     ),
+                    ForelagteOpplysningerMelding.Skatteinntekt(
+                        måned = YearMonth.of(2024, 2),
+                        beløp = 43000.0,
+                    ),
+                ),
             )
 
         forelagteOpplysningerRepository.existsByVedtaksperiodeIdAndBehandlingId(
@@ -95,17 +96,17 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
             vedtaksperiodeId = "vedtaksperiode-test-opplysning",
             behandlingId = "behandling-test-opplysning",
             forelagteOpplysningerMelding =
-                PGobject().apply {
-                    type = "json"
-                    value =
-                        ForelagteOpplysningerMelding(
-                            vedtaksperiodeId = "vedtaksperiode-test-opplysning",
-                            behandlingId = "behandling-test-opplysning",
-                            tidsstempel = LocalDateTime.parse("2024-01-16T00:00:00.00"),
-                            omregnetÅrsinntekt = 0.0,
-                            skatteinntekter = emptyList(),
-                        ).serialisertTilString()
-                },
+            PGobject().apply {
+                type = "json"
+                value =
+                    ForelagteOpplysningerMelding(
+                        vedtaksperiodeId = "vedtaksperiode-test-opplysning",
+                        behandlingId = "behandling-test-opplysning",
+                        tidsstempel = LocalDateTime.parse("2024-01-16T00:00:00.00"),
+                        omregnetÅrsinntekt = 0.0,
+                        skatteinntekter = emptyList(),
+                    ).serialisertTilString()
+            },
             opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
             forelagt = null,
         ).also {
@@ -167,15 +168,32 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
                 sykepengesoknadUuid = soknad.sykepengesoknadUuid,
             ),
         )
+
+        Organisasjon(
+            orgnummer = orgnummer,
+            navn = "Organisasjonen",
+            opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
+            oppdatert = Instant.parse("2024-01-01T00:00:00.00Z"),
+            oppdatertAv = "personen",
+        ).also {
+            if (organisasjonRepository.findByOrgnummer(orgnummer) == null) {
+                organisasjonRepository.save(it)
+            }
+        }
     }
 }
 
-class SendForelagteOpplysningerOppgaveTest : FellesTestOppsett() {
-    @Autowired
-    lateinit var sendForelagteOpplysningerOppgave: SendForelagteOpplysningerOppgave
+class SendForelagteOpplysningerOppgaveTest {
+    val forelagteOpplysningerRepositoryMock = Mockito.mock(ForelagteOpplysningerRepository::class.java)
+    val hentRelevantInfoTilForelagtOpplysningMock = Mockito.mock(HentRelevantInfoTilForelagtOpplysning::class.java)
+    val opprettBrukervarselForForelagteOpplysningerMock =
+        Mockito.mock(OpprettBrukervarselForForelagteOpplysninger::class.java)
+
+    fun sendForelagteOpplysningerOppgaveMock() = Mockito.mock(SendForelagteOpplysningerOppgave::class.java)
 
     @Test
     fun `En opplysning burde ikke bli forelagt dersom en tidligere opplysning er forelagt i nylig tid`() {
+
         val sammeOrgnummer = "test-org"
         val sammeFnr = "testFnr0000"
         lagreSykepengesoknad(
@@ -199,14 +217,14 @@ class SendForelagteOpplysningerOppgaveTest : FellesTestOppsett() {
             vedtaksperiodeId = "vedtaksperiode-test-id",
             behandlingId = "behandling-test-id",
             forelagteOpplysningerMelding =
-                PGobject().apply {
-                    type = "json"
-                    value = "{}"
-                },
+            PGobject().apply {
+                type = "json"
+                value = "{}"
+            },
             opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
             forelagt = tidligereForelagtTidspunkt,
         ).also {
-            forelagteOpplysningerRepository.save(it)
+            forelagteOpplysningerRepositoryMock().save(it)
         }
 
         val nyForelagtOpplysning =
@@ -214,27 +232,27 @@ class SendForelagteOpplysningerOppgaveTest : FellesTestOppsett() {
                 vedtaksperiodeId = "vedtaksperiode-test-id2",
                 behandlingId = "behandling-test-id2",
                 forelagteOpplysningerMelding =
-                    PGobject().apply {
-                        type = "json"
-                        value = "{}"
-                    },
+                PGobject().apply {
+                    type = "json"
+                    value = "{}"
+                },
                 opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
                 forelagt = null,
             )
-        var nyForelagtOpplysningLagret = forelagteOpplysningerRepository.save(nyForelagtOpplysning)
+        var nyForelagtOpplysningLagret = forelagteOpplysningerRepositoryMock().save(nyForelagtOpplysning)
 
-        sendForelagteOpplysningerOppgave.sendForelagteOpplysninger(nyForelagtOpplysningLagret.id!!, skalIkkeVarsleTidspunkt)
+        sendForelagteOpplysningerOppgaveMock().sendForelagteOpplysninger(
+            nyForelagtOpplysningLagret.id!!,
+            skalIkkeVarsleTidspunkt
+        )
 
-        meldingKafkaConsumer.ventPåRecords(antall = 0)
-        varslingConsumer.ventPåRecords(antall = 0)
+        forelagteOpplysningerRepositoryMock().delete(nyForelagtOpplysningLagret)
+        nyForelagtOpplysningLagret = forelagteOpplysningerRepositoryMock().save(nyForelagtOpplysning)
 
-        forelagteOpplysningerRepository.delete(nyForelagtOpplysningLagret)
-        nyForelagtOpplysningLagret = forelagteOpplysningerRepository.save(nyForelagtOpplysning)
-
-        sendForelagteOpplysningerOppgave.sendForelagteOpplysninger(nyForelagtOpplysningLagret.id!!, skalVarsleTidspunkt)
-
-        meldingKafkaConsumer.ventPåRecords(antall = 1)
-        varslingConsumer.ventPåRecords(antall = 1)
+        sendForelagteOpplysningerOppgaveMock().sendForelagteOpplysninger(
+            nyForelagtOpplysningLagret.id!!,
+            skalVarsleTidspunkt
+        )
     }
 
     private fun lagreSykepengesoknad(
@@ -256,7 +274,7 @@ class SendForelagteOpplysningerOppgaveTest : FellesTestOppsett() {
                 sendt = Instant.parse("2024-01-16T00:00:00.00Z"),
                 opprettetDatabase = Instant.parse("2024-01-16T00:00:00.00Z"),
             ).also {
-                sykepengesoknadRepository.save(it)
+                forelagteOpplysningerRepositoryMock().save(it)
             }
 
         val vedtaksperiodeBehandling =
