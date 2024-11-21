@@ -283,6 +283,63 @@ class SendForelagteOpplysningerOppgave(
     }
 }
 
+@Component
+class OpprettBrukervarselForForelagteOpplysninger(
+    private val brukervarsel: Brukervarsel,
+    private val meldingKafkaProducer: MeldingKafkaProducer,
+    @Value("\${FORELAGTE_OPPLYSNINGER_BASE_URL}") private val forelagteOpplysningerBaseUrl: String,
+) {
+    private val log = logger()
+
+    fun opprettVarslinger(
+        varselId: String,
+        melding: PGobject,
+        fnr: String,
+        orgNavn: String,
+        now: Instant,
+        dryRun: Boolean = false,
+    ): CronJobStatus {
+        if (!dryRun) {
+            val synligFremTil = now.tilOsloZone().plusWeeks(3).toInstant()
+            val forelagtOpplysningId = varselId
+            val lenkeTilForelagteOpplysninger = "$forelagteOpplysningerBaseUrl/$forelagtOpplysningId"
+
+            brukervarsel.beskjedForelagteOpplysninger(
+                fnr = fnr,
+                bestillingId = varselId,
+                synligFremTil = synligFremTil,
+                lenke = lenkeTilForelagteOpplysninger,
+            )
+
+            meldingKafkaProducer.produserMelding(
+                meldingUuid = forelagtOpplysningId,
+                meldingKafkaDto =
+                MeldingKafkaDto(
+                    fnr = fnr,
+                    opprettMelding =
+                    OpprettMelding(
+                        tekst = skapForelagteOpplysningerTekst(),
+                        lenke = lenkeTilForelagteOpplysninger,
+                        variant = Variant.INFO,
+                        lukkbar = false,
+                        synligFremTil = synligFremTil,
+                        meldingType = "FORELAGTE_OPPLYSNINGER",
+                        metadata =
+                        forelagtOpplysningTilMetadata(
+                            melding,
+                            orgNavn,
+                        ),
+                    ),
+                ),
+            )
+
+            log.info("Sendt forelagte opplysninger varsel med id $varselId")
+        }
+
+        return CronJobStatus.SENDT_FORELAGTE_OPPLYSNINGER
+    }
+}
+
 internal fun forelagtOpplysningTilMetadata(
     forelagtOpplysningMelding: PGobject,
     orgNavn: String,
