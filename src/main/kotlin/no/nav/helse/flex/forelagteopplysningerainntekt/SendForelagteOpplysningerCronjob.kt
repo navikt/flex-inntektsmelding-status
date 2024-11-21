@@ -18,6 +18,7 @@ import no.nav.helse.flex.varseltekst.skapForelagteOpplysningerTekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
 import org.postgresql.util.PGobject
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
@@ -26,6 +27,7 @@ import java.time.*
 import java.util.concurrent.TimeUnit
 import kotlin.jvm.optionals.getOrNull
 
+@Profile("forelagteopplysninger")
 @Component
 class SendForelagteOpplysningerCronjob(
     private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
