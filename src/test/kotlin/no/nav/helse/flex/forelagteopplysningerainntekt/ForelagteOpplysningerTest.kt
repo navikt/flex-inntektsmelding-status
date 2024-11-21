@@ -40,16 +40,16 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
                 tidsstempel = LocalDateTime.now(),
                 omregnetÅrsinntekt = 500000.0,
                 skatteinntekter =
-                listOf(
-                    ForelagteOpplysningerMelding.Skatteinntekt(
-                        måned = YearMonth.of(2024, 1),
-                        beløp = 42000.0,
+                    listOf(
+                        ForelagteOpplysningerMelding.Skatteinntekt(
+                            måned = YearMonth.of(2024, 1),
+                            beløp = 42000.0,
+                        ),
+                        ForelagteOpplysningerMelding.Skatteinntekt(
+                            måned = YearMonth.of(2024, 2),
+                            beløp = 43000.0,
+                        ),
                     ),
-                    ForelagteOpplysningerMelding.Skatteinntekt(
-                        måned = YearMonth.of(2024, 2),
-                        beløp = 43000.0,
-                    ),
-                ),
             )
 
         forelagteOpplysningerRepository.existsByVedtaksperiodeIdAndBehandlingId(
@@ -96,17 +96,17 @@ class ForelagteOpplysningerTest : FellesTestOppsett() {
             vedtaksperiodeId = "vedtaksperiode-test-opplysning",
             behandlingId = "behandling-test-opplysning",
             forelagteOpplysningerMelding =
-            PGobject().apply {
-                type = "json"
-                value =
-                    ForelagteOpplysningerMelding(
-                        vedtaksperiodeId = "vedtaksperiode-test-opplysning",
-                        behandlingId = "behandling-test-opplysning",
-                        tidsstempel = LocalDateTime.parse("2024-01-16T00:00:00.00"),
-                        omregnetÅrsinntekt = 0.0,
-                        skatteinntekter = emptyList(),
-                    ).serialisertTilString()
-            },
+                PGobject().apply {
+                    type = "json"
+                    value =
+                        ForelagteOpplysningerMelding(
+                            vedtaksperiodeId = "vedtaksperiode-test-opplysning",
+                            behandlingId = "behandling-test-opplysning",
+                            tidsstempel = LocalDateTime.parse("2024-01-16T00:00:00.00"),
+                            omregnetÅrsinntekt = 0.0,
+                            skatteinntekter = emptyList(),
+                        ).serialisertTilString()
+                },
             opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
             forelagt = null,
         ).also {
@@ -200,27 +200,28 @@ class SendForelagteOpplysningerOppgaveTest : FellesTestOppsett() {
             vedtaksperiodeId = "vedtaksperiode-test-id",
             behandlingId = "behandling-test-id",
             forelagteOpplysningerMelding =
-            PGobject().apply {
-                type = "json"
-                value = "{}"
-            },
+                PGobject().apply {
+                    type = "json"
+                    value = "{}"
+                },
             opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
             forelagt = tidligereForelagtTidspunkt,
         ).also {
             forelagteOpplysningerRepository.save(it)
         }
 
-        val nyForelagtOpplysning = ForelagteOpplysningerDbRecord(
-            vedtaksperiodeId = "vedtaksperiode-test-id2",
-            behandlingId = "behandling-test-id2",
-            forelagteOpplysningerMelding =
-            PGobject().apply {
-                type = "json"
-                value = "{}"
-            },
-            opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
-            forelagt = null,
-        )
+        val nyForelagtOpplysning =
+            ForelagteOpplysningerDbRecord(
+                vedtaksperiodeId = "vedtaksperiode-test-id2",
+                behandlingId = "behandling-test-id2",
+                forelagteOpplysningerMelding =
+                    PGobject().apply {
+                        type = "json"
+                        value = "{}"
+                    },
+                opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
+                forelagt = null,
+            )
         var nyForelagtOpplysningLagret = forelagteOpplysningerRepository.save(nyForelagtOpplysning)
 
         sendForelagteOpplysningerOppgave.sendForelagteOpplysninger(nyForelagtOpplysningLagret.id!!, skalIkkeVarsleTidspunkt)

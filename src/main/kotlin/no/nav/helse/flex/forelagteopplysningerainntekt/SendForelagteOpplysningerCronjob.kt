@@ -1,6 +1,7 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.brukervarsel.Brukervarsel
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.melding.MeldingKafkaDto
@@ -9,8 +10,10 @@ import no.nav.helse.flex.melding.OpprettMelding
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
+import no.nav.helse.flex.serialisertTilString
 import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
+import no.nav.helse.flex.toJsonNode
 import no.nav.helse.flex.util.tilOsloZone
 import no.nav.helse.flex.varseltekst.skapForelagteOpplysningerTekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
@@ -57,7 +60,7 @@ class SendForelagteOpplysningerCronjob(
             sendForelagteOpplysningerOppgave.sendForelagteOpplysninger(usendtForelagtOpplysning.id!!, now)
         }
 
-        //TODO:
+        // TODO:
         log.info(
             "Resultat fra VarselutsendingCronJob: ${
                 resultat.map { "${it.key}: ${it.value}" }.sorted().joinToString(
@@ -73,7 +76,7 @@ class SendForelagteOpplysningerCronjob(
 data class RelevantInfoTilForelagtOpplysning(
     val fnr: String,
     val orgnummer: String,
-    val orgNavn: String
+    val orgNavn: String,
 )
 
 @Component
@@ -87,16 +90,20 @@ class HentRelevantInfoTilForelagtOpplysning(
     val log = logger()
 
     fun hentRelevantInfoTil(forelagteOpplysninger: ForelagteOpplysningerDbRecord): RelevantInfoTilForelagtOpplysning? {
-        val sykepengeSoknader = finnSykepengesoknader(
-            vedtaksperiodeId = forelagteOpplysninger.vedtaksperiodeId,
-            behandlingId = forelagteOpplysninger.behandlingId
-        )
+        val sykepengeSoknader =
+            finnSykepengesoknader(
+                vedtaksperiodeId = forelagteOpplysninger.vedtaksperiodeId,
+                behandlingId = forelagteOpplysninger.behandlingId,
+            )
         if (sykepengeSoknader.isEmpty()) {
             log.warn("Finnes ingen sykepengesoknader relatert til forelagte opplysninger: ${forelagteOpplysninger.id}")
             return null
         }
         if (sykepengeSoknader.size > 1) {
-            log.warn("Fant flere sykepengesoknader for forelagte opplysninger: ${forelagteOpplysninger.id}. Vi baserer fnr og orgnr på den siste")
+            log.warn(
+                "Fant flere sykepengesoknader for forelagte opplysninger: ${forelagteOpplysninger.id}. " +
+                    "Vi baserer fnr og orgnr på den siste",
+            )
         }
         val sisteSykepengeSoknad = sykepengeSoknader.maxBy { it.tom }
 
@@ -107,30 +114,38 @@ class HentRelevantInfoTilForelagtOpplysning(
 
         val org = organisasjonRepository.findByOrgnummer(sisteSykepengeSoknad.orgnummer)
         if (org == null) {
-            log.warn("Organisasjon for forelagte opplysninger finnes ikke. Forelagte opplysninger: ${forelagteOpplysninger.id}, orgnummer: ${sisteSykepengeSoknad.orgnummer}")
+            log.warn(
+                "Organisasjon for forelagte opplysninger finnes ikke. Forelagte opplysninger: " +
+                    "${forelagteOpplysninger.id}, orgnummer: ${sisteSykepengeSoknad.orgnummer}",
+            )
             return null
         }
 
         return RelevantInfoTilForelagtOpplysning(
             fnr = sisteSykepengeSoknad.fnr,
             orgnummer = sisteSykepengeSoknad.orgnummer,
-            orgNavn = org.navn
+            orgNavn = org.navn,
         )
     }
 
-    fun hentForelagteOpplysningerFor(fnr: String, orgnr: String): List<ForelagteOpplysningerDbRecord> {
-        val sykepengesoknader = sykepengesoknadRepository.findByFnr(fnr)
-            .filter { it.orgnummer == orgnr }
+    fun hentForelagteOpplysningerFor(
+        fnr: String,
+        orgnr: String,
+    ): List<ForelagteOpplysningerDbRecord> {
+        val sykepengesoknader =
+            sykepengesoknadRepository.findByFnr(fnr)
+                .filter { it.orgnummer == orgnr }
         val sykepengesoknadUuids = sykepengesoknader.map { it.sykepengesoknadUuid }
         val relasjoner =
             vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(sykepengesoknadUuids)
-        val vedtaksperiodeBehandlinger = relasjoner.map {
-            vedtaksperiodeBehandlingRepository.findById(it.vedtaksperiodeBehandlingId).get()
-        }
+        val vedtaksperiodeBehandlinger =
+            relasjoner.map {
+                vedtaksperiodeBehandlingRepository.findById(it.vedtaksperiodeBehandlingId).get()
+            }
         return vedtaksperiodeBehandlinger.flatMap {
             forelagteOpplysningerRepository.findAllByVedtaksperiodeIdAndBehandlingId(
                 it.vedtaksperiodeId,
-                it.behandlingId
+                it.behandlingId,
             )
         }
     }
@@ -172,7 +187,10 @@ class SendForelagteOpplysningerOppgave(
     private val log = logger()
 
     @Transactional(propagation = Propagation.REQUIRED)
-    fun sendForelagteOpplysninger(forelagteOpplysningerId: String, now: Instant) {
+    fun sendForelagteOpplysninger(
+        forelagteOpplysningerId: String,
+        now: Instant,
+    ) {
         val forelagteOpplysninger = forelagteOpplysningerRepository.findById(forelagteOpplysningerId).getOrNull()
         if (forelagteOpplysninger == null) {
             log.error("Forelagte opplysninger finnes ikke for id: $forelagteOpplysningerId")
@@ -189,7 +207,7 @@ class SendForelagteOpplysningerOppgave(
         if (!harForelagtNyligForOrgnr(
                 fnr = relevantInfoTilForelagteOpplysninger.fnr,
                 orgnr = relevantInfoTilForelagteOpplysninger.orgnummer,
-                now
+                now,
             )
         ) {
             opprettVarslinger(
@@ -198,7 +216,7 @@ class SendForelagteOpplysningerOppgave(
                 now = now,
             )
             forelagteOpplysningerRepository.save(
-                forelagteOpplysninger.copy(forelagt = now)
+                forelagteOpplysninger.copy(forelagt = now),
             )
         }
     }
@@ -211,9 +229,10 @@ class SendForelagteOpplysningerOppgave(
         val forelagtEtter = now.minus(Duration.ofDays(28))
         val forelagteOpplysninger =
             hentRelevantInfoTilForelagtOpplysning.hentForelagteOpplysningerFor(fnr = fnr, orgnr = orgnr)
-        val finnesOpplysningerForelagtNylig = forelagteOpplysninger
-            .mapNotNull { it.forelagt }
-            .any { it.isAfter(forelagtEtter) }
+        val finnesOpplysningerForelagtNylig =
+            forelagteOpplysninger
+                .mapNotNull { it.forelagt }
+                .any { it.isAfter(forelagtEtter) }
         return finnesOpplysningerForelagtNylig
     }
 
@@ -238,19 +257,23 @@ class SendForelagteOpplysningerOppgave(
             meldingKafkaProducer.produserMelding(
                 meldingUuid = forelagtOpplysningId,
                 meldingKafkaDto =
-                MeldingKafkaDto(
-                    fnr = relevantInfoTilForelagtOpplysning.fnr,
-                    opprettMelding =
-                    OpprettMelding(
-                        tekst = skapForelagteOpplysningerTekst(),
-                        lenke = lenkeTilForelagteOpplysninger,
-                        variant = Variant.INFO,
-                        lukkbar = false,
-                        synligFremTil = synligFremTil,
-                        meldingType = "FORELAGTE_OPPLYSNINGER",
-                        metadata = forelagtOpplysningTilMetadata(melding.forelagteOpplysningerMelding),
+                    MeldingKafkaDto(
+                        fnr = relevantInfoTilForelagtOpplysning.fnr,
+                        opprettMelding =
+                            OpprettMelding(
+                                tekst = skapForelagteOpplysningerTekst(),
+                                lenke = lenkeTilForelagteOpplysninger,
+                                variant = Variant.INFO,
+                                lukkbar = false,
+                                synligFremTil = synligFremTil,
+                                meldingType = "FORELAGTE_OPPLYSNINGER",
+                                metadata =
+                                    forelagtOpplysningTilMetadata(
+                                        melding.forelagteOpplysningerMelding,
+                                        relevantInfoTilForelagtOpplysning.orgNavn,
+                                    ),
+                            ),
                     ),
-                ),
             )
 
             log.info("Sendt forelagte opplysninger varsel for vedtaksperiode ${melding.vedtaksperiodeId}")
@@ -260,9 +283,20 @@ class SendForelagteOpplysningerOppgave(
     }
 }
 
-//TODO: ta med organisjason info
-internal fun forelagtOpplysningTilMetadata(forelagtOpplysningMelding: PGobject): JsonNode{
-    return objectMapper.readTree(forelagtOpplysningMelding.toString())
+internal fun forelagtOpplysningTilMetadata(
+    forelagtOpplysningMelding: PGobject,
+    orgNavn: String,
+): JsonNode {
+    val deserialisertMelding: ForelagteOpplysningerMelding =
+        objectMapper.readValue(forelagtOpplysningMelding.serialisertTilString())
+    val aaregInntekt =
+        AaregInntekt(
+            tidsstempel = deserialisertMelding.tidsstempel,
+            inntekter = deserialisertMelding.skatteinntekter.map { AaregInntekt.Inntekt(it.måned.toString(), it.beløp) },
+            omregnetAarsinntekt = deserialisertMelding.omregnetÅrsinntekt,
+            orgnavn = orgNavn,
+        )
+    return aaregInntekt.toJsonNode()
 }
 
 enum class CronJobStatus { SENDT_FORELAGTE_OPPLYSNINGER }

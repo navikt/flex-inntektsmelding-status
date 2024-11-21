@@ -2,7 +2,6 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import org.springframework.data.repository.CrudRepository
 import org.springframework.stereotype.Repository
-import java.time.Instant
 
 @Repository
 interface ForelagteOpplysningerRepository : CrudRepository<ForelagteOpplysningerDbRecord, String> {
@@ -13,5 +12,8 @@ interface ForelagteOpplysningerRepository : CrudRepository<ForelagteOpplysninger
 
     fun findAllByForelagtIsNull(): List<ForelagteOpplysningerDbRecord>
 
-    fun findAllByVedtaksperiodeIdAndBehandlingId(vedtaksperiodeId: String, behandlingId: String): List<ForelagteOpplysningerDbRecord>
+    fun findAllByVedtaksperiodeIdAndBehandlingId(
+        vedtaksperiodeId: String,
+        behandlingId: String,
+    ): List<ForelagteOpplysningerDbRecord>
 }
