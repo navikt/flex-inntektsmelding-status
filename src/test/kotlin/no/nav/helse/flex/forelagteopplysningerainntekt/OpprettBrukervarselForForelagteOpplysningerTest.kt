@@ -1,16 +1,24 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.eq
+import com.nhaarman.mockitokotlin2.verify
 import no.nav.helse.flex.brukervarsel.Brukervarsel
 import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.serialisertTilString
+import no.nav.helse.flex.util.tilOsloInstant
+import no.nav.helse.flex.util.tilOsloZone
+import okhttp3.internal.UTC
 import org.amshove.kluent.`should be equal to`
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.postgresql.util.PGobject
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.YearMonth
+import java.time.ZoneOffset
 
 class OpprettBrukervarselForForelagteOpplysningerTest {
     @Test
@@ -24,7 +32,12 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
                         behandlingId = "id",
                         tidsstempel = LocalDateTime.parse("2022-06-16T00:00:00"),
                         omregnetÅrsinntekt = 780_000.0,
-                        skatteinntekter = listOf(ForelagteOpplysningerMelding.Skatteinntekt(YearMonth.of(2024, 1), 40_000.0)),
+                        skatteinntekter = listOf(
+                            ForelagteOpplysningerMelding.Skatteinntekt(
+                                YearMonth.of(2024, 1),
+                                40_000.0
+                            )
+                        ),
                     ).serialisertTilString()
             }
         val jsonNode = forelagtOpplysningTilMetadata(pGobject, "Snekkeri AS")
@@ -51,11 +64,34 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
 
         opprettMeldingForForelagtOpplysning.opprettVarslinger(
             varselId = "test-id",
-            melding = TODO(),
-            fnr = TODO(),
-            orgNavn = TODO(),
-            now = TODO(),
-            dryRun = TODO()
+            melding = PGobject().apply {
+                type = "json"
+                value =
+                    ForelagteOpplysningerMelding(
+                        vedtaksperiodeId = "id",
+                        behandlingId = "id",
+                        tidsstempel = LocalDateTime.parse("2022-06-16T00:00:00"),
+                        omregnetÅrsinntekt = 780_000.0,
+                        skatteinntekter = listOf(
+                            ForelagteOpplysningerMelding.Skatteinntekt(
+                                YearMonth.of(2024, 1),
+                                40_000.0
+                            )
+                        ),
+                    ).serialisertTilString()
+            },
+            fnr = "test-fnr",
+            orgNavn = "test-orgnavn",
+            now = Instant.parse("2022-06-16T00:00:00.00Z"),
+            dryRun = false
         )
+
+        verify(mockBrukervarsel).beskjedForelagteOpplysninger(
+            eq("test-fnr"),
+            eq("test-id"),
+            eq(LocalDateTime.parse("2022-06-16T00:00:00.00").plusWeeks(3).toInstant(ZoneOffset.UTC)),
+            eq("https://test.test/test-id")
+        )
+        verify(mockMeldingKafkaProducer).produserMelding(eq("test-id"), any())
     }
 }
