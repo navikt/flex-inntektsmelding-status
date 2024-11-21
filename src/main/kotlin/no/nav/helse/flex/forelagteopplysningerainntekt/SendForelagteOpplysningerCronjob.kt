@@ -256,8 +256,7 @@ class OpprettBrukervarselForForelagteOpplysninger(
     ): CronJobStatus {
         if (!dryRun) {
             val synligFremTil = now.tilOsloZone().plusWeeks(3).toInstant()
-            val forelagtOpplysningId = varselId
-            val lenkeTilForelagteOpplysninger = "$forelagteOpplysningerBaseUrl/$forelagtOpplysningId"
+            val lenkeTilForelagteOpplysninger = "$forelagteOpplysningerBaseUrl/$varselId"
 
             brukervarsel.beskjedForelagteOpplysninger(
                 fnr = fnr,
@@ -267,7 +266,7 @@ class OpprettBrukervarselForForelagteOpplysninger(
             )
 
             meldingKafkaProducer.produserMelding(
-                meldingUuid = forelagtOpplysningId,
+                meldingUuid = varselId,
                 meldingKafkaDto =
                     MeldingKafkaDto(
                         fnr = fnr,
