@@ -32,6 +32,7 @@ import kotlin.jvm.optionals.getOrNull
 class SendForelagteOpplysningerCronjob(
     private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
     private val sendForelagteOpplysningerOppgave: SendForelagteOpplysningerOppgave,
+    private val totaltAntallForelagteOpplysningerSjekk: TotaltAntallForelagteOpplysningerSjekk,
 ) {
     private val log = logger()
 
@@ -52,10 +53,14 @@ class SendForelagteOpplysningerCronjob(
 
     fun runMedParameter(now: Instant): Map<CronJobStatus, Int> {
         log.info("Starter VarselutsendingCronJob")
+
+
         val resultat = HashMap<CronJobStatus, Int>()
 
         val usendteForelagteOpplysninger: List<ForelagteOpplysningerDbRecord> =
             forelagteOpplysningerRepository.findAllByForelagtIsNull()
+
+        totaltAntallForelagteOpplysningerSjekk.sjekk(usendteForelagteOpplysninger)
 
         for (usendtForelagtOpplysning in usendteForelagteOpplysninger) {
             sendForelagteOpplysningerOppgave.sendForelagteOpplysninger(usendtForelagtOpplysning.id!!, now)
