@@ -2,22 +2,15 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.helse.flex.brukervarsel.Brukervarsel
 import no.nav.helse.flex.logger
-import no.nav.helse.flex.melding.MeldingKafkaDto
-import no.nav.helse.flex.melding.MeldingKafkaProducer
-import no.nav.helse.flex.melding.OpprettMelding
-import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.toJsonNode
 import no.nav.helse.flex.util.tilOsloZone
-import no.nav.helse.flex.varseltekst.skapForelagteOpplysningerTekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
 import org.postgresql.util.PGobject
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -245,65 +238,6 @@ class SendForelagteOpplysningerOppgave(
                 .mapNotNull { it.forelagt }
                 .any { it.isAfter(forelagtEtter) }
         return finnesOpplysningerForelagtNylig
-    }
-}
-
-@Component
-class OpprettBrukervarselForForelagteOpplysninger(
-    private val brukervarsel: Brukervarsel,
-    private val meldingKafkaProducer: MeldingKafkaProducer,
-    @Value("\${FORELAGTE_OPPLYSNINGER_BASE_URL}") private val forelagteOpplysningerBaseUrl: String,
-) {
-    private val log = logger()
-
-    fun opprettVarslinger(
-        varselId: String,
-        melding: PGobject,
-        fnr: String,
-        orgNavn: String,
-        startSyketilfelle: LocalDate,
-        now: Instant,
-        dryRun: Boolean = false,
-    ): CronJobStatus {
-        if (!dryRun) {
-            val synligFremTil = now.tilOsloZone().plusWeeks(3).toInstant()
-            val lenkeTilForelagteOpplysninger = "$forelagteOpplysningerBaseUrl/$varselId"
-
-            brukervarsel.beskjedForelagteOpplysninger(
-                fnr = fnr,
-                bestillingId = varselId,
-                synligFremTil = synligFremTil,
-                startSyketilfelle = startSyketilfelle,
-                lenke = lenkeTilForelagteOpplysninger,
-            )
-
-            meldingKafkaProducer.produserMelding(
-                meldingUuid = varselId,
-                meldingKafkaDto =
-                    MeldingKafkaDto(
-                        fnr = fnr,
-                        opprettMelding =
-                            OpprettMelding(
-                                tekst = skapForelagteOpplysningerTekst(),
-                                lenke = lenkeTilForelagteOpplysninger,
-                                variant = Variant.INFO,
-                                lukkbar = false,
-                                synligFremTil = synligFremTil,
-                                //TODO: Er det et bra navn?
-                                meldingType = "FORELAGTE_OPPLYSNINGER",
-                                metadata =
-                                    forelagtOpplysningTilMetadata(
-                                        melding,
-                                        orgNavn,
-                                    ),
-                            ),
-                    ),
-            )
-
-            log.info("Sendt forelagte opplysninger varsel med id $varselId")
-        }
-
-        return CronJobStatus.SENDT_FORELAGTE_OPPLYSNINGER
     }
 }
 
