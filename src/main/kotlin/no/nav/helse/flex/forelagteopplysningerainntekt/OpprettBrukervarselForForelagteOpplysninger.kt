@@ -46,24 +46,24 @@ class OpprettBrukervarselForForelagteOpplysninger(
             meldingKafkaProducer.produserMelding(
                 meldingUuid = varselId,
                 meldingKafkaDto =
-                MeldingKafkaDto(
-                    fnr = fnr,
-                    opprettMelding =
-                    OpprettMelding(
-                        tekst = skapForelagteOpplysningerTekst(),
-                        lenke = lenkeTilForelagteOpplysninger,
-                        variant = Variant.INFO,
-                        lukkbar = false,
-                        synligFremTil = synligFremTil,
-                        //TODO: Er det et bra navn?
-                        meldingType = "FORELAGTE_OPPLYSNINGER",
-                        metadata =
-                        forelagtOpplysningTilMetadata(
-                            melding,
-                            orgNavn,
-                        ),
+                    MeldingKafkaDto(
+                        fnr = fnr,
+                        opprettMelding =
+                            OpprettMelding(
+                                tekst = skapForelagteOpplysningerTekst(),
+                                lenke = lenkeTilForelagteOpplysninger,
+                                variant = Variant.INFO,
+                                lukkbar = false,
+                                synligFremTil = synligFremTil,
+                                // TODO: Er det et bra navn?
+                                meldingType = "FORELAGTE_OPPLYSNINGER",
+                                metadata =
+                                    forelagtOpplysningTilMetadata(
+                                        melding,
+                                        orgNavn,
+                                    ),
+                            ),
                     ),
-                ),
             )
 
             log.info("Sendt forelagte opplysninger varsel med id $varselId")

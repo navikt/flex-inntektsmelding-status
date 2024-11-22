@@ -1,109 +1,58 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import com.nhaarman.mockitokotlin2.any
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.verify
 import org.junit.jupiter.api.Test
-import org.mockito.Mock
-import org.mockito.Mockito
 import org.postgresql.util.PGobject
 import java.time.Instant
 import java.time.LocalDate
 import java.util.*
 
 class SendForelagteOpplysningerOppgaveTest {
-    val forelagteOpplysningerRepositoryMock = Mockito.mock(ForelagteOpplysningerRepository::class.java)
-    val hentRelevantInfoTilForelagtOpplysningMock = Mockito.mock(HentRelevantInfoTilForelagtOpplysning::class.java)
-    val opprettBrukervarselForForelagteOpplysningerMock =
-        Mockito.mock(OpprettBrukervarselForForelagteOpplysninger::class.java)
 
-    @AfterEach
-    fun resetMocks() {
-        Mockito.reset(forelagteOpplysningerRepositoryMock)
-        Mockito.reset(hentRelevantInfoTilForelagtOpplysningMock)
-        Mockito.reset(opprettBrukervarselForForelagteOpplysningerMock)
+    private fun harForelagtForPersonMedOrgNyligSjekkMock(): HarForelagtForPersonMedOrgNyligSjekk {
+        return mock<HarForelagtForPersonMedOrgNyligSjekk> {
+            on { sjekk(any(), any(), any()) } doReturn true
+        }
     }
 
-    @BeforeEach
-    fun mockSetup() {
-        Mockito.`when`(hentRelevantInfoTilForelagtOpplysningMock.hentForelagteOpplysningerFor(any(), any())).thenReturn(
-            emptyList(),
-        )
-        Mockito.`when`(hentRelevantInfoTilForelagtOpplysningMock.hentRelevantInfoTil(any())).thenReturn(
-            RelevantInfoTilForelagtOpplysning(
-                fnr = "identisk-test-fnr",
-                orgnummer = "identisk-test-org",
+    private fun hentRelevantInfoTilForelagtOpplysningMock(): HentRelevantInfoTilForelagtOpplysning {
+        return mock<HentRelevantInfoTilForelagtOpplysning> {
+            on { hentRelevantInfoTil(any()) } doReturn RelevantInfoTilForelagtOpplysning(
+                fnr = "test-fnr",
+                orgnummer = "test-org",
                 startSyketilfelle = LocalDate.parse("2022-06-16"),
                 orgNavn = "Test Org",
-            ),
-        )
-        Mockito.`when`(forelagteOpplysningerRepositoryMock.findById(any())).thenReturn(
-            Optional.of(lagTestForelagteOpplysninger(forelagt = null)),
-        )
-    }
-
-    @Test
-    fun `En opplysning burde ikke bli forelagt dersom en tidligere opplysning er forelagt i nylig tid`() {
-        val tidligereForelagtTidspunkt = Instant.parse("2024-01-01T00:00:00.00Z")
-        val skalIkkeVarsleTidspunkt = Instant.parse("2024-01-28T00:00:00.00Z")
-
-        Mockito.`when`(hentRelevantInfoTilForelagtOpplysningMock.hentForelagteOpplysningerFor(any(), any())).thenReturn(
-            listOf(
-                lagTestForelagteOpplysninger(forelagt = tidligereForelagtTidspunkt),
-            ),
-        )
-
-        val oppgave =
-            SendForelagteOpplysningerOppgave(
-                forelagteOpplysningerRepository = forelagteOpplysningerRepositoryMock,
-                hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock,
-                opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock,
             )
-        oppgave.sendForelagteOpplysninger("_", skalIkkeVarsleTidspunkt)
+        }
+    }
 
-        Mockito.verify(opprettBrukervarselForForelagteOpplysningerMock, Mockito.times(0))
-            .opprettVarslinger(any(), any(), any(), any(), any(), any(), any())
+    private fun opprettBrukervarselForForelagteOpplysningerMock(): OpprettBrukervarselForForelagteOpplysninger {
+        return mock()
     }
 
     @Test
-    fun `En opplysning burde bli forelagt dersom en opplysning er forelagt for en stund siden`() {
-        val tidligereForelagtTidspunkt = Instant.parse("2024-01-01T00:00:00.00Z")
-        val skalVarsleTidspunkt = Instant.parse("2024-01-29T00:00:00.00Z")
-
-        Mockito.`when`(hentRelevantInfoTilForelagtOpplysningMock.hentForelagteOpplysningerFor(any(), any())).thenReturn(
-            listOf(
-                lagTestForelagteOpplysninger(forelagt = tidligereForelagtTidspunkt),
-            ),
-        )
-
-        val oppgave =
-            SendForelagteOpplysningerOppgave(
-                forelagteOpplysningerRepository = forelagteOpplysningerRepositoryMock,
-                hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock,
-                opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock,
-            )
-        oppgave.sendForelagteOpplysninger("_", skalVarsleTidspunkt)
-
-        Mockito.verify(opprettBrukervarselForForelagteOpplysningerMock)
-            .opprettVarslinger(any(), any(), any(), any(), any(), any(), any())
-    }
-
-    @Test
-    fun `burde ha forelagt tidspunkt lagret i db`() {
+    fun `burde lagre forelagt tidspunkt lagret db etter forelagt`() {
         val forelagtOpplysning = lagTestForelagteOpplysninger(forelagt = null)
-        Mockito.`when`(forelagteOpplysningerRepositoryMock.findById(any())).thenReturn(
-            Optional.of(forelagtOpplysning),
-        )
+
+        val forelagteOpplysningerRepository: ForelagteOpplysningerRepository = mock {
+            on { findById(any()) } doReturn Optional.of(forelagtOpplysning)
+        }
 
         val forelagtTidspunkt = Instant.parse("2024-01-29T00:00:00.00Z")
         val oppgave =
             SendForelagteOpplysningerOppgave(
-                forelagteOpplysningerRepository = forelagteOpplysningerRepositoryMock,
-                hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock,
-                opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock,
+                forelagteOpplysningerRepository = forelagteOpplysningerRepository,
+                hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock(),
+                opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
+                harForelagtForPersonMedOrgNyligSjekk = harForelagtForPersonMedOrgNyligSjekkMock()
             )
+
         oppgave.sendForelagteOpplysninger("_", forelagtTidspunkt)
-        Mockito.verify(forelagteOpplysningerRepositoryMock).save(forelagtOpplysning.copy(forelagt = forelagtTidspunkt))
+
+        verify(forelagteOpplysningerRepository).save(forelagtOpplysning.copy(forelagt = forelagtTidspunkt))
     }
 
     fun lagTestForelagteOpplysninger(forelagt: Instant? = null): ForelagteOpplysningerDbRecord {

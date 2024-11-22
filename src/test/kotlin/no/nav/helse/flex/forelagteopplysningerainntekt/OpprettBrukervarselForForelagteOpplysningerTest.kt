@@ -7,7 +7,6 @@ import no.nav.helse.flex.brukervarsel.Brukervarsel
 import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.serialisertTilString
-import okhttp3.internal.UTC
 import org.amshove.kluent.`should be equal to`
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -16,7 +15,7 @@ import java.time.*
 
 class OpprettBrukervarselForForelagteOpplysningerTest {
     @Test
-    fun `burde mappe fra PGobject til JsonNode`() {
+    fun `burde konvertere fra PGobject til JsonNode`() {
         val pGobject =
             PGobject().apply {
                 type = "json"

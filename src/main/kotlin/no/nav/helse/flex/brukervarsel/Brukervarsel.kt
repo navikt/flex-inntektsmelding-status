@@ -89,9 +89,10 @@ class Brukervarsel(
                         )
                     aktivFremTil = synligFremTil.atZone(UTC)
                     link = lenke
-                    eksternVarsling = EksternVarslingBestilling(
-                        prefererteKanaler = listOf(EksternKanal.SMS),
-                    )
+                    eksternVarsling =
+                        EksternVarslingBestilling(
+                            prefererteKanaler = listOf(EksternKanal.SMS),
+                        )
                 }
             kafkaProducer.send(ProducerRecord(MINSIDE_BRUKERVARSEL, bestillingId, opprettVarsel)).get()
             log.info("Bestilte beskjed for forelagte opplysninger $bestillingId")

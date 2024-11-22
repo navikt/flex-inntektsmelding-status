@@ -47,7 +47,6 @@ class SendForelagteOpplysningerCronjob(
     fun runMedParameter(now: Instant): Map<CronJobStatus, Int> {
         log.info("Starter VarselutsendingCronJob")
 
-
         val resultat = HashMap<CronJobStatus, Int>()
 
         val usendteForelagteOpplysninger: List<ForelagteOpplysningerDbRecord> =
@@ -85,7 +84,6 @@ class HentRelevantInfoTilForelagtOpplysning(
     private val vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository,
     private val sykepengesoknadRepository: SykepengesoknadRepository,
     private val organisasjonRepository: OrganisasjonRepository,
-    private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
 ) {
     val log = logger()
 
@@ -129,28 +127,6 @@ class HentRelevantInfoTilForelagtOpplysning(
         )
     }
 
-    fun hentForelagteOpplysningerFor(
-        fnr: String,
-        orgnr: String,
-    ): List<ForelagteOpplysningerDbRecord> {
-        val sykepengesoknader =
-            sykepengesoknadRepository.findByFnr(fnr)
-                .filter { it.orgnummer == orgnr }
-        val sykepengesoknadUuids = sykepengesoknader.map { it.sykepengesoknadUuid }
-        val relasjoner =
-            vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(sykepengesoknadUuids)
-        val vedtaksperiodeBehandlinger =
-            relasjoner.map {
-                vedtaksperiodeBehandlingRepository.findById(it.vedtaksperiodeBehandlingId).get()
-            }
-        return vedtaksperiodeBehandlinger.flatMap {
-            forelagteOpplysningerRepository.findAllByVedtaksperiodeIdAndBehandlingId(
-                it.vedtaksperiodeId,
-                it.behandlingId,
-            )
-        }
-    }
-
     private fun finnSykepengesoknader(
         vedtaksperiodeId: String,
         behandlingId: String,
@@ -182,6 +158,7 @@ class SendForelagteOpplysningerOppgave(
     private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
     private val hentRelevantInfoTilForelagtOpplysning: HentRelevantInfoTilForelagtOpplysning,
     private val opprettBrukervarselForForelagteOpplysninger: OpprettBrukervarselForForelagteOpplysninger,
+    private val harForelagtForPersonMedOrgNyligSjekk: HarForelagtForPersonMedOrgNyligSjekk,
 ) {
     private val log = logger()
 
@@ -203,41 +180,31 @@ class SendForelagteOpplysningerOppgave(
             return
         }
 
-        if (!harForelagtNyligForOrgnr(
+        if (!harForelagtForPersonMedOrgNyligSjekk.sjekk(
                 fnr = relevantInfoTilForelagteOpplysninger.fnr,
-                orgnr = relevantInfoTilForelagteOpplysninger.orgnummer,
-                now,
+                orgnummer = relevantInfoTilForelagteOpplysninger.orgnummer,
+                now = now,
             )
         ) {
-            opprettBrukervarselForForelagteOpplysninger.opprettVarslinger(
-                varselId = forelagteOpplysninger.id!!,
-                melding = forelagteOpplysninger.forelagteOpplysningerMelding,
-                fnr = relevantInfoTilForelagteOpplysninger.fnr,
-                orgNavn = relevantInfoTilForelagteOpplysninger.orgnummer,
-                now = now,
-                startSyketilfelle = relevantInfoTilForelagteOpplysninger.startSyketilfelle,
-                // TODO: dry run
-                dryRun = false,
+            log.warn(
+                "Har forelagt nylig for person med org, forelgger ikke på nytt nå. Forelagte opplysninger: ${forelagteOpplysninger.id}",
             )
-            forelagteOpplysningerRepository.save(
-                forelagteOpplysninger.copy(forelagt = now),
-            )
+            return
         }
-    }
 
-    private fun harForelagtNyligForOrgnr(
-        fnr: String,
-        orgnr: String,
-        now: Instant,
-    ): Boolean {
-        val forelagtEtter = now.minus(Duration.ofDays(28))
-        val forelagteOpplysninger =
-            hentRelevantInfoTilForelagtOpplysning.hentForelagteOpplysningerFor(fnr = fnr, orgnr = orgnr)
-        val finnesOpplysningerForelagtNylig =
-            forelagteOpplysninger
-                .mapNotNull { it.forelagt }
-                .any { it.isAfter(forelagtEtter) }
-        return finnesOpplysningerForelagtNylig
+        opprettBrukervarselForForelagteOpplysninger.opprettVarslinger(
+            varselId = forelagteOpplysninger.id!!,
+            melding = forelagteOpplysninger.forelagteOpplysningerMelding,
+            fnr = relevantInfoTilForelagteOpplysninger.fnr,
+            orgNavn = relevantInfoTilForelagteOpplysninger.orgnummer,
+            now = now,
+            startSyketilfelle = relevantInfoTilForelagteOpplysninger.startSyketilfelle,
+            // TODO: dry run
+            dryRun = false,
+        )
+        forelagteOpplysningerRepository.save(
+            forelagteOpplysninger.copy(forelagt = now),
+        )
     }
 }
 

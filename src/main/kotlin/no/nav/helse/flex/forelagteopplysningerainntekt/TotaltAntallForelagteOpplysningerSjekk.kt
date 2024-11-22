@@ -5,9 +5,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class TotaltAntallForelagteOpplysningerSjekk(
-     private val maxAntallForelagteOpplysninger: Int = 100,
+    private val maxAntallForelagteOpplysninger: Int = 100,
 ) {
-
     private val log = logger()
 
     fun sjekk(forelagteOpplysninger: List<ForelagteOpplysningerDbRecord>) {

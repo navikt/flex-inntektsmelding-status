@@ -15,6 +15,7 @@ import org.amshove.kluent.`should not be`
 import org.amshove.kluent.shouldBeFalse
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.awaitility.Awaitility.await
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
@@ -28,6 +29,11 @@ import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.Random::class)
 class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
+    @AfterEach
+    fun rensDb() {
+        super.slettFraDatabase()
+    }
+
     @Test
     fun `Tar imot og lagrer forelagte inntektsopplysninger fra ainntekt`() {
         val forelagteOpplysningerMelding =
