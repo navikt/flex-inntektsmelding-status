@@ -284,6 +284,7 @@ class OpprettBrukervarselForForelagteOpplysninger(
                                 variant = Variant.INFO,
                                 lukkbar = false,
                                 synligFremTil = synligFremTil,
+                                //TODO: Er det et bra navn?
                                 meldingType = "FORELAGTE_OPPLYSNINGER",
                                 metadata =
                                     forelagtOpplysningTilMetadata(
