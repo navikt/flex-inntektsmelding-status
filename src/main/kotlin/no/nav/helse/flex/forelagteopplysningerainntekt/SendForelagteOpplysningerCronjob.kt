@@ -6,12 +6,8 @@ import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtForPer
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.TotaltAntallForelagteOpplysningerSjekk
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
-import no.nav.helse.flex.organisasjon.OrganisasjonRepository
-import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
-import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.toJsonNode
 import no.nav.helse.flex.util.tilOsloZone
-import no.nav.helse.flex.vedtaksperiodebehandling.*
 import org.postgresql.util.PGobject
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
@@ -73,88 +69,6 @@ class SendForelagteOpplysningerCronjob(
     }
 }
 
-data class RelevantInfoTilForelagtOpplysning(
-    val fnr: String,
-    val startSyketilfelle: LocalDate,
-    val orgnummer: String,
-    val orgNavn: String,
-)
-
-@Component
-class HentRelevantInfoTilForelagtOpplysning(
-    private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
-    private val vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository,
-    private val sykepengesoknadRepository: SykepengesoknadRepository,
-    private val organisasjonRepository: OrganisasjonRepository,
-) {
-    val log = logger()
-
-    fun hentRelevantInfoTil(forelagteOpplysninger: ForelagteOpplysningerDbRecord): RelevantInfoTilForelagtOpplysning? {
-        val sykepengeSoknader =
-            finnSykepengesoknader(
-                vedtaksperiodeId = forelagteOpplysninger.vedtaksperiodeId,
-                behandlingId = forelagteOpplysninger.behandlingId,
-            )
-        if (sykepengeSoknader.isEmpty()) {
-            log.warn("Finnes ingen sykepengesoknader relatert til forelagte opplysninger: ${forelagteOpplysninger.id}")
-            return null
-        }
-        if (sykepengeSoknader.size > 1) {
-            log.warn(
-                "Fant flere sykepengesoknader for forelagte opplysninger: ${forelagteOpplysninger.id}. " +
-                    "Vi baserer fnr og orgnr på den siste",
-            )
-        }
-        val sisteSykepengeSoknad = sykepengeSoknader.maxBy { it.tom }
-
-        if (sisteSykepengeSoknad.orgnummer == null) {
-            log.warn("Siste sykepengesøknad for forelagte opplysninger inneholder ikke orgnummer: ${forelagteOpplysninger.id}")
-            return null
-        }
-
-        val org = organisasjonRepository.findByOrgnummer(sisteSykepengeSoknad.orgnummer)
-        if (org == null) {
-            log.warn(
-                "Organisasjon for forelagte opplysninger finnes ikke. Forelagte opplysninger: " +
-                    "${forelagteOpplysninger.id}, orgnummer: ${sisteSykepengeSoknad.orgnummer}",
-            )
-            return null
-        }
-
-        return RelevantInfoTilForelagtOpplysning(
-            fnr = sisteSykepengeSoknad.fnr,
-            orgnummer = sisteSykepengeSoknad.orgnummer,
-            startSyketilfelle = sisteSykepengeSoknad.startSyketilfelle,
-            orgNavn = org.navn,
-        )
-    }
-
-    private fun finnSykepengesoknader(
-        vedtaksperiodeId: String,
-        behandlingId: String,
-    ): List<Sykepengesoknad> {
-        val vedtaksperiodeBehandlingId =
-            vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
-                vedtaksperiodeId = vedtaksperiodeId,
-                behandlingId = behandlingId,
-            )?.id
-
-        val relevanteVedtaksperiodebehandlingSykepengesoknaderRelations =
-            vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingId(
-                vedtaksperiodeBehandlingId ?: "",
-            )
-
-        val relevanteSykepengesoknader =
-            sykepengesoknadRepository.findBySykepengesoknadUuidIn(
-                relevanteVedtaksperiodebehandlingSykepengesoknaderRelations.map {
-                    it.sykepengesoknadUuid
-                },
-            )
-
-        return relevanteSykepengesoknader
-    }
-}
-
 @Component
 class SendForelagteOpplysningerOppgave(
     private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
@@ -176,7 +90,10 @@ class SendForelagteOpplysningerOppgave(
         }
 
         val relevantInfoTilForelagteOpplysninger =
-            hentRelevantInfoTilForelagtOpplysning.hentRelevantInfoTil(forelagteOpplysninger)
+            hentRelevantInfoTilForelagtOpplysning.hentRelevantInfoFor(
+                vedtaksperiodeId = forelagteOpplysninger.vedtaksperiodeId,
+                behandlingId = forelagteOpplysninger.behandlingId,
+            )
         if (relevantInfoTilForelagteOpplysninger == null) {
             log.warn("Kunne ikke hente relevant info til forelagte opplysninger: ${forelagteOpplysninger.id}")
             return

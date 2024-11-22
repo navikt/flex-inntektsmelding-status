@@ -13,7 +13,9 @@ class TotaltAntallForelagteOpplysningerSjekk(
     fun sjekk(forelagteOpplysninger: List<ForelagteOpplysningerDbRecord>) {
         val ikkeForelagteOpplysninger = forelagteOpplysninger.filter { it.forelagt == null }
         if (ikkeForelagteOpplysninger.size > maxAntallForelagteOpplysninger) {
-            val message = "Sjekk feilet: For mange forelagte opplysninger skal sendes ut på en gang. Antall: ${ikkeForelagteOpplysninger.size}"
+            val message =
+                "Sjekk feilet: For mange forelagte opplysninger skal sendes ut på en gang. " +
+                    "Antall: ${ikkeForelagteOpplysninger.size}"
             log.error(message)
             throw RuntimeException(message)
         } else {

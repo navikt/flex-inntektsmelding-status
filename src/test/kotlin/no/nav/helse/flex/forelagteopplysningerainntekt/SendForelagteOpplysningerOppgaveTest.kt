@@ -12,7 +12,6 @@ import java.time.LocalDate
 import java.util.*
 
 class SendForelagteOpplysningerOppgaveTest {
-
     private fun harForelagtForPersonMedOrgNyligSjekkMock(): HarForelagtForPersonMedOrgNyligSjekk {
         return mock<HarForelagtForPersonMedOrgNyligSjekk> {
             on { sjekk(any(), any(), any()) } doReturn true
@@ -21,12 +20,13 @@ class SendForelagteOpplysningerOppgaveTest {
 
     private fun hentRelevantInfoTilForelagtOpplysningMock(): HentRelevantInfoTilForelagtOpplysning {
         return mock<HentRelevantInfoTilForelagtOpplysning> {
-            on { hentRelevantInfoTil(any()) } doReturn RelevantInfoTilForelagtOpplysning(
-                fnr = "test-fnr",
-                orgnummer = "test-org",
-                startSyketilfelle = LocalDate.parse("2022-06-16"),
-                orgNavn = "Test Org",
-            )
+            on { hentRelevantInfoFor(any(), any()) } doReturn
+                RelevantInfoTilForelagtOpplysning(
+                    fnr = "test-fnr",
+                    orgnummer = "test-org",
+                    startSyketilfelle = LocalDate.parse("2022-06-16"),
+                    orgNavn = "Test Org",
+                )
         }
     }
 
@@ -38,9 +38,10 @@ class SendForelagteOpplysningerOppgaveTest {
     fun `burde lagre forelagt tidspunkt lagret db etter forelagt`() {
         val forelagtOpplysning = lagTestForelagteOpplysninger(forelagt = null)
 
-        val forelagteOpplysningerRepository: ForelagteOpplysningerRepository = mock {
-            on { findById(any()) } doReturn Optional.of(forelagtOpplysning)
-        }
+        val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
+            mock {
+                on { findById(any()) } doReturn Optional.of(forelagtOpplysning)
+            }
 
         val forelagtTidspunkt = Instant.parse("2024-01-29T00:00:00.00Z")
         val oppgave =
@@ -48,7 +49,7 @@ class SendForelagteOpplysningerOppgaveTest {
                 forelagteOpplysningerRepository = forelagteOpplysningerRepository,
                 hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock(),
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
-                harForelagtForPersonMedOrgNyligSjekk = harForelagtForPersonMedOrgNyligSjekkMock()
+                harForelagtForPersonMedOrgNyligSjekk = harForelagtForPersonMedOrgNyligSjekkMock(),
             )
 
         oppgave.sendForelagteOpplysninger("_", forelagtTidspunkt)
