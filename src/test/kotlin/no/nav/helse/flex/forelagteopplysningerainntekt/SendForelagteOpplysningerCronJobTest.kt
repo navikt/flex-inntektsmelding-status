@@ -3,6 +3,7 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
+import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.TotaltAntallForelagteOpplysningerSjekk
 import org.junit.jupiter.api.Test
 import org.postgresql.util.PGobject
 import java.time.Instant

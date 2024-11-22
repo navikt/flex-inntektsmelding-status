@@ -1,5 +1,7 @@
-package no.nav.helse.flex.forelagteopplysningerainntekt
+package no.nav.helse.flex.forelagteopplysningerainntekt.sjekker
 
+import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
+import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerRepository
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
@@ -57,7 +59,7 @@ class HentAlleForelagteOpplysningerForPerson(
     private val vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository,
     private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
 ) {
-    internal fun hentAlleForelagteOpplysningerFor(
+    fun hentAlleForelagteOpplysningerFor(
         fnr: String,
         orgnr: String,
     ): List<ForelagteOpplysningerDbRecord> {

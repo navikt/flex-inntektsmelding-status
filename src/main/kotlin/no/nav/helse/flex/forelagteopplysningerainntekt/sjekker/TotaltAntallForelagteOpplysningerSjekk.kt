@@ -1,5 +1,6 @@
-package no.nav.helse.flex.forelagteopplysningerainntekt
+package no.nav.helse.flex.forelagteopplysningerainntekt.sjekker
 
+import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
 import no.nav.helse.flex.logger
 import org.springframework.stereotype.Component
 

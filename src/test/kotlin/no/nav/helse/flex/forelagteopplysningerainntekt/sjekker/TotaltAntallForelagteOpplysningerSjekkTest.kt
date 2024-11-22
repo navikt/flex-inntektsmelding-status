@@ -1,6 +1,10 @@
-package no.nav.helse.flex.forelagteopplysningerainntekt
+package no.nav.helse.flex.forelagteopplysningerainntekt.sjekker
 
-import org.amshove.kluent.*
+import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
+import org.amshove.kluent.AnyException
+import org.amshove.kluent.invoking
+import org.amshove.kluent.`should not throw`
+import org.amshove.kluent.`should throw`
 import org.junit.jupiter.api.Test
 import org.postgresql.util.PGobject
 import java.time.Instant
@@ -38,10 +42,10 @@ private fun lagTestForelagteOpplysninger(forelagt: Instant? = null): ForelagteOp
         vedtaksperiodeId = "_",
         behandlingId = "_",
         forelagteOpplysningerMelding =
-            PGobject().apply {
-                type = "json"
-                value = "{}"
-            },
+        PGobject().apply {
+            type = "json"
+            value = "{}"
+        },
         opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
         forelagt = forelagt,
     )

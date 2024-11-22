@@ -1,8 +1,9 @@
-package no.nav.helse.flex.forelagteopplysningerainntekt
+package no.nav.helse.flex.forelagteopplysningerainntekt.sjekker
 
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import no.nav.helse.flex.FellesTestOppsett
+import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
 import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
 import no.nav.helse.flex.vedtaksperiodebehandling.*
 import org.amshove.kluent.`should be`

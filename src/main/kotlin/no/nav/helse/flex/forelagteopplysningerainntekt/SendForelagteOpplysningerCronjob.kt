@@ -2,6 +2,8 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtForPersonMedOrgNyligSjekk
+import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.TotaltAntallForelagteOpplysningerSjekk
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
