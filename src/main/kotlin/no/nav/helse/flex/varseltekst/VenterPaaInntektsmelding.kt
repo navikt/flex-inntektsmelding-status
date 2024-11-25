@@ -3,6 +3,8 @@ package no.nav.helse.flex.varseltekst
 import no.nav.helse.flex.util.norskDateFormat
 import no.nav.helse.flex.util.tilLocalDate
 import java.time.Instant
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 fun skapVenterPåInntektsmelding15Tekst(
     orgnavn: String,
@@ -33,9 +35,12 @@ fun skapRevarselForsinketSaksbehandlingTekst(): String {
     return "Beklager, men behandlingen av søknaden din om sykepenger tar enda lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører."
 }
 
-fun skapForelagteOpplysningerTekst(): String {
+fun skapForelagteOpplysningerTekst(startSyketilfelle: LocalDate): String {
+    val datoFormatert = startSyketilfelle.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
     @Suppress("ktlint:standard:max-line-length")
-    return "Vi har forelagt opplysninger om inntekt for deg. Du kan se opplysningene i sykefraværet ditt." // TODO: add final version of this
+    return "Vi har hentet opplysninger om inntekten din fra Aa-ordningen for sykefraværet " +
+        "som startet $datoFormatert. " +
+        "Vi trenger at du sjekker om de stemmer."
 }
 
 const val SAKSBEHANDLINGSTID_URL = "https://www.nav.no/saksbehandlingstider#sykepenger"

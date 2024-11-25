@@ -37,8 +37,8 @@ class OpprettBrukervarselForForelagteOpplysninger(
             fnr = fnr,
             bestillingId = varselId,
             synligFremTil = synligFremTil,
-            startSyketilfelle = startSyketilfelle,
             lenke = lenkeTilForelagteOpplysninger,
+            varselTekst = skapForelagteOpplysningerTekst(startSyketilfelle),
         )
 
         meldingKafkaProducer.produserMelding(
@@ -48,13 +48,12 @@ class OpprettBrukervarselForForelagteOpplysninger(
                     fnr = fnr,
                     opprettMelding =
                         OpprettMelding(
-                            tekst = skapForelagteOpplysningerTekst(),
+                            tekst = skapForelagteOpplysningerTekst(startSyketilfelle),
                             lenke = lenkeTilForelagteOpplysninger,
                             variant = Variant.INFO,
                             lukkbar = false,
                             synligFremTil = synligFremTil,
-                            // TODO: Er det et bra navn?
-                            meldingType = "FORELAGTE_OPPLYSNINGER",
+                            meldingType = "FORELAGTE_OPPLYSNINGER_AINNTEKT",
                             metadata =
                                 forelagtOpplysningTilMetadata(
                                     melding,

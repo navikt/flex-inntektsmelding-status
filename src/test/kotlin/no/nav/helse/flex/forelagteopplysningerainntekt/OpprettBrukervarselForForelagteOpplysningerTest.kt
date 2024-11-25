@@ -7,6 +7,7 @@ import no.nav.helse.flex.brukervarsel.Brukervarsel
 import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.serialisertTilString
+import no.nav.helse.flex.varseltekst.skapForelagteOpplysningerTekst
 import org.amshove.kluent.`should be equal to`
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -83,12 +84,14 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
             now = Instant.parse("2022-06-16T00:00:00.00Z"),
         )
 
+        val startSykeTilfelle = LocalDateTime.parse("2022-06-16T00:00:00.00")
+        val treUkerFrem = startSykeTilfelle.plusWeeks(3)
         verify(mockBrukervarsel).beskjedForelagteOpplysninger(
             eq("test-fnr"),
             eq("test-id"),
-            any(),
-            eq(LocalDateTime.parse("2022-06-16T00:00:00.00").plusWeeks(3).toInstant(ZoneOffset.UTC)),
+            eq(treUkerFrem.toInstant(ZoneOffset.UTC)),
             eq("https://test.test/test-id"),
+            eq(skapForelagteOpplysningerTekst(LocalDateTime.parse("2022-06-16T00:00:00.00").toLocalDate())),
         )
         verify(mockMeldingKafkaProducer).produserMelding(eq("test-id"), any())
     }

@@ -11,7 +11,6 @@ db_tempFileLimit: 3072000
 azureTenant: nav.no
 env:
   SPRING_PROFILES_ACTIVE: default
-  # TODO: Endre navn
   INNTEKTSMELDING_MANGLER_URL: https://www.nav.no/syk/sykefravaer/inntektsmelding
   FORELAGTE_OPPLYSNINGER_BASE_URL: https://www.nav.no/syk/sykefravaer/forelagte
   KAFKA_AUTO_OFFSET_RESET: none
