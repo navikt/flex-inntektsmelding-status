@@ -23,7 +23,7 @@ class SendForelagteOpplysningerCronjob(
 ) {
     private val log = logger()
 
-    @Scheduled(initialDelay = 10, fixedDelay = 15, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 1, fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
     fun run(): SendForelagteOpplysningerCronjobResultat {
         val osloDatetimeNow = OffsetDateTime.now().tilOsloZone()
         if (osloDatetimeNow.dayOfWeek in setOf(DayOfWeek.SUNDAY, DayOfWeek.SATURDAY)) {
