@@ -114,15 +114,15 @@ data class VedtaksperiodeBehandlingDbRecord(
     val sisteSpleisstatusTidspunkt: Instant,
     val sisteVarslingstatus: StatusVerdi?,
     val sisteVarslingstatusTidspunkt: Instant?,
-    val vedtaksperiodeId: String, // samme som i forelagteopplysninger
-    val behandlingId: String, // samme som i forelagteopplysninger
+    val vedtaksperiodeId: String,
+    val behandlingId: String,
 )
 
 @Table("vedtaksperiode_behandling_sykepengesoknad")
 data class VedtaksperiodeBehandlingSykepengesoknadDbRecord(
     @Id
     val id: String? = null,
-    val vedtaksperiodeBehandlingId: String, // @Table("vedtaksperiode_behandling") ... samme som val id
+    val vedtaksperiodeBehandlingId: String,
     val sykepengesoknadUuid: String,
 )
 
