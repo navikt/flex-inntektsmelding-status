@@ -59,7 +59,7 @@ class SendForelagteOpplysningerOppgave(
             varselId = forelagteOpplysninger.id!!,
             melding = forelagteOpplysninger.forelagteOpplysningerMelding,
             fnr = relevantInfoTilForelagteOpplysninger.fnr,
-            orgNavn = relevantInfoTilForelagteOpplysninger.orgnummer,
+            orgNavn = relevantInfoTilForelagteOpplysninger.orgNavn,
             now = now,
             startSyketilfelle = relevantInfoTilForelagteOpplysninger.startSyketilfelle,
         )
