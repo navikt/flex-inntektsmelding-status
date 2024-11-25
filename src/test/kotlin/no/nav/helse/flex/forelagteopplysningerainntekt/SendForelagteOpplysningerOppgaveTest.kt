@@ -14,12 +14,6 @@ import java.time.LocalDate
 import java.util.*
 
 class SendForelagteOpplysningerOppgaveTest {
-    private fun forelagteOpplysningerRepositoryMock(): ForelagteOpplysningerRepository {
-        return mock {
-            on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(forelagt = null))
-        }
-    }
-
     private fun harForelagtForPersonMedOrgNyligSjekkMock(): HarForelagtForPersonMedOrgNyligSjekk {
         return mock<HarForelagtForPersonMedOrgNyligSjekk> {
             on { sjekk(any(), any(), any()) } doReturn true
