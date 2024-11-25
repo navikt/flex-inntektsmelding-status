@@ -53,7 +53,7 @@ class OpprettBrukervarselForForelagteOpplysninger(
                             variant = Variant.INFO,
                             lukkbar = false,
                             synligFremTil = synligFremTil,
-                            meldingType = "FORELAGTE_OPPLYSNINGER_AINNTEKT",
+                            meldingType = "FORELAGT_INNTEKT_FRA_AAREG",
                             metadata =
                                 forelagtOpplysningTilMetadata(
                                     melding,
