@@ -29,46 +29,41 @@ class OpprettBrukervarselForForelagteOpplysninger(
         orgNavn: String,
         startSyketilfelle: LocalDate,
         now: Instant,
-        dryRun: Boolean = false,
-    ): CronJobStatus {
-        if (!dryRun) {
-            val synligFremTil = now.tilOsloZone().plusWeeks(3).toInstant()
-            val lenkeTilForelagteOpplysninger = "$forelagteOpplysningerBaseUrl/$varselId"
+    ) {
+        val synligFremTil = now.tilOsloZone().plusWeeks(3).toInstant()
+        val lenkeTilForelagteOpplysninger = "$forelagteOpplysningerBaseUrl/$varselId"
 
-            brukervarsel.beskjedForelagteOpplysninger(
-                fnr = fnr,
-                bestillingId = varselId,
-                synligFremTil = synligFremTil,
-                startSyketilfelle = startSyketilfelle,
-                lenke = lenkeTilForelagteOpplysninger,
-            )
+        brukervarsel.beskjedForelagteOpplysninger(
+            fnr = fnr,
+            bestillingId = varselId,
+            synligFremTil = synligFremTil,
+            startSyketilfelle = startSyketilfelle,
+            lenke = lenkeTilForelagteOpplysninger,
+        )
 
-            meldingKafkaProducer.produserMelding(
-                meldingUuid = varselId,
-                meldingKafkaDto =
-                    MeldingKafkaDto(
-                        fnr = fnr,
-                        opprettMelding =
-                            OpprettMelding(
-                                tekst = skapForelagteOpplysningerTekst(),
-                                lenke = lenkeTilForelagteOpplysninger,
-                                variant = Variant.INFO,
-                                lukkbar = false,
-                                synligFremTil = synligFremTil,
-                                // TODO: Er det et bra navn?
-                                meldingType = "FORELAGTE_OPPLYSNINGER",
-                                metadata =
-                                    forelagtOpplysningTilMetadata(
-                                        melding,
-                                        orgNavn,
-                                    ),
-                            ),
-                    ),
-            )
+        meldingKafkaProducer.produserMelding(
+            meldingUuid = varselId,
+            meldingKafkaDto =
+                MeldingKafkaDto(
+                    fnr = fnr,
+                    opprettMelding =
+                        OpprettMelding(
+                            tekst = skapForelagteOpplysningerTekst(),
+                            lenke = lenkeTilForelagteOpplysninger,
+                            variant = Variant.INFO,
+                            lukkbar = false,
+                            synligFremTil = synligFremTil,
+                            // TODO: Er det et bra navn?
+                            meldingType = "FORELAGTE_OPPLYSNINGER",
+                            metadata =
+                                forelagtOpplysningTilMetadata(
+                                    melding,
+                                    orgNavn,
+                                ),
+                        ),
+                ),
+        )
 
-            log.info("Sendt forelagte opplysninger varsel med id $varselId")
-        }
-
-        return CronJobStatus.SENDT_FORELAGTE_OPPLYSNINGER
+        log.info("Sendt forelagte opplysninger varsel med id $varselId")
     }
 }

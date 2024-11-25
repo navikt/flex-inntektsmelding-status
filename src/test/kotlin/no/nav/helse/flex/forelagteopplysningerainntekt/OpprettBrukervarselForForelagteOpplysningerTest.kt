@@ -79,9 +79,8 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
                 },
             fnr = "test-fnr",
             orgNavn = "test-orgnavn",
-            now = Instant.parse("2022-06-16T00:00:00.00Z"),
             startSyketilfelle = LocalDate.parse("2022-06-16"),
-            dryRun = false,
+            now = Instant.parse("2022-06-16T00:00:00.00Z"),
         )
 
         verify(mockBrukervarsel).beskjedForelagteOpplysninger(

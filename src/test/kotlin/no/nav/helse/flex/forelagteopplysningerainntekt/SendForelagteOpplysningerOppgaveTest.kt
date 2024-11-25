@@ -14,7 +14,6 @@ import java.time.LocalDate
 import java.util.*
 
 class SendForelagteOpplysningerOppgaveTest {
-
     private fun forelagteOpplysningerRepositoryMock(): ForelagteOpplysningerRepository {
         return mock {
             on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(forelagt = null))
@@ -72,9 +71,10 @@ class SendForelagteOpplysningerOppgaveTest {
             mock {
                 on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(forelagt = null))
             }
-        val harForelagtForPersonMedOrgNyligSjekk = mock<HarForelagtForPersonMedOrgNyligSjekk> {
-            on { sjekk(any(), any(), any()) } doReturn true
-        }
+        val harForelagtForPersonMedOrgNyligSjekk =
+            mock<HarForelagtForPersonMedOrgNyligSjekk> {
+                on { sjekk(any(), any(), any()) } doReturn true
+            }
         val oppgave =
             SendForelagteOpplysningerOppgave(
                 forelagteOpplysningerRepository = forelagteOpplysningerRepository,
@@ -93,9 +93,10 @@ class SendForelagteOpplysningerOppgaveTest {
             mock {
                 on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(forelagt = null))
             }
-        val harForelagtForPersonMedOrgNyligSjekk = mock<HarForelagtForPersonMedOrgNyligSjekk> {
-            on { sjekk(any(), any(), any()) } doReturn false
-        }
+        val harForelagtForPersonMedOrgNyligSjekk =
+            mock<HarForelagtForPersonMedOrgNyligSjekk> {
+                on { sjekk(any(), any(), any()) } doReturn false
+            }
         val oppgave =
             SendForelagteOpplysningerOppgave(
                 forelagteOpplysningerRepository = forelagteOpplysningerRepository,

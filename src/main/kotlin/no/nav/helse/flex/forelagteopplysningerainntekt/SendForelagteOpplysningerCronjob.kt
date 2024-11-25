@@ -65,16 +65,17 @@ class SendForelagteOpplysningerCronjob(
                 antallForelagteOpplysningerHoppetOver++
             }
         }
-        val resultat = SendForelagteOpplysningerCronjobResultat(
-            antallForelagteOpplysningerSendt = antallForelagteOpplysningerSendt,
-            antallForelagteOpplysningerHoppetOver = antallForelagteOpplysningerHoppetOver,
-        )
+        val resultat =
+            SendForelagteOpplysningerCronjobResultat(
+                antallForelagteOpplysningerSendt = antallForelagteOpplysningerSendt,
+                antallForelagteOpplysningerHoppetOver = antallForelagteOpplysningerHoppetOver,
+            )
         log.info(
             """
-                Resultat fra ${this::class.simpleName}.
-                    Antall sendt: $antallForelagteOpplysningerSendt. 
-                    Antall hoppet over: $antallForelagteOpplysningerHoppetOver
-            """.trimIndent()
+            Resultat fra ${this::class.simpleName}.
+                Antall sendt: $antallForelagteOpplysningerSendt. 
+                Antall hoppet over: $antallForelagteOpplysningerHoppetOver
+            """.trimIndent(),
         )
         return resultat
     }
@@ -129,8 +130,6 @@ class SendForelagteOpplysningerOppgave(
             orgNavn = relevantInfoTilForelagteOpplysninger.orgnummer,
             now = now,
             startSyketilfelle = relevantInfoTilForelagteOpplysninger.startSyketilfelle,
-            // TODO: dry run
-            dryRun = false,
         )
         forelagteOpplysningerRepository.save(
             forelagteOpplysninger.copy(forelagt = now),
@@ -155,5 +154,3 @@ internal fun forelagtOpplysningTilMetadata(
         )
     return aaregInntekt.toJsonNode()
 }
-
-enum class CronJobStatus { SENDT_FORELAGTE_OPPLYSNINGER }
