@@ -17,7 +17,7 @@ class ForelagteOpplysningerListener(
     @KafkaListener(
         topics = [FORELAGTE_OPPLYSNINGER_TOPIC],
         containerFactory = "aivenKafkaListenerContainerFactory",
-        groupId = "forelagteopplysninger-2",
+        groupId = "forelagteopplysninger-3",
     )
     fun listen(
         cr: ConsumerRecord<String, String>,
