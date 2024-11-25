@@ -2,6 +2,7 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.FellesTestOppsett
+import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.organisasjon.Organisasjon
 import no.nav.helse.flex.serialisertTilString
@@ -122,7 +123,17 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
         resultat.antallForelagteOpplysningerSendt `should be equal to` 1
         resultat.antallForelagteOpplysningerHoppetOver `should be equal to` 0
 
-        meldingKafkaConsumer.ventPåRecords(antall = 1)
+        meldingKafkaConsumer.ventPåRecords(antall = 1).first().value().let {
+            val melding: MeldingKafkaDto = objectMapper.readValue(it)
+            val aaregInntekt: AaregInntekt = objectMapper.convertValue(melding.opprettMelding?.metadata, AaregInntekt::class.java)
+            aaregInntekt `should be equal to`
+                AaregInntekt(
+                    tidsstempel = LocalDateTime.parse("2024-01-16T00:00:00.00"),
+                    inntekter = emptyList(),
+                    omregnetAarsinntekt = 0.0,
+                    orgnavn = "Organisasjonen",
+                )
+        }
         varslingConsumer.ventPåRecords(antall = 1)
 
         forelagteOpplysningerRepository.findById(forelagteOpplysningerMelding.id!!).get().let {
