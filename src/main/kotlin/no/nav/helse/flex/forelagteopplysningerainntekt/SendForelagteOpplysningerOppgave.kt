@@ -86,4 +86,3 @@ internal fun forelagtOpplysningTilMetadata(
         )
     return aaregInntekt.toJsonNode()
 }
-

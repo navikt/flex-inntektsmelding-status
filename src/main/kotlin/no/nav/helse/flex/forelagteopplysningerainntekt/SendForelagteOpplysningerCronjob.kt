@@ -1,22 +1,13 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtForPersonMedOrgNyligSjekk
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.TotaltAntallForelagteOpplysningerSjekk
 import no.nav.helse.flex.logger
-import no.nav.helse.flex.objectMapper
-import no.nav.helse.flex.toJsonNode
 import no.nav.helse.flex.util.tilOsloZone
-import org.postgresql.util.PGobject
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
 import java.time.*
 import java.util.concurrent.TimeUnit
-import kotlin.jvm.optionals.getOrNull
 
 class SendForelagteOpplysningerCronjobResultat(
     val antallForelagteOpplysningerSendt: Int = 0,
@@ -80,4 +71,3 @@ class SendForelagteOpplysningerCronjob(
         return resultat
     }
 }
-
