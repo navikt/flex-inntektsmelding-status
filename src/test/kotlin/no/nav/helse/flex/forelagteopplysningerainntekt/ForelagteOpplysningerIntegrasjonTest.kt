@@ -117,7 +117,10 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
                 ),
             )
 
-        sendForelagteOpplysningerCronjob.runMedParameter(Instant.parse("2024-11-15T12:00:00.00Z"))
+        val resultat = sendForelagteOpplysningerCronjob.runMedParameter(Instant.parse("2024-11-15T12:00:00.00Z"))
+
+        resultat.antallForelagteOpplysningerSendt `should be equal to` 1
+        resultat.antallForelagteOpplysningerHoppetOver `should be equal to` 0
 
         meldingKafkaConsumer.ventPåRecords(antall = 1)
         varslingConsumer.ventPåRecords(antall = 1)

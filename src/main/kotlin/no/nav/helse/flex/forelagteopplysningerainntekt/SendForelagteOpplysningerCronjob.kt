@@ -18,6 +18,11 @@ import java.time.*
 import java.util.concurrent.TimeUnit
 import kotlin.jvm.optionals.getOrNull
 
+class SendForelagteOpplysningerCronjobResultat(
+    val antallForelagteOpplysningerSendt: Int = 0,
+    val antallForelagteOpplysningerHoppetOver: Int = 0,
+)
+
 @Profile("forelagteopplysninger")
 @Component
 class SendForelagteOpplysningerCronjob(
@@ -28,42 +33,48 @@ class SendForelagteOpplysningerCronjob(
     private val log = logger()
 
     @Scheduled(initialDelay = 10, fixedDelay = 15, timeUnit = TimeUnit.MINUTES)
-    fun run(): Map<CronJobStatus, Int> {
+    fun run(): SendForelagteOpplysningerCronjobResultat {
         val osloDatetimeNow = OffsetDateTime.now().tilOsloZone()
         if (osloDatetimeNow.dayOfWeek in setOf(DayOfWeek.SUNDAY, DayOfWeek.SATURDAY)) {
             log.info("Det er helg, jobben kjøres ikke")
-            return emptyMap()
+            return SendForelagteOpplysningerCronjobResultat()
         }
         if (osloDatetimeNow.hour < 9 || osloDatetimeNow.hour > 15) {
             log.info("Det er ikke dagtid, jobben kjøres ikke")
-            return emptyMap()
+            return SendForelagteOpplysningerCronjobResultat()
         }
 
         return runMedParameter(osloDatetimeNow.toInstant())
     }
 
-    fun runMedParameter(now: Instant): Map<CronJobStatus, Int> {
-        log.info("Starter VarselutsendingCronJob")
-
-        val resultat = HashMap<CronJobStatus, Int>()
+    fun runMedParameter(now: Instant): SendForelagteOpplysningerCronjobResultat {
+        log.info("Starter ${this::class.simpleName}")
 
         val usendteForelagteOpplysninger: List<ForelagteOpplysningerDbRecord> =
             forelagteOpplysningerRepository.findAllByForelagtIsNull()
 
         totaltAntallForelagteOpplysningerSjekk.sjekk(usendteForelagteOpplysninger)
 
+        var antallForelagteOpplysningerSendt = 0
+        var antallForelagteOpplysningerHoppetOver = 0
         for (usendtForelagtOpplysning in usendteForelagteOpplysninger) {
-            sendForelagteOpplysningerOppgave.sendForelagteOpplysninger(usendtForelagtOpplysning.id!!, now)
+            val bleSendt = sendForelagteOpplysningerOppgave.sendForelagteOpplysninger(usendtForelagtOpplysning.id!!, now)
+            if (bleSendt) {
+                antallForelagteOpplysningerSendt++
+            } else {
+                antallForelagteOpplysningerHoppetOver++
+            }
         }
-
-        // TODO:
+        val resultat = SendForelagteOpplysningerCronjobResultat(
+            antallForelagteOpplysningerSendt = antallForelagteOpplysningerSendt,
+            antallForelagteOpplysningerHoppetOver = antallForelagteOpplysningerHoppetOver,
+        )
         log.info(
-            "Resultat fra VarselutsendingCronJob: ${
-                resultat.map { "${it.key}: ${it.value}" }.sorted().joinToString(
-                    separator = "\n",
-                    prefix = "\n",
-                )
-            }",
+            """
+                Resultat fra ${this::class.simpleName}.
+                    Antall sendt: $antallForelagteOpplysningerSendt. 
+                    Antall hoppet over: $antallForelagteOpplysningerHoppetOver
+            """.trimIndent()
         )
         return resultat
     }
@@ -82,11 +93,11 @@ class SendForelagteOpplysningerOppgave(
     fun sendForelagteOpplysninger(
         forelagteOpplysningerId: String,
         now: Instant,
-    ) {
+    ): Boolean {
         val forelagteOpplysninger = forelagteOpplysningerRepository.findById(forelagteOpplysningerId).getOrNull()
         if (forelagteOpplysninger == null) {
             log.error("Forelagte opplysninger finnes ikke for id: $forelagteOpplysningerId")
-            return
+            return false
         }
 
         val relevantInfoTilForelagteOpplysninger =
@@ -96,7 +107,7 @@ class SendForelagteOpplysningerOppgave(
             )
         if (relevantInfoTilForelagteOpplysninger == null) {
             log.warn("Kunne ikke hente relevant info til forelagte opplysninger: ${forelagteOpplysninger.id}")
-            return
+            return false
         }
 
         if (!harForelagtForPersonMedOrgNyligSjekk.sjekk(
@@ -108,7 +119,7 @@ class SendForelagteOpplysningerOppgave(
             log.warn(
                 "Har forelagt nylig for person med org, forelgger ikke på nytt nå. Forelagte opplysninger: ${forelagteOpplysninger.id}",
             )
-            return
+            return false
         }
 
         opprettBrukervarselForForelagteOpplysninger.opprettVarslinger(
@@ -124,6 +135,7 @@ class SendForelagteOpplysningerOppgave(
         forelagteOpplysningerRepository.save(
             forelagteOpplysninger.copy(forelagt = now),
         )
+        return true
     }
 }
 

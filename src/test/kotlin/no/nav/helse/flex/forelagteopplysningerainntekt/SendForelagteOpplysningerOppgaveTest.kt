@@ -5,6 +5,8 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtForPersonMedOrgNyligSjekk
+import org.amshove.kluent.shouldBeFalse
+import org.amshove.kluent.shouldBeTrue
 import org.junit.jupiter.api.Test
 import org.postgresql.util.PGobject
 import java.time.Instant
@@ -12,6 +14,13 @@ import java.time.LocalDate
 import java.util.*
 
 class SendForelagteOpplysningerOppgaveTest {
+
+    private fun forelagteOpplysningerRepositoryMock(): ForelagteOpplysningerRepository {
+        return mock {
+            on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(forelagt = null))
+        }
+    }
+
     private fun harForelagtForPersonMedOrgNyligSjekkMock(): HarForelagtForPersonMedOrgNyligSjekk {
         return mock<HarForelagtForPersonMedOrgNyligSjekk> {
             on { sjekk(any(), any(), any()) } doReturn true
@@ -55,6 +64,48 @@ class SendForelagteOpplysningerOppgaveTest {
         oppgave.sendForelagteOpplysninger("_", forelagtTidspunkt)
 
         verify(forelagteOpplysningerRepository).save(forelagtOpplysning.copy(forelagt = forelagtTidspunkt))
+    }
+
+    @Test
+    fun `burde returnere true dersom sjekk er gjyldig`() {
+        val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
+            mock {
+                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(forelagt = null))
+            }
+        val harForelagtForPersonMedOrgNyligSjekk = mock<HarForelagtForPersonMedOrgNyligSjekk> {
+            on { sjekk(any(), any(), any()) } doReturn true
+        }
+        val oppgave =
+            SendForelagteOpplysningerOppgave(
+                forelagteOpplysningerRepository = forelagteOpplysningerRepository,
+                hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock(),
+                opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
+                harForelagtForPersonMedOrgNyligSjekk = harForelagtForPersonMedOrgNyligSjekk,
+            )
+
+        val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
+        bleSendt.shouldBeTrue()
+    }
+
+    @Test
+    fun `burde returnere false dersom sjekk feiler`() {
+        val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
+            mock {
+                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(forelagt = null))
+            }
+        val harForelagtForPersonMedOrgNyligSjekk = mock<HarForelagtForPersonMedOrgNyligSjekk> {
+            on { sjekk(any(), any(), any()) } doReturn false
+        }
+        val oppgave =
+            SendForelagteOpplysningerOppgave(
+                forelagteOpplysningerRepository = forelagteOpplysningerRepository,
+                hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock(),
+                opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
+                harForelagtForPersonMedOrgNyligSjekk = harForelagtForPersonMedOrgNyligSjekk,
+            )
+
+        val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
+        bleSendt.shouldBeFalse()
     }
 
     fun lagTestForelagteOpplysninger(forelagt: Instant? = null): ForelagteOpplysningerDbRecord {
