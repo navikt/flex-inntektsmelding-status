@@ -4,7 +4,7 @@ server:
 spring:
   main.banner-mode: 'off'
   profiles:
-    active: default, forelagteopplysninger
+    active: default
   flyway:
     enabled: true
   datasource:
