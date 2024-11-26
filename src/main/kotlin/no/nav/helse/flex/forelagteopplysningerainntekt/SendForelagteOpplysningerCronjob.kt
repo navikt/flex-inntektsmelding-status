@@ -2,6 +2,7 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.TotaltAntallForelagteOpplysningerSjekk
 import no.nav.helse.flex.logger
+import no.nav.helse.flex.config.unleash.UnleashToggles
 import no.nav.helse.flex.util.tilOsloZone
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
@@ -20,11 +21,15 @@ class SendForelagteOpplysningerCronjob(
     private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
     private val sendForelagteOpplysningerOppgave: SendForelagteOpplysningerOppgave,
     private val totaltAntallForelagteOpplysningerSjekk: TotaltAntallForelagteOpplysningerSjekk,
+    private val unleashToggles: UnleashToggles,
 ) {
     private val log = logger()
 
     @Scheduled(initialDelay = 15, fixedDelay = 15, timeUnit = TimeUnit.MINUTES)
     fun run(): SendForelagteOpplysningerCronjobResultat {
+        if (!unleashToggles.forelagteOpplysninger()){
+            return SendForelagteOpplysningerCronjobResultat()
+        }
         val osloDatetimeNow = OffsetDateTime.now().tilOsloZone()
         if (osloDatetimeNow.dayOfWeek in setOf(DayOfWeek.SUNDAY, DayOfWeek.SATURDAY)) {
             log.info("Det er helg, jobben kjøres ikke")

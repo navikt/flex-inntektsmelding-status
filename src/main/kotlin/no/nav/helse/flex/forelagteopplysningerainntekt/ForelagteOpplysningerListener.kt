@@ -1,5 +1,6 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
+import no.nav.helse.flex.config.unleash.UnleashToggles
 import no.nav.helse.flex.logger
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.context.annotation.Profile
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component
 @Profile("forelagteopplysninger")
 class ForelagteOpplysningerListener(
     private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
+    private val unleashToggles: UnleashToggles,
 ) {
     val log = logger()
 
@@ -22,6 +24,9 @@ class ForelagteOpplysningerListener(
         cr: ConsumerRecord<String, String>,
         acknowledgment: Acknowledgment,
     ) {
+        if (!unleashToggles.forelagteOpplysninger()){
+            return
+        }
         val forelagtOpplysningerDbRecord = ForelagteOpplysningerDbRecord.parseConsumerRecord(cr)
 
         if (forelagteOpplysningerRepository.existsByVedtaksperiodeIdAndBehandlingId(
