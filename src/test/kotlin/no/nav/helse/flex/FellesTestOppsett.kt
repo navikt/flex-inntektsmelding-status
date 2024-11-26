@@ -1,6 +1,7 @@
 package no.nav.helse.flex
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.getunleash.FakeUnleash
 import no.nav.helse.flex.Testdata.fnr
 import no.nav.helse.flex.Testdata.fnrFlexer
 import no.nav.helse.flex.api.FlexInternalFrontendController.HentVedtaksperioderPostRequest
@@ -112,6 +113,9 @@ abstract class FellesTestOppsett {
     @Autowired
     lateinit var auditlogKafkaConsumer: Consumer<String, String>
 
+    @Autowired
+    lateinit var unleash: FakeUnleash
+
     companion object {
         init {
 
@@ -149,6 +153,11 @@ abstract class FellesTestOppsett {
     @BeforeAll
     fun forAlleTester() {
         slettFraDatabase()
+    }
+
+    @AfterAll
+    fun resetUnleash() {
+        unleash.resetAll()
     }
 
     fun sendSoknad(soknad: SykepengesoknadDTO) {

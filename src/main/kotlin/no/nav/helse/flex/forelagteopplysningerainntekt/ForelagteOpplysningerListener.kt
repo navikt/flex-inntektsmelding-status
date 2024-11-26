@@ -23,10 +23,11 @@ class ForelagteOpplysningerListener(
     fun listen(
         cr: ConsumerRecord<String, String>,
         acknowledgment: Acknowledgment,
-    ) {
-        if (!unleashToggles.forelagteOpplysninger()){
-            return
-        }
+    ): Boolean {
+        if (!unleashToggles.forelagteOpplysninger())
+            {
+                return false
+            }
         val forelagtOpplysningerDbRecord = ForelagteOpplysningerDbRecord.parseConsumerRecord(cr)
 
         if (forelagteOpplysningerRepository.existsByVedtaksperiodeIdAndBehandlingId(
@@ -46,6 +47,7 @@ class ForelagteOpplysningerListener(
             forelagteOpplysningerRepository.save(forelagtOpplysningerDbRecord)
         }
         acknowledgment.acknowledge()
+        return true
     }
 }
 
