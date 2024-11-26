@@ -4,7 +4,6 @@ import no.nav.helse.flex.config.unleash.UnleashToggles
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.TotaltAntallForelagteOpplysningerSjekk
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.util.tilOsloZone
-import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.*
@@ -16,7 +15,6 @@ class SendForelagteOpplysningerCronjobResultat(
 )
 
 @Component
-@Profile("forelagteopplysninger")
 class SendForelagteOpplysningerCronjob(
     private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
     private val sendForelagteOpplysningerOppgave: SendForelagteOpplysningerOppgave,
