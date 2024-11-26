@@ -32,6 +32,7 @@ class SendForelagteOpplysningerCronjob(
     )
     fun run(): SendForelagteOpplysningerCronjobResultat {
         if (!unleashToggles.forelagteOpplysninger()) {
+            log.info("Feature toggle er skudd av for forelagte opplysninger")
             return SendForelagteOpplysningerCronjobResultat()
         }
         val osloDatetimeNow = OffsetDateTime.now().tilOsloZone()

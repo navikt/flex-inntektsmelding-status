@@ -25,6 +25,7 @@ class ForelagteOpplysningerListener(
         acknowledgment: Acknowledgment,
     ): Boolean {
         if (!unleashToggles.forelagteOpplysninger()) {
+            log.info("Feature toggle er skudd av for forelagte opplysninger")
             return false
         }
         val forelagtOpplysningerDbRecord = ForelagteOpplysningerDbRecord.parseConsumerRecord(cr)
