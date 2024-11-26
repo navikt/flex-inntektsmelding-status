@@ -13,7 +13,7 @@ SEND_FORELAGTE_OPPLYSNINGER_FIXED_DELAY_MINUTES: 1
 spring:
   main.banner-mode: 'off'
   profiles:
-    active: test
+    active: test, forelagteopplysninger
   flyway:
     enabled: true
   datasource:
