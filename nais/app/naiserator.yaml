@@ -73,6 +73,8 @@ spec:
     inbound:
       rules:
         - application: flex-internal-frontend
+  envFrom:
+    - secret: flex-inntektsmelding-status-unleash-api-token
   env:
   {{#each env}}
      - name: {{@key}}
