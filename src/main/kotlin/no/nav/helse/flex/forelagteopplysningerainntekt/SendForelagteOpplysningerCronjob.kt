@@ -28,7 +28,7 @@ class SendForelagteOpplysningerCronjob(
     @Scheduled(
         initialDelayString = "\${SEND_FORELAGTE_OPPLYSNINGER_FIXED_DELAY_MINUTES:15}",
         fixedDelayString = "\${SEND_FORELAGTE_OPPLYSNINGER_FIXED_DELAY_MINUTES:15}",
-        timeUnit = TimeUnit.MINUTES
+        timeUnit = TimeUnit.MINUTES,
     )
     fun run(): SendForelagteOpplysningerCronjobResultat {
         if (!unleashToggles.forelagteOpplysninger()) {
