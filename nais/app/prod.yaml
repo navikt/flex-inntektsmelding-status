@@ -9,7 +9,7 @@ db_highAvailability: true
 db_pointInTimeRecovery: true
 db_tempFileLimit: 3072000
 azureTenant: nav.no
-external_host:
+external-host:
   - flex-unleash-api.nav.cloud.nais.io
 env:
   SPRING_PROFILES_ACTIVE: default

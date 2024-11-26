@@ -9,7 +9,7 @@ db_highAvailability: false
 db_pointInTimeRecovery: false
 db_tempFileLimit: 1536000
 azureTenant: trygdeetaten.no
-external_host:
+external-host:
   - flex-unleash-api.nav.cloud.nais.io
 env:
   SPRING_PROFILES_ACTIVE: default, testdata, forelagteopplysninger
