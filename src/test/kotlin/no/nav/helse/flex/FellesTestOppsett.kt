@@ -9,6 +9,7 @@ import no.nav.helse.flex.auditlogging.AuditEntry
 import no.nav.helse.flex.auditlogging.EventType
 import no.nav.helse.flex.database.LockRepository
 import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerRepository
+import no.nav.helse.flex.forelagteopplysningerainntekt.SendForelagteOpplysningerCronjob
 import no.nav.helse.flex.inntektsmelding.INNTEKTSMELDING_TOPIC
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.kafka.*
@@ -73,6 +74,9 @@ abstract class FellesTestOppsett {
     lateinit var varselutsendingCronJob: VarselutsendingCronJob
 
     @Autowired
+    lateinit var sendForelagteOpplysningerCronjob: SendForelagteOpplysningerCronjob
+
+    @Autowired
     lateinit var sykepengesoknadRepository: SykepengesoknadRepository
 
     @Autowired
@@ -83,6 +87,9 @@ abstract class FellesTestOppsett {
 
     @Autowired
     lateinit var vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository
+
+    @Autowired
+    lateinit var vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository
 
     @Autowired
     lateinit var jdbcTemplate: JdbcTemplate
@@ -229,6 +236,7 @@ abstract class FellesTestOppsett {
         jdbcTemplate.update("DELETE FROM vedtaksperiode_behandling_status")
         jdbcTemplate.update("DELETE FROM vedtaksperiode_behandling_sykepengesoknad")
         jdbcTemplate.update("DELETE FROM vedtaksperiode_behandling")
+        jdbcTemplate.update("DELETE FROM FORELAGTE_OPPLYSNINGER_AINNTEKT")
     }
 
     fun sendSykepengesoknad(soknad: SykepengesoknadDTO) {

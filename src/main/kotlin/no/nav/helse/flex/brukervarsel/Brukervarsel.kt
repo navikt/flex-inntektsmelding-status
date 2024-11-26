@@ -2,6 +2,7 @@ package no.nav.helse.flex.brukervarsel
 
 import no.nav.helse.flex.kafka.MINSIDE_BRUKERVARSEL
 import no.nav.helse.flex.logger
+import no.nav.helse.flex.serialisertTilString
 import no.nav.helse.flex.varseltekst.*
 import no.nav.tms.varsel.action.*
 import no.nav.tms.varsel.builder.VarselActionBuilder
@@ -59,6 +60,41 @@ class Brukervarsel(
 
         kafkaProducer.send(ProducerRecord(MINSIDE_BRUKERVARSEL, bestillingId, opprettVarsel)).get()
         log.info("Bestilte beskjed for manglende inntektsmelding $bestillingId")
+    }
+
+    fun beskjedForelagteOpplysninger(
+        fnr: String,
+        bestillingId: String,
+        synligFremTil: Instant,
+        lenke: String,
+        varselTekst: String,
+    ) {
+        try {
+            val opprettVarsel =
+                VarselActionBuilder.opprett {
+                    type = Varseltype.Beskjed
+                    varselId = bestillingId
+                    sensitivitet = Sensitivitet.High
+                    ident = fnr
+                    tekst =
+                        Tekst(
+                            spraakkode = "nb",
+                            tekst = varselTekst,
+                            default = true,
+                        )
+                    aktivFremTil = synligFremTil.atZone(UTC)
+                    link = lenke
+                    eksternVarsling =
+                        EksternVarslingBestilling(
+                            prefererteKanaler = listOf(EksternKanal.SMS),
+                        )
+                }
+            kafkaProducer.send(ProducerRecord(MINSIDE_BRUKERVARSEL, bestillingId, opprettVarsel)).get()
+            log.info("Bestilte beskjed for forelagte opplysninger $bestillingId")
+        } catch (e: VarselValidationException) {
+            log.error(e.explanation.serialisertTilString())
+            throw e
+        }
     }
 
     fun beskjedForsinketSaksbehandling(

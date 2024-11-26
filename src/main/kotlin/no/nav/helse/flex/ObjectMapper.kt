@@ -1,6 +1,7 @@
 package no.nav.helse.flex
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -18,3 +19,5 @@ val objectMapper: ObjectMapper =
         .build()
 
 fun Any.serialisertTilString(): String = objectMapper.writeValueAsString(this)
+
+fun Any.toJsonNode(): JsonNode = objectMapper.convertValue(this, JsonNode::class.java)

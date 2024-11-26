@@ -9,4 +9,11 @@ interface ForelagteOpplysningerRepository : CrudRepository<ForelagteOpplysninger
         vedtaksperiodeId: String,
         behandlingId: String,
     ): Boolean
+
+    fun findAllByForelagtIsNull(): List<ForelagteOpplysningerDbRecord>
+
+    fun findAllByVedtaksperiodeIdAndBehandlingId(
+        vedtaksperiodeId: String,
+        behandlingId: String,
+    ): List<ForelagteOpplysningerDbRecord>
 }

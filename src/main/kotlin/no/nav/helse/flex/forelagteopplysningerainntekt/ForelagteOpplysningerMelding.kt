@@ -2,7 +2,6 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import java.time.LocalDateTime
 import java.time.YearMonth
-import java.util.*
 
 data class ForelagteOpplysningerMelding(
     val vedtaksperiodeId: String,
