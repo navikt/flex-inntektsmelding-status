@@ -24,10 +24,9 @@ class ForelagteOpplysningerListener(
         cr: ConsumerRecord<String, String>,
         acknowledgment: Acknowledgment,
     ): Boolean {
-        if (!unleashToggles.forelagteOpplysninger())
-            {
-                return false
-            }
+        if (!unleashToggles.forelagteOpplysninger()) {
+            return false
+        }
         val forelagtOpplysningerDbRecord = ForelagteOpplysningerDbRecord.parseConsumerRecord(cr)
 
         if (forelagteOpplysningerRepository.existsByVedtaksperiodeIdAndBehandlingId(

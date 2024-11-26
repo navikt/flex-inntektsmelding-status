@@ -25,12 +25,15 @@ class SendForelagteOpplysningerCronjob(
 ) {
     private val log = logger()
 
-    @Scheduled(initialDelay = 15, fixedDelay = 15, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(
+        initialDelayString = "\${SEND_FORELAGTE_OPPLYSNINGER_FIXED_DELAY_MINUTES:15}",
+        fixedDelayString = "\${SEND_FORELAGTE_OPPLYSNINGER_FIXED_DELAY_MINUTES:15}",
+        timeUnit = TimeUnit.MINUTES
+    )
     fun run(): SendForelagteOpplysningerCronjobResultat {
-        if (!unleashToggles.forelagteOpplysninger())
-            {
-                return SendForelagteOpplysningerCronjobResultat()
-            }
+        if (!unleashToggles.forelagteOpplysninger()) {
+            return SendForelagteOpplysningerCronjobResultat()
+        }
         val osloDatetimeNow = OffsetDateTime.now().tilOsloZone()
         if (osloDatetimeNow.dayOfWeek in setOf(DayOfWeek.SUNDAY, DayOfWeek.SATURDAY)) {
             log.info("Det er helg, jobben kjøres ikke")
