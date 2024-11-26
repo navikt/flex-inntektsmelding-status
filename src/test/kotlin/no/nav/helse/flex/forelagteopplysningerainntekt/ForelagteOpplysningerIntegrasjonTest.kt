@@ -2,6 +2,7 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.FellesTestOppsett
+import no.nav.helse.flex.config.unleash.UNLEASH_CONTEXT_FORELAGTE_OPPLYSNINGER
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.organisasjon.Organisasjon
@@ -17,6 +18,7 @@ import org.amshove.kluent.shouldBeFalse
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
@@ -30,6 +32,11 @@ import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.Random::class)
 class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
+    @BeforeAll
+    fun setUnleashToggle() {
+        unleash.enable(UNLEASH_CONTEXT_FORELAGTE_OPPLYSNINGER)
+    }
+
     @AfterEach
     fun rensDb() {
         super.slettFraDatabase()

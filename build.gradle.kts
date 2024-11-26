@@ -29,6 +29,7 @@ val sykepengesoknadKafkaVersion = "2024.10.21-14.49-932f4f94"
 val inntektsmeldingKontraktVersion = "2024.05.21-09-56-5528e"
 val tokenSupportVersion = "5.0.11"
 val mockitoKotlinVersion = "2.2.0"
+val unleashVersion = "9.2.4"
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
@@ -48,6 +49,7 @@ dependencies {
     implementation("no.nav.security:token-validation-spring:$tokenSupportVersion")
     implementation("no.nav.security:token-client-spring:$tokenSupportVersion")
     implementation("no.nav.tms.varsel:kotlin-builder:$varselKotlinBuilderVersion")
+    implementation("io.getunleash:unleash-client-java:$unleashVersion")
 
     testImplementation(platform("org.testcontainers:testcontainers-bom:$testContainersVersion"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
