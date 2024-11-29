@@ -49,8 +49,10 @@ class SendForelagteOpplysningerOppgave(
                 now = now,
             )
         ) {
-            log.warn(
-                "Har forelagt nylig for person med org, forelgger ikke på nytt nå. Forelagte opplysninger: ${forelagteOpplysninger.id}",
+            log.error(
+                "Har forelagt nylig for person med org, forelgger ikke på nytt nå. " +
+                    "Forelagte opplysninger: ${forelagteOpplysninger.id}. " +
+                    "Skal vi forelegge for denne personen med org på nytt? Mulig vi får feil data fra spleis.",
             )
             return false
         }
