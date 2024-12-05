@@ -44,8 +44,8 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.kafka.KafkaContainer
 import org.testcontainers.utility.DockerImageName
 import java.net.URI
 import java.util.*
@@ -119,7 +119,7 @@ abstract class FellesTestOppsett {
     companion object {
         init {
 
-            KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.1")).apply {
+            KafkaContainer(DockerImageName.parse("apache/kafka-native")).apply {
                 start()
                 System.setProperty("KAFKA_BROKERS", bootstrapServers)
             }
