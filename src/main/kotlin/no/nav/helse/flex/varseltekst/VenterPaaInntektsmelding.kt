@@ -37,10 +37,8 @@ fun skapRevarselForsinketSaksbehandlingTekst(): String {
 
 fun skapForelagteOpplysningerTekst(startSyketilfelle: LocalDate): String {
     val datoFormatert = startSyketilfelle.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-    @Suppress("ktlint:standard:max-line-length")
-    return "Vi har hentet opplysninger om inntekten din fra Aa-ordningen for sykefraværet " +
-        "som startet $datoFormatert. " +
-        "Vi trenger at du sjekker om de stemmer."
+    return "Vi har hentet opplysninger om inntekten din fra a-ordningen for sykefraværet " +
+        "som startet $datoFormatert. Vi trenger at du sjekker om de stemmer."
 }
 
 const val SAKSBEHANDLINGSTID_URL = "https://www.nav.no/saksbehandlingstider#sykepenger"
