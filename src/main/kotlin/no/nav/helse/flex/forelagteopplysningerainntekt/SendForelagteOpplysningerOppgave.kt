@@ -6,11 +6,13 @@ import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtForPer
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.toJsonNode
+import no.nav.helse.flex.util.tilOsloLocalDateTime
 import org.postgresql.util.PGobject
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import kotlin.jvm.optionals.getOrNull
 
 @Component
@@ -57,6 +59,25 @@ class SendForelagteOpplysningerOppgave(
             return false
         }
 
+        val forelagteOpplysningerMelding: ForelagteOpplysningerMelding =
+            objectMapper.readValue(forelagteOpplysninger.forelagteOpplysningerMelding.value.toString())
+        val dagerSidenMeldingFraSpleis = forelagteOpplysningerMelding.tidsstempel.until(now.tilOsloLocalDateTime(), ChronoUnit.DAYS)
+        when {
+            dagerSidenMeldingFraSpleis > 5 -> {
+                log.error(
+                    "Det er mer enn 5 dager siden spleis sendte melding til vi varsler om forelagte opplysninger." +
+                        "Sjekk om systemet har vært nede over lengre tid. Forelagte opplysninger: ${forelagteOpplysninger.id}",
+                )
+                return false
+            }
+            dagerSidenMeldingFraSpleis > 1 -> {
+                log.warn(
+                    "Det er mer enn 1 dag siden spleis sendte melding til vi varsler om forelagte opplysninger." +
+                        "Sjekk om systemet har vært nede, eller om det er noe hikke. Forelagte opplysninger: ${forelagteOpplysninger.id}",
+                )
+            }
+        }
+
         opprettBrukervarselForForelagteOpplysninger.opprettVarslinger(
             varselId = forelagteOpplysninger.id!!,
             melding = forelagteOpplysninger.forelagteOpplysningerMelding,
@@ -82,7 +103,13 @@ internal fun forelagtOpplysningTilMetadata(
     val aaregInntekt =
         AaregInntekt(
             tidsstempel = deserialisertMelding.tidsstempel,
-            inntekter = deserialisertMelding.skatteinntekter.map { AaregInntekt.Inntekt(it.måned.toString(), it.beløp) },
+            inntekter =
+                deserialisertMelding.skatteinntekter.map {
+                    AaregInntekt.Inntekt(
+                        it.måned.toString(),
+                        it.beløp,
+                    )
+                },
             omregnetAarsinntekt = deserialisertMelding.omregnetÅrsinntekt,
             orgnavn = orgNavn,
         )
