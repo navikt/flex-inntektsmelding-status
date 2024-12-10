@@ -2,7 +2,7 @@ kafkaPool: nav-prod
 environment: prod
 replicas_min: 1
 replicas_max: 1
-cpu: 100m
+cpu: 200m
 memory: 768Mi
 db_tier: db-custom-1-3840
 db_highAvailability: true
