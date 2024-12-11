@@ -2,17 +2,16 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.ForsinkelseFraOpprinnelseTilVarselSjekk
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtForPersonMedOrgNyligSjekk
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.toJsonNode
-import no.nav.helse.flex.util.tilOsloLocalDateTime
 import org.postgresql.util.PGobject
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
-import java.time.temporal.ChronoUnit
 import kotlin.jvm.optionals.getOrNull
 
 @Component
@@ -21,6 +20,7 @@ class SendForelagteOpplysningerOppgave(
     private val hentRelevantInfoTilForelagtOpplysning: HentRelevantInfoTilForelagtOpplysning,
     private val opprettBrukervarselForForelagteOpplysninger: OpprettBrukervarselForForelagteOpplysninger,
     private val harForelagtForPersonMedOrgNyligSjekk: HarForelagtForPersonMedOrgNyligSjekk,
+    private val forsinkelseFraOpprinnelseTilVarselSjekk: ForsinkelseFraOpprinnelseTilVarselSjekk,
 ) {
     private val log = logger()
 
@@ -32,6 +32,10 @@ class SendForelagteOpplysningerOppgave(
         val forelagteOpplysninger = forelagteOpplysningerRepository.findById(forelagteOpplysningerId).getOrNull()
         if (forelagteOpplysninger == null) {
             log.error("Forelagte opplysninger finnes ikke for id: $forelagteOpplysningerId")
+            return false
+        }
+
+        if (!forsinkelseFraOpprinnelseTilVarselSjekk.sjekk(forelagteOpplysninger, now)) {
             return false
         }
 
@@ -59,31 +63,12 @@ class SendForelagteOpplysningerOppgave(
             return false
         }
 
-        val forelagteOpplysningerMelding: ForelagteOpplysningerMelding =
-            objectMapper.readValue(forelagteOpplysninger.forelagteOpplysningerMelding.value.toString())
-        val dagerSidenMeldingFraSpleis = forelagteOpplysningerMelding.tidsstempel.until(now.tilOsloLocalDateTime(), ChronoUnit.DAYS)
-        when {
-            dagerSidenMeldingFraSpleis > 5 -> {
-                log.error(
-                    "Det er mer enn 5 dager siden spleis sendte melding til vi varsler om forelagte opplysninger." +
-                        "Sjekk om systemet har vært nede over lengre tid. Forelagte opplysninger: ${forelagteOpplysninger.id}",
-                )
-                return false
-            }
-            dagerSidenMeldingFraSpleis > 1 -> {
-                log.warn(
-                    "Det er mer enn 1 dag siden spleis sendte melding til vi varsler om forelagte opplysninger." +
-                        "Sjekk om systemet har vært nede, eller om det er noe hikke. Forelagte opplysninger: ${forelagteOpplysninger.id}",
-                )
-            }
-        }
-
         opprettBrukervarselForForelagteOpplysninger.opprettVarslinger(
             varselId = forelagteOpplysninger.id!!,
             melding = forelagteOpplysninger.forelagteOpplysningerMelding,
             fnr = relevantInfoTilForelagteOpplysninger.fnr,
             orgNavn = relevantInfoTilForelagteOpplysninger.orgNavn,
-            now = now,
+            opprinneligOpprettet = forelagteOpplysninger.opprinneligOpprettet,
             startSyketilfelle = relevantInfoTilForelagteOpplysninger.startSyketilfelle,
         )
         forelagteOpplysningerRepository.save(
