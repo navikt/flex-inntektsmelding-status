@@ -81,7 +81,7 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
             fnr = "test-fnr",
             orgNavn = "test-orgnavn",
             startSyketilfelle = LocalDate.parse("2022-06-16"),
-            now = Instant.parse("2022-06-16T00:00:00.00Z"),
+            opprinneligOpprettet = Instant.parse("2022-06-16T00:00:00.00Z"),
         )
 
         val startSykeTilfelle = LocalDateTime.parse("2022-06-16T00:00:00.00")
