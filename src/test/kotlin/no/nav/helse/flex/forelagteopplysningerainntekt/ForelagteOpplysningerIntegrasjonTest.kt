@@ -115,17 +115,18 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
                                 ForelagteOpplysningerMelding(
                                     vedtaksperiodeId = "vedtaksperiode-test-opplysning",
                                     behandlingId = "behandling-test-opplysning",
-                                    tidsstempel = LocalDateTime.parse("2024-01-16T00:00:00.00"),
+                                    tidsstempel = LocalDateTime.parse("2024-01-01T00:00:00.00"),
                                     omregnetÅrsinntekt = 0.0,
                                     skatteinntekter = emptyList(),
                                 ).serialisertTilString()
                         },
                     opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
                     forelagt = null,
+                    opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
                 ),
             )
 
-        val resultat = sendForelagteOpplysningerCronjob.runMedParameter(Instant.parse("2024-11-15T12:00:00.00Z"))
+        val resultat = sendForelagteOpplysningerCronjob.runMedParameter(Instant.parse("2024-01-01T12:00:00.00Z"))
 
         resultat.antallForelagteOpplysningerSendt `should be equal to` 1
         resultat.antallForelagteOpplysningerHoppetOver `should be equal to` 0
@@ -135,7 +136,7 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
             val aaregInntekt: AaregInntekt = objectMapper.convertValue(melding.opprettMelding?.metadata, AaregInntekt::class.java)
             aaregInntekt `should be equal to`
                 AaregInntekt(
-                    tidsstempel = LocalDateTime.parse("2024-01-16T00:00:00.00"),
+                    tidsstempel = LocalDateTime.parse("2024-01-01T00:00:00.00"),
                     inntekter = emptyList(),
                     omregnetAarsinntekt = 0.0,
                     orgnavn = "Organisasjonen",

@@ -28,9 +28,9 @@ class OpprettBrukervarselForForelagteOpplysninger(
         fnr: String,
         orgNavn: String,
         startSyketilfelle: LocalDate,
-        now: Instant,
+        opprinneligOpprettet: Instant,
     ) {
-        val synligFremTil = now.tilOsloZone().plusWeeks(3).toInstant()
+        val synligFremTil = opprinneligOpprettet.tilOsloZone().plusWeeks(3).toInstant()
         val lenkeTilForelagteOpplysninger = "$forelagteOpplysningerBaseUrl/$varselId"
 
         brukervarsel.beskjedForelagteOpplysninger(

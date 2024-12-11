@@ -2,6 +2,7 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.objectMapper
+import no.nav.helse.flex.util.tilOsloInstant
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.postgresql.util.PGobject
 import org.springframework.data.annotation.Id
@@ -16,6 +17,7 @@ data class ForelagteOpplysningerDbRecord(
     val behandlingId: String,
     val forelagteOpplysningerMelding: PGobject,
     val opprettet: Instant,
+    val opprinneligOpprettet: Instant,
     val forelagt: Instant?,
 ) {
     companion object {
@@ -31,6 +33,7 @@ data class ForelagteOpplysningerDbRecord(
                     },
                 opprettet = Instant.now(),
                 forelagt = null,
+                opprinneligOpprettet = forelagteOpplysningerMelding.tidsstempel.tilOsloInstant(),
             )
         }
     }

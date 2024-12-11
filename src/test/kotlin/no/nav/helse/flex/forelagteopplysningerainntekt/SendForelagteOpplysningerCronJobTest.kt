@@ -58,5 +58,6 @@ private fun lagTestForelagteOpplysninger(
             },
         opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
         forelagt = forelagt,
+        opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
     )
 }

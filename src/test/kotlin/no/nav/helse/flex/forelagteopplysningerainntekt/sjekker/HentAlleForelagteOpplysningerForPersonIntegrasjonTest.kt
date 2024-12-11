@@ -97,6 +97,7 @@ class HentAlleForelagteOpplysningerForPersonIntegrasjonTest : FellesTestOppsett(
                 },
             opprettet = ANY_INSTANT,
             forelagt = forelagt,
+            opprinneligOpprettet = ANY_INSTANT,
         ).also {
             forelagteOpplysningerRepository.save(it)
         }
