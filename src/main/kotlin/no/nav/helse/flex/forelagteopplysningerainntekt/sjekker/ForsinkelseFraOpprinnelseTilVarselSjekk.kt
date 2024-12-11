@@ -19,7 +19,7 @@ class ForsinkelseFraOpprinnelseTilVarselSjekk {
             forelagteOpplysninger.opprinneligOpprettet.tilOsloLocalDateTime()
                 .until(now.tilOsloLocalDateTime(), ChronoUnit.DAYS)
         when {
-            dagerSidenMeldingFraSpleis > 5 -> {
+            dagerSidenMeldingFraSpleis >= 5 -> {
                 log.error(
                     "Det er mer enn 5 dager siden spleis sendte melding til vi varsler om forelagte opplysninger." +
                         "Sjekk om systemet har vært nede over lengre tid. Forelagte opplysninger: ${forelagteOpplysninger.id}",
@@ -27,7 +27,7 @@ class ForsinkelseFraOpprinnelseTilVarselSjekk {
                 return false
             }
 
-            dagerSidenMeldingFraSpleis > 1 -> {
+            dagerSidenMeldingFraSpleis >= 1 -> {
                 log.warn(
                     "Det er mer enn 1 dag siden spleis sendte melding til vi varsler om forelagte opplysninger." +
                         "Sjekk om systemet har vært nede, eller om det er noe hikke. Forelagte opplysninger: ${forelagteOpplysninger.id}",
