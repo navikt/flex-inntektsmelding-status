@@ -15,6 +15,7 @@ class ForelagteOpplysningerListener(
     @KafkaListener(
         topics = [FORELAGTE_OPPLYSNINGER_TOPIC],
         containerFactory = "aivenKafkaListenerContainerFactory",
+        properties = ["auto.offset.reset = earliest"],
     )
     fun listen(
         cr: ConsumerRecord<String, String>,
