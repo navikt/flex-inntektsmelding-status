@@ -13,10 +13,11 @@ class ForsinkelseFraOpprinnelseTilVarselSjekkTest {
     fun `burde ikke være gyldig dersom det er lang forsinkelse`() {
         val forsinkelseFraOpprinnelseTilVarselSjekk = ForsinkelseFraOpprinnelseTilVarselSjekk()
         val forelagteOpplysninger = lagTestForelagteOpplysninger()
-        val langForsinkelseSjekk = forsinkelseFraOpprinnelseTilVarselSjekk.sjekk(
-            forelagteOpplysninger,
-            Instant.parse("2024-01-06T00:00:00.00Z")
-        )
+        val langForsinkelseSjekk =
+            forsinkelseFraOpprinnelseTilVarselSjekk.sjekk(
+                forelagteOpplysninger,
+                Instant.parse("2024-01-06T00:00:00.00Z"),
+            )
         langForsinkelseSjekk.`should be false`()
     }
 
@@ -24,10 +25,11 @@ class ForsinkelseFraOpprinnelseTilVarselSjekkTest {
     fun `burde være gyldig dersom det er kort forsinkelse`() {
         val forsinkelseFraOpprinnelseTilVarselSjekk = ForsinkelseFraOpprinnelseTilVarselSjekk()
         val forelagteOpplysninger = lagTestForelagteOpplysninger()
-        val langForsinkelseSjekk = forsinkelseFraOpprinnelseTilVarselSjekk.sjekk(
-            forelagteOpplysninger,
-            Instant.parse("2024-01-01T00:00:00.00Z")
-        )
+        val langForsinkelseSjekk =
+            forsinkelseFraOpprinnelseTilVarselSjekk.sjekk(
+                forelagteOpplysninger,
+                Instant.parse("2024-01-01T00:00:00.00Z"),
+            )
         langForsinkelseSjekk.`should be true`()
     }
 }
@@ -50,4 +52,3 @@ private fun lagTestForelagteOpplysninger(
         opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
     )
 }
-
