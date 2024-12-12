@@ -17,7 +17,7 @@ data class ForelagteOpplysningerDbRecord(
     val behandlingId: String,
     val forelagteOpplysningerMelding: PGobject,
     val opprettet: Instant,
-    val opprinneligOpprettet: Instant,
+    val opprinneligOpprettet: Instant = opprettet,
     val forelagt: Instant?,
 ) {
     companion object {
