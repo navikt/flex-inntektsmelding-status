@@ -19,7 +19,7 @@ class ForsinkelseFraOpprinnelseTilVarselSjekkTest {
         val langForsinkelseSjekk =
             forsinkelseFraOpprinnelseTilVarselSjekk.sjekk(
                 forelagteOpplysninger,
-                Instant.parse("2024-01-09T00:00:00.00Z"),
+                Instant.parse("2024-01-07T00:00:00.00Z"),
             )
         langForsinkelseSjekk.`should be false`()
     }
@@ -34,7 +34,7 @@ class ForsinkelseFraOpprinnelseTilVarselSjekkTest {
         val langForsinkelseSjekk =
             forsinkelseFraOpprinnelseTilVarselSjekk.sjekk(
                 forelagteOpplysninger,
-                Instant.parse("2024-01-01T00:00:00.00Z"),
+                Instant.parse("2024-01-06T00:00:00.00Z"),
             )
         langForsinkelseSjekk.`should be true`()
     }
