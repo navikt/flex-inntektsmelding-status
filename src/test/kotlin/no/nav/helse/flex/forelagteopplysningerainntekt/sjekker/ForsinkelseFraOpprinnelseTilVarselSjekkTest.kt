@@ -12,11 +12,14 @@ class ForsinkelseFraOpprinnelseTilVarselSjekkTest {
     @Test
     fun `burde ikke være gyldig dersom det er lang forsinkelse`() {
         val forsinkelseFraOpprinnelseTilVarselSjekk = ForsinkelseFraOpprinnelseTilVarselSjekk()
-        val forelagteOpplysninger = lagTestForelagteOpplysninger()
+        val forelagteOpplysninger =
+            lagTestForelagteOpplysninger(
+                opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
+            )
         val langForsinkelseSjekk =
             forsinkelseFraOpprinnelseTilVarselSjekk.sjekk(
                 forelagteOpplysninger,
-                Instant.parse("2024-01-06T00:00:00.00Z"),
+                Instant.parse("2024-01-09T00:00:00.00Z"),
             )
         langForsinkelseSjekk.`should be false`()
     }
@@ -24,7 +27,10 @@ class ForsinkelseFraOpprinnelseTilVarselSjekkTest {
     @Test
     fun `burde være gyldig dersom det er kort forsinkelse`() {
         val forsinkelseFraOpprinnelseTilVarselSjekk = ForsinkelseFraOpprinnelseTilVarselSjekk()
-        val forelagteOpplysninger = lagTestForelagteOpplysninger()
+        val forelagteOpplysninger =
+            lagTestForelagteOpplysninger(
+                opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
+            )
         val langForsinkelseSjekk =
             forsinkelseFraOpprinnelseTilVarselSjekk.sjekk(
                 forelagteOpplysninger,
@@ -37,6 +43,7 @@ class ForsinkelseFraOpprinnelseTilVarselSjekkTest {
 private fun lagTestForelagteOpplysninger(
     id: String = UUID.randomUUID().toString(),
     forelagt: Instant? = null,
+    opprinneligOpprettet: Instant = Instant.parse("2024-01-01T00:00:00.00Z"),
 ): ForelagteOpplysningerDbRecord {
     return ForelagteOpplysningerDbRecord(
         id = id,
@@ -49,6 +56,6 @@ private fun lagTestForelagteOpplysninger(
             },
         opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
         forelagt = forelagt,
-        opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
+        opprinneligOpprettet = opprinneligOpprettet,
     )
 }
