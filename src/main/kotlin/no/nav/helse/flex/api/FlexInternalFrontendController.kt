@@ -6,6 +6,8 @@ import no.nav.helse.flex.auditlogging.EventType
 import no.nav.helse.flex.clientidvalidation.ClientIdValidation
 import no.nav.helse.flex.clientidvalidation.ClientIdValidation.NamespaceAndApp
 import no.nav.helse.flex.config.OIDCIssuer.AZUREATOR
+import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
+import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HentAlleForelagteOpplysningerForPerson
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingDbRecord
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.kafka.AuditLogProducer
@@ -30,6 +32,7 @@ class FlexInternalFrontendController(
     private val hentAltForPerson: HentAltForPerson,
     private val varselutsendingCronJob: VarselutsendingCronJob,
     private val inntektsmeldingRepository: InntektsmeldingRepository,
+    private val hentAlleForelagteOpplysningerForPerson: HentAlleForelagteOpplysningerForPerson,
     private val environmentToggles: EnvironmentToggles,
     private val auditLogProducer: AuditLogProducer,
 ) {
@@ -42,6 +45,7 @@ class FlexInternalFrontendController(
     data class VedtakOgInntektsmeldingerResponse(
         val vedtaksperioder: List<FullVedtaksperiodeBehandling>,
         val inntektsmeldinger: List<InntektsmeldingDbRecord>,
+        val forelagteOpplysninger: List<ForelagteOpplysningerDbRecord>,
     )
 
     @PostMapping(
@@ -59,7 +63,7 @@ class FlexInternalFrontendController(
         if (req.fnr != null) {
             val perioder = hentAltForPerson.hentAltForPerson(req.fnr)
             val inntektsmeldinger = inntektsmeldingRepository.findByFnrIn(listOf(req.fnr))
-
+            val forelagte = hentAlleForelagteOpplysningerForPerson.hentAlleForelagteOpplysningerFor(req.fnr)
             auditLogProducer.lagAuditLog(
                 AuditEntry(
                     appNavn = "flex-internal",
@@ -73,15 +77,15 @@ class FlexInternalFrontendController(
                     requestMethod = "POST",
                 ),
             )
-            return VedtakOgInntektsmeldingerResponse(perioder, inntektsmeldinger)
+            return VedtakOgInntektsmeldingerResponse(perioder, inntektsmeldinger, forelagte)
         }
         if (req.vedtaksperiodeId != null) {
             val perioder = hentAltForPerson.hentAltForVedtaksperiode(req.vedtaksperiodeId)
             val fnr = perioder.firstOrNull()?.soknader?.firstOrNull()?.fnr
             val inntektsmeldinger =
                 fnr?.let { inntektsmeldingRepository.findByFnrIn(listOf(it)) }
-                    ?: return VedtakOgInntektsmeldingerResponse(emptyList(), emptyList())
-
+                    ?: return VedtakOgInntektsmeldingerResponse(emptyList(), emptyList(), emptyList())
+            val forelagte = hentAlleForelagteOpplysningerForPerson.hentAlleForelagteOpplysningerFor(fnr)
             auditLogProducer.lagAuditLog(
                 AuditEntry(
                     appNavn = "flex-internal",
@@ -95,9 +99,9 @@ class FlexInternalFrontendController(
                     requestMethod = "POST",
                 ),
             )
-            return VedtakOgInntektsmeldingerResponse(perioder, inntektsmeldinger)
+            return VedtakOgInntektsmeldingerResponse(perioder, inntektsmeldinger, forelagte)
         }
-        return VedtakOgInntektsmeldingerResponse(emptyList(), emptyList())
+        return VedtakOgInntektsmeldingerResponse(emptyList(), emptyList(), emptyList())
     }
 
     @PostMapping("/api/v1/cronjob", produces = [MediaType.APPLICATION_JSON_VALUE])
