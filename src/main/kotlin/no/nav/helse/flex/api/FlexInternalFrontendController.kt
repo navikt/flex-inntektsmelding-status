@@ -111,7 +111,10 @@ class FlexInternalFrontendController(
         if (environmentToggles.isProduction()) {
             throw IllegalStateException("Kan ikke kjøre cronjob manuelt i prod")
         }
-        clientIdValidation.validateClientId(NamespaceAndApp(namespace = "flex", app = "flex-internal-frontend"))
+
+
+
+                 clientIdValidation.validateClientId(NamespaceAndApp(namespace = "flex", app = "flex-internal-frontend"))
         return varselutsendingCronJob
             .runMedParameter(now.tilOsloZone())
             .map { it.key.name to it.value.toString() }
