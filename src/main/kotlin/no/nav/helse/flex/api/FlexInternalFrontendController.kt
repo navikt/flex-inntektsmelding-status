@@ -114,7 +114,7 @@ class FlexInternalFrontendController(
 
 
 
-                 clientIdValidation.validateClientId(NamespaceAndApp(namespace = "flex", app = "flex-internal-frontend"))
+                    clientIdValidation.validateClientId(NamespaceAndApp(namespace = "flex", app = "flex-internal-frontend"))
         return varselutsendingCronJob
             .runMedParameter(now.tilOsloZone())
             .map { it.key.name to it.value.toString() }
