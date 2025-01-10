@@ -11,7 +11,7 @@ import java.util.*
 
 class HarForelagtForPersonMedOrgNyligSjekkTest {
     @Test
-    fun `burde ikke være gjyldig dersom nylig forelagt`() {
+    fun `burde ikke være gyldig dersom nylig forelagt`() {
         val hentAlleForelagteOpplysningerForPerson: HentAlleForelagteOpplysningerForPerson =
             mock {
                 on { hentAlleForelagteOpplysningerFor("_", "_") } doReturn
@@ -22,12 +22,12 @@ class HarForelagtForPersonMedOrgNyligSjekkTest {
         val harForelagtForPersonMedOrgNyligSjekk = HarForelagtForPersonMedOrgNyligSjekk(hentAlleForelagteOpplysningerForPerson)
 
         harForelagtForPersonMedOrgNyligSjekk.sjekk(
-            "_", "_", now = Instant.parse("2024-01-28T00:00:00.00Z"),
+            "_", "_", now = Instant.parse("2024-01-02T00:00:00.00Z"),
         ) `should be` false
     }
 
     @Test
-    fun `burde være gjyldig dersom forelagt for lenge nok siden`() {
+    fun `burde være gyldig dersom forelagt for lenge nok siden`() {
         val hentAlleForelagteOpplysningerForPerson: HentAlleForelagteOpplysningerForPerson =
             mock {
                 on { hentAlleForelagteOpplysningerFor("_", "_") } doReturn

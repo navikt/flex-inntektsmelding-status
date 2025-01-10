@@ -19,7 +19,7 @@ class HarForelagtForPersonMedOrgNyligSjekk(
         now: Instant,
     ): Boolean {
         val forrigeForeleggelse = finnForrigeForeleggelseFor(fnr, orgnummer)
-        val sjekkForelagtEtter = now.minus(Duration.ofDays(28))
+        val sjekkForelagtEtter = now.minus(Duration.ofDays(2))
         if (forrigeForeleggelse != null &&
             forrigeForeleggelse.forelagt!!.isAfter(sjekkForelagtEtter)
         ) {
