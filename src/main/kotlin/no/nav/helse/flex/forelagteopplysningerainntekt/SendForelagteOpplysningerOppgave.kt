@@ -3,7 +3,7 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.ForsinkelseFraOpprinnelseTilVarselSjekk
-import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtForPersonMedOrgNyligSjekk
+import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtSammeVedtaksperiodeSjekk
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.toJsonNode
@@ -19,7 +19,7 @@ class SendForelagteOpplysningerOppgave(
     private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
     private val hentRelevantInfoTilForelagtOpplysning: HentRelevantInfoTilForelagtOpplysning,
     private val opprettBrukervarselForForelagteOpplysninger: OpprettBrukervarselForForelagteOpplysninger,
-    private val harForelagtForPersonMedOrgNyligSjekk: HarForelagtForPersonMedOrgNyligSjekk,
+    private val harForelagtSammeVedtaksperiode: HarForelagtSammeVedtaksperiodeSjekk,
     private val forsinkelseFraOpprinnelseTilVarselSjekk: ForsinkelseFraOpprinnelseTilVarselSjekk,
 ) {
     private val log = logger()
@@ -49,16 +49,16 @@ class SendForelagteOpplysningerOppgave(
             return false
         }
 
-        if (!harForelagtForPersonMedOrgNyligSjekk.sjekk(
+        if (harForelagtSammeVedtaksperiode.sjekk(
                 fnr = relevantInfoTilForelagteOpplysninger.fnr,
-                orgnummer = relevantInfoTilForelagteOpplysninger.orgnummer,
-                now = now,
+                vedtaksperiodeId = forelagteOpplysninger.vedtaksperiodeId,
+                forelagteOpplysningerId = forelagteOpplysninger.id!!,
             )
         ) {
             log.error(
-                "Har forelagt nylig for person med org, forelgger ikke på nytt nå. " +
+                "Har forelagt samme vedtaksperiode id tidligere. " +
                     "Forelagte opplysninger: ${forelagteOpplysninger.id}. " +
-                    "Skal vi forelegge for denne personen med org på nytt? Mulig vi får feil data fra spleis.",
+                    "Skal vi forelegge for denne personen på nytt? Mulig vi får feil data fra spleis.",
             )
             return false
         }

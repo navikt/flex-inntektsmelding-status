@@ -14,18 +14,9 @@ class HentAlleForelagteOpplysningerForPerson(
     private val vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository,
     private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
 ) {
-    fun hentAlleForelagteOpplysningerFor(
-        fnr: String,
-        orgnr: String? = null,
-    ): List<ForelagteOpplysningerDbRecord> {
+    fun hentAlleForelagteOpplysningerFor(fnr: String): List<ForelagteOpplysningerDbRecord> {
         val sykepengesoknader =
             sykepengesoknadRepository.findByFnr(fnr)
-                .filter {
-                    if (orgnr == null) {
-                        return@filter true
-                    }
-                    it.orgnummer == orgnr
-                }
         val sykepengesoknadUuids = sykepengesoknader.map { it.sykepengesoknadUuid }
         val relasjoner =
             vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(sykepengesoknadUuids)

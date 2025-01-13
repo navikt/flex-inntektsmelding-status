@@ -5,7 +5,7 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.ForsinkelseFraOpprinnelseTilVarselSjekk
-import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtForPersonMedOrgNyligSjekk
+import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtSammeVedtaksperiodeSjekk
 import org.amshove.kluent.shouldBeFalse
 import org.amshove.kluent.shouldBeTrue
 import org.junit.jupiter.api.Test
@@ -15,9 +15,9 @@ import java.time.LocalDate
 import java.util.*
 
 class SendForelagteOpplysningerOppgaveTest {
-    private fun harForelagtForPersonMedOrgNyligSjekkMock(): HarForelagtForPersonMedOrgNyligSjekk {
-        return mock<HarForelagtForPersonMedOrgNyligSjekk> {
-            on { sjekk(any(), any(), any()) } doReturn true
+    private fun harForelagtForPersonMedOrgNyligSjekkMock(): HarForelagtSammeVedtaksperiodeSjekk {
+        return mock<HarForelagtSammeVedtaksperiodeSjekk> {
+            on { sjekk(any(), any(), any()) } doReturn false
         }
     }
 
@@ -58,7 +58,7 @@ class SendForelagteOpplysningerOppgaveTest {
                 forelagteOpplysningerRepository = forelagteOpplysningerRepository,
                 hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock(),
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
-                harForelagtForPersonMedOrgNyligSjekk = harForelagtForPersonMedOrgNyligSjekkMock(),
+                harForelagtSammeVedtaksperiode = harForelagtForPersonMedOrgNyligSjekkMock(),
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
             )
 
@@ -68,21 +68,21 @@ class SendForelagteOpplysningerOppgaveTest {
     }
 
     @Test
-    fun `burde returnere true dersom sjekker er gjyldige`() {
+    fun `burde returnere true dersom sjekker er gyldige`() {
         val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
             mock {
                 on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(forelagt = null))
             }
-        val harForelagtForPersonMedOrgNyligSjekk =
-            mock<HarForelagtForPersonMedOrgNyligSjekk> {
-                on { sjekk(any(), any(), any()) } doReturn true
+        val harForelagtSammeVedtaksperiodeSjekk =
+            mock<HarForelagtSammeVedtaksperiodeSjekk> {
+                on { sjekk(any(), any(), any()) } doReturn false
             }
         val oppgave =
             SendForelagteOpplysningerOppgave(
                 forelagteOpplysningerRepository = forelagteOpplysningerRepository,
                 hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock(),
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
-                harForelagtForPersonMedOrgNyligSjekk = harForelagtForPersonMedOrgNyligSjekk,
+                harForelagtSammeVedtaksperiode = harForelagtSammeVedtaksperiodeSjekk,
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
             )
 
@@ -96,16 +96,16 @@ class SendForelagteOpplysningerOppgaveTest {
             mock {
                 on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(forelagt = null))
             }
-        val harForelagtForPersonMedOrgNyligSjekk: HarForelagtForPersonMedOrgNyligSjekk =
+        val harForelagtSammeVedtaksperiodeSjekk: HarForelagtSammeVedtaksperiodeSjekk =
             mock {
-                on { sjekk(any(), any(), any()) } doReturn false
+                on { sjekk(any(), any(), any()) } doReturn true
             }
         val oppgave =
             SendForelagteOpplysningerOppgave(
                 forelagteOpplysningerRepository = forelagteOpplysningerRepository,
                 hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock(),
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
-                harForelagtForPersonMedOrgNyligSjekk = harForelagtForPersonMedOrgNyligSjekk,
+                harForelagtSammeVedtaksperiode = harForelagtSammeVedtaksperiodeSjekk,
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
             )
 
@@ -128,7 +128,7 @@ class SendForelagteOpplysningerOppgaveTest {
                 forelagteOpplysningerRepository = forelagteOpplysningerRepository,
                 hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock(),
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
-                harForelagtForPersonMedOrgNyligSjekk = harForelagtForPersonMedOrgNyligSjekkMock(),
+                harForelagtSammeVedtaksperiode = harForelagtForPersonMedOrgNyligSjekkMock(),
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekk,
             )
 
