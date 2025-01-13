@@ -34,7 +34,6 @@ class HentAlleForelagteOpplysningerForPersonIntegrasjonTest : FellesTestOppsett(
         )
         hentAlleForelagteOpplysningerForPerson.hentAlleForelagteOpplysningerFor(
             fnr = "test-fnr-11",
-            orgnr = "test-orgnummer",
         ) shouldHaveSize 1
     }
 
@@ -50,7 +49,6 @@ class HentAlleForelagteOpplysningerForPersonIntegrasjonTest : FellesTestOppsett(
         )
         hentAlleForelagteOpplysningerForPerson.hentAlleForelagteOpplysningerFor(
             fnr = "test-fnr-11",
-            orgnr = "test-orgnummer",
         ) shouldHaveSize 2
     }
 
@@ -62,19 +60,6 @@ class HentAlleForelagteOpplysningerForPersonIntegrasjonTest : FellesTestOppsett(
         )
         hentAlleForelagteOpplysningerForPerson.hentAlleForelagteOpplysningerFor(
             fnr = "annet-fnr-1",
-            orgnr = "test-orgnummer",
-        ) shouldHaveSize 0
-    }
-
-    @Test
-    fun `burde ikke hente data med annet orgnummer`() {
-        lagreForelagteOpplysningerMedTilhorendeData(
-            fnr = "test-fnr-11",
-            orgnummer = "test-orgnummer",
-        )
-        hentAlleForelagteOpplysningerForPerson.hentAlleForelagteOpplysningerFor(
-            fnr = "test-fnr-11",
-            orgnr = "annet-orgnummer",
         ) shouldHaveSize 0
     }
 

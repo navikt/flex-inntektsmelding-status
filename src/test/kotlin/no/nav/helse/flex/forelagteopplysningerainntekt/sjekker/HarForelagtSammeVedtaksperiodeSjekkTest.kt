@@ -9,36 +9,46 @@ import org.postgresql.util.PGobject
 import java.time.Instant
 import java.util.*
 
-class HarForelagtForPersonMedOrgNyligSjekkTest {
+class HarForelagtSammeVedtaksperiodeSjekkTest {
     @Test
-    fun `burde ikke være gjyldig dersom nylig forelagt`() {
+    fun `Godtar at man har seg selv i listen over forelagte`() {
+        val testForelagteOpplysninger =
+            lagTestForelagteOpplysninger(forelagt = Instant.parse("2024-01-01T00:00:00.00Z"))
         val hentAlleForelagteOpplysningerForPerson: HentAlleForelagteOpplysningerForPerson =
             mock {
-                on { hentAlleForelagteOpplysningerFor("_", "_") } doReturn
+                on { hentAlleForelagteOpplysningerFor("_") } doReturn
                     listOf(
-                        lagTestForelagteOpplysninger(forelagt = Instant.parse("2024-01-01T00:00:00.00Z")),
+                        testForelagteOpplysninger,
+                        testForelagteOpplysninger.copy(vedtaksperiodeId = "2"),
                     )
             }
-        val harForelagtForPersonMedOrgNyligSjekk = HarForelagtForPersonMedOrgNyligSjekk(hentAlleForelagteOpplysningerForPerson)
+        val harForelagtSammeVedtaksperiodeSjekk =
+            HarForelagtSammeVedtaksperiodeSjekk(hentAlleForelagteOpplysningerForPerson)
 
-        harForelagtForPersonMedOrgNyligSjekk.sjekk(
-            "_", "_", now = Instant.parse("2024-01-28T00:00:00.00Z"),
+        harForelagtSammeVedtaksperiodeSjekk.sjekk(
+            "_",
+            testForelagteOpplysninger.vedtaksperiodeId,
+            testForelagteOpplysninger.id!!,
         ) `should be` false
     }
 
     @Test
-    fun `burde være gjyldig dersom forelagt for lenge nok siden`() {
+    fun `feiler om vi har samme vedtaksperiode på en annen forelate opplysninger`() {
+        val testdata = lagTestForelagteOpplysninger(forelagt = Instant.parse("2024-01-01T00:00:00.00Z"))
         val hentAlleForelagteOpplysningerForPerson: HentAlleForelagteOpplysningerForPerson =
             mock {
-                on { hentAlleForelagteOpplysningerFor("_", "_") } doReturn
+                on { hentAlleForelagteOpplysningerFor("_") } doReturn
                     listOf(
-                        lagTestForelagteOpplysninger(forelagt = Instant.parse("2024-01-01T00:00:00.00Z")),
+                        testdata,
                     )
             }
-        val harForelagtForPersonMedOrgNyligSjekk = HarForelagtForPersonMedOrgNyligSjekk(hentAlleForelagteOpplysningerForPerson)
+        val harForelagtSammeVedtaksperiodeSjekk =
+            HarForelagtSammeVedtaksperiodeSjekk(hentAlleForelagteOpplysningerForPerson)
 
-        harForelagtForPersonMedOrgNyligSjekk.sjekk(
-            "_", "_", now = Instant.parse("2024-01-29T00:00:00.00Z"),
+        harForelagtSammeVedtaksperiodeSjekk.sjekk(
+            fnr = "_",
+            vedtaksperiodeId = testdata.vedtaksperiodeId,
+            forelagteOpplysningerId = UUID.randomUUID().toString(),
         ) `should be` true
     }
 }
