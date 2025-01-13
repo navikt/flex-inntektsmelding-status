@@ -15,6 +15,6 @@ class HarForelagtSammeVedtaksperiodeSjekk(
             hentAlleForelagteOpplysningerForPerson.hentAlleForelagteOpplysningerFor(fnr = fnr)
         return alleForelagte
             .filter { it.forelagt != null }
-            .any { it.vedtaksperiodeId == vedtaksperiodeId && it.id !== forelagteOpplysningerId }
+            .any { it.vedtaksperiodeId == vedtaksperiodeId && it.id != forelagteOpplysningerId }
     }
 }
