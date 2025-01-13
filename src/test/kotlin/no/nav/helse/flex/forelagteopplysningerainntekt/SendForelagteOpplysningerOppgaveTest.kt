@@ -17,7 +17,7 @@ import java.util.*
 class SendForelagteOpplysningerOppgaveTest {
     private fun harForelagtForPersonMedOrgNyligSjekkMock(): HarForelagtSammeVedtaksperiodeSjekk {
         return mock<HarForelagtSammeVedtaksperiodeSjekk> {
-            on { sjekk(any(), any(), any()) } doReturn true
+            on { sjekk(any(), any(), any()) } doReturn false
         }
     }
 
@@ -68,14 +68,14 @@ class SendForelagteOpplysningerOppgaveTest {
     }
 
     @Test
-    fun `burde returnere true dersom sjekker er gjyldige`() {
+    fun `burde returnere true dersom sjekker er gyldige`() {
         val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
             mock {
                 on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(forelagt = null))
             }
         val harForelagtSammeVedtaksperiodeSjekk =
             mock<HarForelagtSammeVedtaksperiodeSjekk> {
-                on { sjekk(any(), any(), any()) } doReturn true
+                on { sjekk(any(), any(), any()) } doReturn false
             }
         val oppgave =
             SendForelagteOpplysningerOppgave(
@@ -98,7 +98,7 @@ class SendForelagteOpplysningerOppgaveTest {
             }
         val harForelagtSammeVedtaksperiodeSjekk: HarForelagtSammeVedtaksperiodeSjekk =
             mock {
-                on { sjekk(any(), any(), any()) } doReturn false
+                on { sjekk(any(), any(), any()) } doReturn true
             }
         val oppgave =
             SendForelagteOpplysningerOppgave(

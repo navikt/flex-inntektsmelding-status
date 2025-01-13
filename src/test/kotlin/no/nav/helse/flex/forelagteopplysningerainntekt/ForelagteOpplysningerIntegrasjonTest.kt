@@ -102,7 +102,6 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
             vedtaksperiodeId = "vedtaksperiode-test-opplysning",
             behandlingId = "behandling-test-opplysning",
         )
-
         val forelagteOpplysningerMelding =
             forelagteOpplysningerRepository.save(
                 ForelagteOpplysningerDbRecord(

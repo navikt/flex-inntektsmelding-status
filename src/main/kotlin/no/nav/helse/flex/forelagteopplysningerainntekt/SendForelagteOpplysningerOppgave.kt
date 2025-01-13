@@ -49,16 +49,16 @@ class SendForelagteOpplysningerOppgave(
             return false
         }
 
-        if (!harForelagtSammeVedtaksperiode.sjekk(
+        if (harForelagtSammeVedtaksperiode.sjekk(
                 fnr = relevantInfoTilForelagteOpplysninger.fnr,
                 vedtaksperiodeId = forelagteOpplysninger.vedtaksperiodeId,
                 forelagteOpplysningerId = forelagteOpplysninger.id!!,
             )
         ) {
             log.error(
-                "Har forelagt nylig for person med org, forelgger ikke på nytt nå. " +
+                "Har forelagt samme vedtaksperiode id tidligere. " +
                     "Forelagte opplysninger: ${forelagteOpplysninger.id}. " +
-                    "Skal vi forelegge for denne personen med org på nytt? Mulig vi får feil data fra spleis.",
+                    "Skal vi forelegge for denne personen på nytt? Mulig vi får feil data fra spleis.",
             )
             return false
         }
