@@ -24,12 +24,9 @@ class Brukervarsel(
     fun beskjedManglerInntektsmelding(
         fnr: String,
         bestillingId: String,
-        orgNavn: String,
-        fom: LocalDate,
         synligFremTil: Instant,
-        forsinketSaksbehandling: Boolean,
         brukEksternVarsling: Boolean,
-        sendt: Instant,
+        varselTekst: String,
     ) {
         val opprettVarsel =
             VarselActionBuilder.opprett {
@@ -40,12 +37,7 @@ class Brukervarsel(
                 tekst =
                     Tekst(
                         spraakkode = "nb",
-                        tekst =
-                            if (forsinketSaksbehandling) {
-                                skapVenterPåInntektsmelding28Tekst(orgNavn, sendt)
-                            } else {
-                                skapVenterPåInntektsmelding15Tekst(orgNavn, sendt)
-                            },
+                        tekst = varselTekst,
                         default = true,
                     )
                 aktivFremTil = synligFremTil.atZone(UTC)
@@ -101,7 +93,7 @@ class Brukervarsel(
         fnr: String,
         bestillingId: String,
         synligFremTil: Instant,
-        revarsel: Boolean,
+        varselTekst: String,
     ) {
         val opprettVarsel =
             VarselActionBuilder.opprett {
@@ -112,12 +104,7 @@ class Brukervarsel(
                 tekst =
                     Tekst(
                         spraakkode = "nb",
-                        tekst =
-                            if (revarsel) {
-                                skapRevarselForsinketSaksbehandlingTekst()
-                            } else {
-                                skapForsinketSaksbehandling28Tekst()
-                            },
+                        tekst = varselTekst,
                         default = true,
                     )
                 aktivFremTil = synligFremTil.atZone(UTC)

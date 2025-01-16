@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.DAYS
+import kotlin.collections.last
 
 @Component
 class ForsinketSaksbehandlingRevarselFinnPersoner(
@@ -143,12 +144,15 @@ class ForsinketSaksbehandlingVarslingRevarsel(
                 "Revarsler forsinket saksbehandling til vedtaksperiode ${revarslingsperiode.vedtaksperiode.vedtaksperiodeId}",
             )
 
+            val startSyketilfelle = revarslingsperiode.soknader.sortedBy { it.sendt }.last().startSyketilfelle
+            val varselTekst = skapRevarselForsinketSaksbehandlingTekst(startSyketilfelle)
             val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
+
             brukervarsel.beskjedForsinketSaksbehandling(
                 fnr = fnr,
                 bestillingId = brukervarselId,
                 synligFremTil = synligFremTil,
-                revarsel = true,
+                varselTekst = varselTekst,
             )
 
             val meldingBestillingId = randomGenerator.nextUUID()
@@ -159,7 +163,7 @@ class ForsinketSaksbehandlingVarslingRevarsel(
                         fnr = fnr,
                         opprettMelding =
                             OpprettMelding(
-                                tekst = skapRevarselForsinketSaksbehandlingTekst(),
+                                tekst = varselTekst,
                                 lenke = SAKSBEHANDLINGSTID_URL,
                                 variant = Variant.INFO,
                                 lukkbar = false,

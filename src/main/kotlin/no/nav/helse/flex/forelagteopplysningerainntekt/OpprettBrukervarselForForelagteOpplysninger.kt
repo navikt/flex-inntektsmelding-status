@@ -30,6 +30,7 @@ class OpprettBrukervarselForForelagteOpplysninger(
         startSyketilfelle: LocalDate,
         opprinneligOpprettet: Instant,
     ) {
+        val varselTekst = skapForelagteOpplysningerTekst(startSyketilfelle)
         val synligFremTil = opprinneligOpprettet.tilOsloZone().plusWeeks(3).toInstant()
         val lenkeTilForelagteOpplysninger = "$forelagteOpplysningerBaseUrl/$varselId"
 
@@ -38,7 +39,7 @@ class OpprettBrukervarselForForelagteOpplysninger(
             bestillingId = varselId,
             synligFremTil = synligFremTil,
             lenke = lenkeTilForelagteOpplysninger,
-            varselTekst = skapForelagteOpplysningerTekst(startSyketilfelle),
+            varselTekst = varselTekst,
         )
 
         meldingKafkaProducer.produserMelding(
@@ -48,7 +49,7 @@ class OpprettBrukervarselForForelagteOpplysninger(
                     fnr = fnr,
                     opprettMelding =
                         OpprettMelding(
-                            tekst = skapForelagteOpplysningerTekst(startSyketilfelle),
+                            tekst = varselTekst,
                             lenke = lenkeTilForelagteOpplysninger,
                             variant = Variant.INFO,
                             lukkbar = false,
