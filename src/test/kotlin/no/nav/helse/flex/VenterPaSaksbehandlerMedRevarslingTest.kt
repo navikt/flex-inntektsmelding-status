@@ -131,6 +131,7 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
+            "Status for sykefraværet som startet 29. mai 2022:\n" +
             "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over forventet saksbehandlingstid."
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
@@ -142,6 +143,7 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
         opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL"
         @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
+            "Status for sykefraværet som startet 29. mai 2022:\n" +
             "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over forventet saksbehandlingstid."
         opprettMelding.lenke shouldBeEqualTo SAKSBEHANDLINGSTID_URL
         opprettMelding.lukkbar shouldBeEqualTo false
@@ -181,7 +183,8 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Beklager, men behandlingen av søknaden din om sykepenger tar enda lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører."
+            "Status for sykefraværet som startet 29. mai 2022:\n" +
+            "Saksbehandling tar lengre tid enn forventet. Søknaden vil forhåpentligvis være ferdigbehandlet innen 4 uker. Vi beklager eventuelle ulemper dette medfører."
 
         val meldingRecords = meldingKafkaConsumer.ventPåRecords(2)
 
@@ -194,7 +197,8 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
         opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_REVARSEL"
         @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
-            "Beklager, men behandlingen av søknaden din om sykepenger tar enda lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører."
+            "Status for sykefraværet som startet 29. mai 2022:\n" +
+            "Saksbehandling tar lengre tid enn forventet. Søknaden vil forhåpentligvis være ferdigbehandlet innen 4 uker. Vi beklager eventuelle ulemper dette medfører."
         opprettMelding.lenke shouldBeEqualTo SAKSBEHANDLINGSTID_URL
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
@@ -246,7 +250,8 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Beklager, men behandlingen av søknaden din om sykepenger tar enda lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører."
+            "Status for sykefraværet som startet 29. mai 2022:\n" +
+            "Saksbehandling tar lengre tid enn forventet. Søknaden vil forhåpentligvis være ferdigbehandlet innen 4 uker. Vi beklager eventuelle ulemper dette medfører."
 
         val meldingRecords = meldingKafkaConsumer.ventPåRecords(2)
 
@@ -259,7 +264,8 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
         opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_REVARSEL"
         @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
-            "Beklager, men behandlingen av søknaden din om sykepenger tar enda lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører."
+            "Status for sykefraværet som startet 29. mai 2022:\n" +
+            "Saksbehandling tar lengre tid enn forventet. Søknaden vil forhåpentligvis være ferdigbehandlet innen 4 uker. Vi beklager eventuelle ulemper dette medfører."
         opprettMelding.lenke shouldBeEqualTo SAKSBEHANDLINGSTID_URL
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO

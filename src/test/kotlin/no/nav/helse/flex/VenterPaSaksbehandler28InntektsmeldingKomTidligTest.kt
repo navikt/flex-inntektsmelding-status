@@ -131,6 +131,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
+            "Status for sykefraværet som startet 29. mai 2022:\n" +
             "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over forventet saksbehandlingstid."
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
@@ -142,6 +143,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
         opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL"
         @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
+            "Status for sykefraværet som startet 29. mai 2022:\n" +
             "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over forventet saksbehandlingstid."
         opprettMelding.lenke shouldBeEqualTo SAKSBEHANDLINGSTID_URL
         opprettMelding.lukkbar shouldBeEqualTo false
