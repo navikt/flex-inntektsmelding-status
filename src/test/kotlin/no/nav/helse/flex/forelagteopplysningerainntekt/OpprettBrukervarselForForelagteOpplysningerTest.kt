@@ -128,7 +128,7 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
             varselTekst =
                 eq(
                     "Status for sykefraværet som startet 16. juni 2022:" +
-                        "\nVi har hentet opplysninger om inntekten din fra a-ordningen. Vi trenger at du sjekker om de stemmer.",
+                        "Vi har hentet opplysninger om inntekten din fra a-ordningen. Vi trenger at du sjekker om de stemmer.",
                 ),
         )
     }
@@ -162,7 +162,7 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
         argCaptor.firstValue.opprettMelding
             .shouldNotBeNull()
             .tekst `should be equal to` "Status for sykefraværet som startet 16. juni 2022:" +
-            "\nVi har hentet opplysninger om inntekten din fra a-ordningen. Vi trenger at du sjekker om de stemmer."
+            "Vi har hentet opplysninger om inntekten din fra a-ordningen. Vi trenger at du sjekker om de stemmer."
     }
 
     private fun lagMelding(): PGobject {

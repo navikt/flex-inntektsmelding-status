@@ -42,7 +42,8 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknader`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
             .shouldBeEmpty()
         sendSoknad(soknad)
         sendSoknad(
@@ -69,7 +70,8 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
     @Test
     @Order(1)
     fun `Vi får beskjed at periodene venter på arbeidsgiver`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.plusSeconds(1).toInstant())
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.plusSeconds(1).toInstant())
             .shouldBeEmpty()
 
         val tidspunkt = OffsetDateTime.now()
@@ -113,9 +115,10 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
         perioderSomVenterPaaArbeidsgiver.shouldHaveSize(1)
         perioderSomVenterPaaArbeidsgiver.first() shouldBeEqualTo fnr
 
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
-            sendtTidspunkt.minusHours(3).toInstant(),
-        ).shouldBeEmpty()
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
+                sendtTidspunkt.minusHours(3).toInstant(),
+            ).shouldBeEmpty()
     }
 
     @Test
@@ -133,13 +136,13 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
         beskjedInput.link shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Status for sykefraværet som startet 29. mai 2022:\n" +
+            "Status for sykefraværet som startet 29. mai 2022:" +
             "Vi venter på inntektsmelding fra Flex AS."
 
         val beskjedCR2 = brukerVarslinger.last().value().tilOpprettVarselInstance()
         beskjedCR2.eksternVarsling.shouldBeNull()
         beskjedCR2.tekster.first().tekst shouldBeEqualTo
-            "Status for sykefraværet som startet 29. mai 2022:\n" +
+            "Status for sykefraværet som startet 29. mai 2022:" +
             "Vi venter på inntektsmelding fra Kebabfabrikken."
 
         val meldinger = meldingKafkaConsumer.ventPåRecords(2)
@@ -151,7 +154,7 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING"
         opprettMelding.tekst shouldBeEqualTo
-            "Status for sykefraværet som startet 29. mai 2022:\n" +
+            "Status for sykefraværet som startet 29. mai 2022:" +
             "Vi venter på inntektsmelding fra Flex AS."
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false
@@ -160,7 +163,7 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
 
         val opprettMeldingTo = objectMapper.readValue<MeldingKafkaDto>(meldinger.last().value())
         opprettMeldingTo.opprettMelding!!.tekst shouldBeEqualTo
-            "Status for sykefraværet som startet 29. mai 2022:\n" +
+            "Status for sykefraværet som startet 29. mai 2022:" +
             "Vi venter på inntektsmelding fra Kebabfabrikken."
     }
 }
