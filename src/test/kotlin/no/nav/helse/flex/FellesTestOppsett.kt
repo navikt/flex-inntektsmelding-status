@@ -161,33 +161,35 @@ abstract class FellesTestOppsett {
     }
 
     fun sendSoknad(soknad: SykepengesoknadDTO) {
-        kafkaProducer.send(
-            ProducerRecord(
-                SYKEPENGESOKNAD_TOPIC,
-                soknad.id,
-                soknad.serialisertTilString(),
-            ),
-        ).get()
+        kafkaProducer
+            .send(
+                ProducerRecord(
+                    SYKEPENGESOKNAD_TOPIC,
+                    soknad.id,
+                    soknad.serialisertTilString(),
+                ),
+            ).get()
     }
 
-    fun sendInntektsmelding(inntektsmelding: Inntektsmelding): RecordMetadata {
-        return kafkaProducer.send(
-            ProducerRecord(
-                INNTEKTSMELDING_TOPIC,
-                UUID.randomUUID().toString(),
-                inntektsmelding.serialisertTilString(),
-            ),
-        ).get()
-    }
+    fun sendInntektsmelding(inntektsmelding: Inntektsmelding): RecordMetadata =
+        kafkaProducer
+            .send(
+                ProducerRecord(
+                    INNTEKTSMELDING_TOPIC,
+                    UUID.randomUUID().toString(),
+                    inntektsmelding.serialisertTilString(),
+                ),
+            ).get()
 
     fun sendBehandlingsstatusMelding(behandlingstatusmelding: Behandlingstatusmelding) {
-        kafkaProducer.send(
-            ProducerRecord(
-                SIS_TOPIC,
-                behandlingstatusmelding.vedtaksperiodeId,
-                behandlingstatusmelding.serialisertTilString(),
-            ),
-        ).get()
+        kafkaProducer
+            .send(
+                ProducerRecord(
+                    SIS_TOPIC,
+                    behandlingstatusmelding.vedtaksperiodeId,
+                    behandlingstatusmelding.serialisertTilString(),
+                ),
+            ).get()
     }
 
     fun awaitOppdatertStatus(
@@ -249,14 +251,15 @@ abstract class FellesTestOppsett {
     }
 
     fun sendSykepengesoknad(soknad: SykepengesoknadDTO) {
-        kafkaProducer.send(
-            ProducerRecord(
-                SYKEPENGESOKNAD_TOPIC,
-                null,
-                soknad.id,
-                soknad.serialisertTilString(),
-            ),
-        ).get()
+        kafkaProducer
+            .send(
+                ProducerRecord(
+                    SYKEPENGESOKNAD_TOPIC,
+                    null,
+                    soknad.id,
+                    soknad.serialisertTilString(),
+                ),
+            ).get()
     }
 
     fun hentVedtaksperioder(fnr: String = Testdata.fnr): List<FullVedtaksperiodeBehandling> {
@@ -271,10 +274,10 @@ abstract class FellesTestOppsett {
                         .content(
                             HentVedtaksperioderPostRequest(fnr = fnr)
                                 .serialisertTilString(),
-                        )
-                        .contentType(MediaType.APPLICATION_JSON),
-                )
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful).andReturn().response.contentAsString
+                        ).contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
+                .andReturn()
+                .response.contentAsString
 
         val response: VedtakOgInntektsmeldingerResponse = objectMapper.readValue(responseString)
         return response.vedtaksperioder
@@ -297,10 +300,6 @@ abstract class FellesTestOppsett {
     }
 }
 
-fun String.tilOpprettVarselInstance(): VarselActionBuilder.OpprettVarselInstance {
-    return objectMapper.readValue(this)
-}
+fun String.tilOpprettVarselInstance(): VarselActionBuilder.OpprettVarselInstance = objectMapper.readValue(this)
 
-fun String.tilInaktiverVarselInstance(): VarselActionBuilder.InaktiverVarselInstance {
-    return objectMapper.readValue(this)
-}
+fun String.tilInaktiverVarselInstance(): VarselActionBuilder.InaktiverVarselInstance = objectMapper.readValue(this)

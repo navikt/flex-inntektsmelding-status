@@ -36,7 +36,8 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.toInstant())
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.toInstant())
             .shouldBeEmpty()
         sendSoknad(Testdata.soknad)
         sendSoknad(
@@ -120,7 +121,8 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
                 forventetSisteVarselstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
             )
         val varselStatusen =
-            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
+            vedtaksperiodeBehandlingStatusRepository
+                .findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
                 .first { it.status == VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE }
         val beskjedCR = varslingConsumer.ventPåRecords(1).first()
         val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()

@@ -6,7 +6,10 @@ import org.junit.jupiter.params.provider.EnumSource
 import java.time.LocalDate
 
 class VarselTekstTest {
-    enum class FormaterParams(val tid: LocalDate, val formatert: String) {
+    enum class FormaterParams(
+        val tid: LocalDate,
+        val formatert: String,
+    ) {
         ETT_DAG_SIFFER(LocalDate.parse("2020-01-01"), "1. januar 2020"),
         TO_DAG_SIFFER(LocalDate.parse("2020-01-10"), "10. januar 2020"),
     }

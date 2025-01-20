@@ -6,18 +6,16 @@ import java.time.LocalDate
 fun skapVenterPåInntektsmelding15Tekst(
     orgnavn: String,
     startSyketilfelle: LocalDate,
-): String {
-    return "Status for sykefraværet som startet ${startSyketilfelle.formater()}:" +
+): String =
+    "Status for sykefraværet som startet ${startSyketilfelle.formater()}:" +
         "\nVi venter på inntektsmelding fra $orgnavn."
-}
 
 fun skapVenterPåInntektsmelding28Tekst(
     orgnavn: String,
     startSyketilfelle: LocalDate,
-): String {
-    return "Status for sykefraværet som startet ${startSyketilfelle.formater()}:" +
+): String =
+    "Status for sykefraværet som startet ${startSyketilfelle.formater()}:" +
         "\nSaksbehandlingen er forsinket fordi vi fortsatt venter på inntektsmelding fra $orgnavn."
-}
 
 fun skapForsinketSaksbehandling28Tekst(startSyketilfelle: LocalDate): String {
     @Suppress("ktlint:standard:max-line-length")
@@ -31,13 +29,10 @@ fun skapRevarselForsinketSaksbehandlingTekst(startSyketilfelle: LocalDate): Stri
         "\nSaksbehandling tar lengre tid enn forventet. Søknaden vil forhåpentligvis være ferdigbehandlet innen 4 uker. Vi beklager eventuelle ulemper dette medfører."
 }
 
-fun skapForelagteOpplysningerTekst(startSyketilfelle: LocalDate): String {
-    return "Status for sykefraværet som startet ${startSyketilfelle.formater()}:" +
-        "Vi har hentet opplysninger om inntekten din fra a-ordningen. Vi trenger at du sjekker om de stemmer."
-}
+fun skapForelagteOpplysningerTekst(startSyketilfelle: LocalDate): String =
+    "Status for sykefraværet som startet ${startSyketilfelle.formater()}:" +
+        "\nVi har hentet opplysninger om inntekten din fra a-ordningen. Vi trenger at du sjekker om de stemmer."
 
-internal fun LocalDate.formater(): String? {
-    return this.format(norskDateFormat)
-}
+internal fun LocalDate.formater(): String? = this.format(norskDateFormat)
 
 const val SAKSBEHANDLINGSTID_URL = "https://www.nav.no/saksbehandlingstider#sykepenger"
