@@ -222,12 +222,14 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
 
                 log.info("Sender første forsinket saksbehandling varsel til vedtaksperiode ${perioden.vedtaksperiode.vedtaksperiodeId}")
 
+                val varselTekst = skapForsinketSaksbehandling28Tekst(soknaden.startSyketilfelle)
                 val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
+
                 brukervarsel.beskjedForsinketSaksbehandling(
                     fnr = fnr,
                     bestillingId = brukervarselId,
                     synligFremTil = synligFremTil,
-                    revarsel = false,
+                    varselTekst = varselTekst,
                 )
 
                 val meldingBestillingId = randomGenerator.nextUUID()
@@ -238,7 +240,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                             fnr = fnr,
                             opprettMelding =
                                 OpprettMelding(
-                                    tekst = skapForsinketSaksbehandling28Tekst(),
+                                    tekst = varselTekst,
                                     lenke = SAKSBEHANDLINGSTID_URL,
                                     variant = Variant.INFO,
                                     lukkbar = false,

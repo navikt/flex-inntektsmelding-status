@@ -37,7 +37,8 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.toInstant())
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.toInstant())
             .shouldBeEmpty()
         sendSoknad(Testdata.soknad)
         sendSoknad(
@@ -124,7 +125,8 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
                 forventetSisteVarselstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
             )
         val varselStatusen =
-            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
+            vedtaksperiodeBehandlingStatusRepository
+                .findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
                 .first { it.status == VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE }
         val beskjedCR = varslingConsumer.ventPåRecords(1).first()
         val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
@@ -135,6 +137,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
+            "Status for sykefraværet som startet 29. mai 2022: " +
             "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over forventet saksbehandlingstid."
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
@@ -146,6 +149,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
         opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL"
         @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
+            "Status for sykefraværet som startet 29. mai 2022: " +
             "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over forventet saksbehandlingstid."
         opprettMelding.lenke shouldBeEqualTo SAKSBEHANDLINGSTID_URL
         opprettMelding.lukkbar shouldBeEqualTo false

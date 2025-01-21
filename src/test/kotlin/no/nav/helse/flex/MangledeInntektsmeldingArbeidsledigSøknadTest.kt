@@ -20,7 +20,8 @@ class MangledeInntektsmeldingArbeidsledigSøknadTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn arbeidsledig søknad`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.toInstant())
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.toInstant())
             .shouldBeEmpty()
         val soknad = Testdata.soknad.copy(type = SoknadstypeDTO.ARBEIDSLEDIG, arbeidsgiver = null)
         sendSoknad(soknad)
@@ -69,7 +70,8 @@ class MangledeInntektsmeldingArbeidsledigSøknadTest : FellesTestOppsett() {
         val beskjedInput = beskjedOpprettVarsel.value().tilOpprettVarselInstance()
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Vi venter på inntektsmelding fra arbeidsgiver. Når vi får den kan vi behandle søknaden om sykepenger du sendte 1. juli 2022."
+            "Status for sykefraværet som startet 29. mai 2022: " +
+            "Vi venter på inntektsmelding fra arbeidsgiver."
     }
 
     @Test
@@ -87,6 +89,7 @@ class MangledeInntektsmeldingArbeidsledigSøknadTest : FellesTestOppsett() {
 
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Saksbehandlingen for søknaden om sykepenger du sendte 1. juli 2022 er forsinket fordi vi fortsatt venter på inntektsmelding fra arbeidsgiver."
+            "Status for sykefraværet som startet 29. mai 2022: " +
+            "Saksbehandlingen er forsinket fordi vi fortsatt venter på inntektsmelding fra arbeidsgiver."
     }
 }

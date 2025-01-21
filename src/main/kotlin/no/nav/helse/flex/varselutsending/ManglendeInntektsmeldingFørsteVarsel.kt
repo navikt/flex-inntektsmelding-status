@@ -134,6 +134,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
                         organisasjonRepository.findByOrgnummer(soknaden.orgnummer)?.navn ?: soknaden.orgnummer
                     }
 
+                val varselTekst = skapVenterPåInntektsmelding15Tekst(orgnavn, soknaden.startSyketilfelle)
                 val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
 
                 log.info("Sender første mangler inntektsmelding varsel til vedtaksperiode ${perioden.vedtaksperiode.vedtaksperiodeId}")
@@ -141,12 +142,9 @@ class ManglendeInntektsmeldingFørsteVarsel(
                 brukervarsel.beskjedManglerInntektsmelding(
                     fnr = fnr,
                     bestillingId = brukervarselId,
-                    orgNavn = orgnavn,
-                    fom = soknaden.startSyketilfelle,
                     synligFremTil = synligFremTil,
-                    forsinketSaksbehandling = false,
                     brukEksternVarsling = idx == 0,
-                    sendt = soknaden.sendt,
+                    varselTekst = varselTekst,
                 )
 
                 val meldingBestillingId = randomGenerator.nextUUID()
@@ -157,7 +155,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
                             fnr = fnr,
                             opprettMelding =
                                 OpprettMelding(
-                                    tekst = skapVenterPåInntektsmelding15Tekst(orgnavn, soknaden.sendt),
+                                    tekst = varselTekst,
                                     lenke = inntektsmeldingManglerUrl,
                                     variant = Variant.INFO,
                                     lukkbar = false,

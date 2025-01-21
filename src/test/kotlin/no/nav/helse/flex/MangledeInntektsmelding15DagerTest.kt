@@ -34,7 +34,8 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.toInstant())
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.toInstant())
             .shouldBeEmpty()
         sendSoknad(soknad)
         sendSoknad(
@@ -51,7 +52,8 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
     @Test
     @Order(1)
     fun `Vi får beskjed at perioden venter på arbeidsgiver`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.plusMinutes(1).toInstant())
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.plusMinutes(1).toInstant())
             .shouldBeEmpty()
 
         val tidspunkt = OffsetDateTime.now()
@@ -77,10 +79,10 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
         perioderSomVenterPaaArbeidsgiver.shouldHaveSize(1)
         perioderSomVenterPaaArbeidsgiver.first() shouldBeEqualTo fnr
 
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
-            sendtTidspunkt.toInstant(),
-        )
-            .shouldBeEmpty()
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
+                sendtTidspunkt.toInstant(),
+            ).shouldBeEmpty()
     }
 
     @Test
@@ -117,7 +119,8 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
         beskjedInput.link shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Vi venter på inntektsmelding fra Flex AS. Når vi får den kan vi behandle søknaden om sykepenger du sendte 1. juli 2022."
+            "Status for sykefraværet som startet 29. mai 2022: " +
+            "Vi venter på inntektsmelding fra Flex AS."
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
@@ -127,7 +130,8 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING"
         opprettMelding.tekst shouldBeEqualTo
-            "Vi venter på inntektsmelding fra Flex AS. Når vi får den kan vi behandle søknaden om sykepenger du sendte 1. juli 2022."
+            "Status for sykefraværet som startet 29. mai 2022: " +
+            "Vi venter på inntektsmelding fra Flex AS."
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
@@ -152,9 +156,10 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
         val vedtaksperiode = awaitOppdatertStatus(VENTER_PÅ_SAKSBEHANDLER)
 
         val statusManglerIm =
-            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(
-                listOf(vedtaksperiode.id!!),
-            ).first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE }
+            vedtaksperiodeBehandlingStatusRepository
+                .findByVedtaksperiodeBehandlingIdIn(
+                    listOf(vedtaksperiode.id!!),
+                ).first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE }
 
         val doneBrukervarsel =
             varslingConsumer
@@ -192,7 +197,11 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
     fun `Vi kan hente ut historikken fra flex internal frontend igjen`() {
         val response = hentVedtaksperioder()
         response shouldHaveSize 1
-        response.first().soknader.first().orgnummer shouldBeEqualTo orgNr
+        response
+            .first()
+            .soknader
+            .first()
+            .orgnummer shouldBeEqualTo orgNr
         response.first().statuser shouldHaveSize 6
 
         response.first().statuser.map { it.status.name } shouldBeEqualTo
@@ -251,7 +260,11 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
         val response = hentVedtaksperioder()
         response shouldHaveSize 1
         response.first().soknader.shouldHaveSize(2)
-        response.first().soknader.first().orgnummer shouldBeEqualTo orgNr
+        response
+            .first()
+            .soknader
+            .first()
+            .orgnummer shouldBeEqualTo orgNr
         response.first().statuser shouldHaveSize 7
 
         response.first().statuser.map { it.status.name } shouldBeEqualTo

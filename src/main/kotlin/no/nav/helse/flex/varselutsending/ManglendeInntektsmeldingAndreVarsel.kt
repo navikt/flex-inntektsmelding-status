@@ -137,15 +137,14 @@ class ManglendeInntektsmeldingAndreVarsel(
                     }
 
                 val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
+                val varselTekst = skapVenterPåInntektsmelding28Tekst(orgnavn, soknaden.startSyketilfelle)
+
                 brukervarsel.beskjedManglerInntektsmelding(
                     fnr = fnr,
                     bestillingId = brukervarselId,
-                    orgNavn = orgnavn,
-                    fom = soknaden.startSyketilfelle,
-                    sendt = soknaden.sendt,
                     synligFremTil = synligFremTil,
-                    forsinketSaksbehandling = true,
                     brukEksternVarsling = idx == 0,
+                    varselTekst = varselTekst,
                 )
 
                 val meldingBestillingId = randomGenerator.nextUUID()
@@ -156,7 +155,7 @@ class ManglendeInntektsmeldingAndreVarsel(
                             fnr = fnr,
                             opprettMelding =
                                 OpprettMelding(
-                                    tekst = skapVenterPåInntektsmelding28Tekst(orgnavn, soknaden.sendt),
+                                    tekst = varselTekst,
                                     lenke = inntektsmeldingManglerUrl,
                                     variant = Variant.INFO,
                                     lukkbar = false,

@@ -24,7 +24,8 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad, vi henter ut arbeidsgivers navn`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.toInstant())
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.toInstant())
             .shouldBeEmpty()
         sendSoknad(Testdata.soknad)
         sendSoknad(
@@ -99,19 +100,23 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
 
         val status = awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
         val denNyeVarselstatusen =
-            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
+            vedtaksperiodeBehandlingStatusRepository
+                .findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
                 .first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_ANDRE }
 
         val denForrigeVarselstatusen =
-            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
+            vedtaksperiodeBehandlingStatusRepository
+                .findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
                 .first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE }
 
         val varslingRecords = varslingConsumer.ventPåRecords(2)
         val meldingRecords = meldingKafkaConsumer.ventPåRecords(2)
 
         val doneBrukervarsel = varslingRecords.first()
-        doneBrukervarsel.value()
-            .tilInaktiverVarselInstance().varselId shouldBeEqualTo denForrigeVarselstatusen.brukervarselId
+        doneBrukervarsel
+            .value()
+            .tilInaktiverVarselInstance()
+            .varselId shouldBeEqualTo denForrigeVarselstatusen.brukervarselId
 
         val doneMeldingDittSykefravar = meldingRecords.first()
         val doneDittSykefravaer: MeldingKafkaDto =
@@ -129,7 +134,8 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Saksbehandlingen for søknaden om sykepenger du sendte 1. juli 2022 er forsinket fordi vi fortsatt venter på inntektsmelding fra Flex AS."
+            "Status for sykefraværet som startet 29. mai 2022: " +
+            "Saksbehandlingen er forsinket fordi vi fortsatt venter på inntektsmelding fra Flex AS."
 
         val opprettMeldingCr = meldingRecords.last()
         val melding = objectMapper.readValue<MeldingKafkaDto>(opprettMeldingCr.value())
@@ -141,7 +147,8 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
         opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING_28"
         @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
-            "Saksbehandlingen for søknaden om sykepenger du sendte 1. juli 2022 er forsinket fordi vi fortsatt venter på inntektsmelding fra Flex AS."
+            "Status for sykefraværet som startet 29. mai 2022: " +
+            "Saksbehandlingen er forsinket fordi vi fortsatt venter på inntektsmelding fra Flex AS."
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
