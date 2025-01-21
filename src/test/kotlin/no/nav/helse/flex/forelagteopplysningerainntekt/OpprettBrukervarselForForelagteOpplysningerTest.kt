@@ -127,7 +127,7 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
             lenke = any(),
             varselTekst =
                 eq(
-                    "Status for sykefraværet som startet 16. juni 2022:" +
+                    "Status for sykefraværet som startet 16. juni 2022: " +
                         "Vi har hentet opplysninger om inntekten din fra a-ordningen. Vi trenger at du sjekker om de stemmer.",
                 ),
         )
@@ -161,7 +161,7 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
 
         argCaptor.firstValue.opprettMelding
             .shouldNotBeNull()
-            .tekst `should be equal to` "Status for sykefraværet som startet 16. juni 2022:" +
+            .tekst `should be equal to` "Status for sykefraværet som startet 16. juni 2022: " +
             "Vi har hentet opplysninger om inntekten din fra a-ordningen. Vi trenger at du sjekker om de stemmer."
     }
 
