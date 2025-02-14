@@ -27,7 +27,7 @@ class VedtaksperiodeBehandlingConsumer(
     ) {
         val versjonsmelding: MeldingMedVersjon = objectMapper.readValue(cr.value())
 
-        if (versjonsmelding.versjon == "2.0.0") {
+        if (versjonsmelding.versjon?.startsWith("2.0.") == true) {
             val kafkaDto: Behandlingstatusmelding = objectMapper.readValue(cr.value())
             prosseserKafkaMeldingFraSpleiselaget.prosesserKafkaMelding(kafkaDto)
         }
