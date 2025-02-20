@@ -27,7 +27,7 @@ val kluentVersion = "1.73"
 val varselKotlinBuilderVersion = "1.1.0"
 val sykepengesoknadKafkaVersion = "2024.12.06-09.11-55fbeea5"
 val inntektsmeldingKontraktVersion = "2024.05.21-09-56-5528e"
-val tokenSupportVersion = "5.0.16"
+val tokenSupportVersion = "5.0.17"
 val mockitoKotlinVersion = "2.2.0"
 val unleashVersion = "9.2.6"
 
