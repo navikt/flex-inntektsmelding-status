@@ -37,7 +37,7 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
     private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 2000 else 7
 
     fun hentOgProsseser(now: Instant): Map<CronJobStatus, Int> {
-        val sendtFoer = now.atOffset(ZoneOffset.UTC).minusDays(28).toInstant()
+        val sendtFoer = now.atOffset(ZoneOffset.UTC).minusDays(56).toInstant()
 
         val fnrListe =
             vedtaksperiodeBehandlingRepository

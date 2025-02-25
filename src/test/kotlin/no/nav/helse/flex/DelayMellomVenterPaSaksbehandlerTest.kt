@@ -184,7 +184,7 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
 
     @Test
     @Order(4)
-    fun `Vi sender ut forsinket saksbehandling varsel etter 30 dager`() {
+    fun `Vi sender ut forsinket saksbehandling varsel etter 58 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(58))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
@@ -251,7 +251,7 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
 
     @Test
     @Order(8)
-    fun `Vi sender ut forsinket saksbehandling varsel etter 45 dager når det har gått nok tid`() {
+    fun `Vi sender ut forsinket saksbehandling varsel etter 73 dager når det har gått nok tid`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(73))
         cronjobResultat[INGEN_PERIODE_FUNNET_FOR_FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL].shouldBeNull()
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
