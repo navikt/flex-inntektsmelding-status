@@ -209,8 +209,8 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
 
     @Test
     @Order(4)
-    fun `Vi sender ut forsinket saksbehandling varsel etter 30 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(30))
+    fun `Vi sender ut forsinket saksbehandling varsel etter 58 dager`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(58))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
         cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
@@ -222,8 +222,8 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
 
     @Test
     @Order(5)
-    fun `Vi sender ikke ut forsinket saksbehandling varsel etter 42 dager`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(42))
+    fun `Vi sender ikke ut forsinket saksbehandling varsel etter 70 dager`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(70))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
         cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
@@ -237,7 +237,7 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
     @Test
     @Order(10)
     fun `Cronjob resultat til slutt`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(50))
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(78))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1

@@ -108,8 +108,8 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
 
     @Test
     @Order(4)
-    fun `Etter 28 dager sender vi varsel om forsinket saksbehandling`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(28).plusMinutes(1))
+    fun `Etter 56 dager sender vi varsel om forsinket saksbehandling`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(56).plusMinutes(1))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
@@ -155,8 +155,8 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
 
     @Test
     @Order(5)
-    fun `Etter 60 dager sender vi revarsel om forsinket saksbehandling`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(60))
+    fun `Etter 88 dager sender vi revarsel om forsinket saksbehandling`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(88))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
@@ -210,8 +210,8 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
 
     @Test
     @Order(6)
-    fun `Etter 70 dager skjer ingenting`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(70))
+    fun `Etter 98 dager skjer ingenting`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(98))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 0
@@ -222,8 +222,8 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
 
     @Test
     @Order(7)
-    fun `Etter 95 dager sender vi igjen revarsel om forsinket saksbehandling`() {
-        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(95).plusMinutes(2))
+    fun `Etter 123 dager sender vi igjen revarsel om forsinket saksbehandling`() {
+        val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(123).plusMinutes(2))
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
         cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 0
