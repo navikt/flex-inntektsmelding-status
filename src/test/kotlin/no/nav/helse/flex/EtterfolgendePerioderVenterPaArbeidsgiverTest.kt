@@ -27,7 +27,6 @@ import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-private const val s = "fra Flex AS."
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
