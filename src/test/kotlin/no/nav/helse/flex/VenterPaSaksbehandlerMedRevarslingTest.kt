@@ -129,7 +129,7 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
         beskjedInput.ident shouldBeEqualTo fnr
         beskjedInput.varselId shouldBeEqualTo varselStatusen.brukervarselId
         beskjedInput.eksternVarsling.shouldNotBeNull()
-        beskjedInput.link shouldBeEqualTo SAKSBEHANDLINGSTID_URL
+        beskjedInput.link.shouldBeNull()
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
@@ -182,7 +182,7 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
         beskjedInput.ident shouldBeEqualTo fnr
         beskjedInput.varselId shouldBeEqualTo varselStatusen.brukervarselId
         beskjedInput.eksternVarsling.shouldNotBeNull()
-        beskjedInput.link shouldBeEqualTo SAKSBEHANDLINGSTID_URL
+        beskjedInput.link.shouldBeNull()
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
@@ -250,7 +250,7 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
         beskjedInput.ident shouldBeEqualTo fnr
         beskjedInput.varselId shouldBeEqualTo varselStatusen.brukervarselId
         beskjedInput.eksternVarsling.shouldNotBeNull()
-        beskjedInput.link shouldBeEqualTo SAKSBEHANDLINGSTID_URL
+        beskjedInput.link.shouldBeNull()
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
