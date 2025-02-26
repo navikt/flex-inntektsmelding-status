@@ -161,7 +161,7 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
 
         argCaptor.firstValue.opprettMelding
             .shouldNotBeNull()
-            .tekst `should be equal to` "Status i saken din om sykepenger:" +
+            .tekst `should be equal to` "Status i saken din om sykepenger: " +
             "Vi har hentet opplysninger om inntekten din fra a-ordningen for sykefraværet." +
             "Vi trenger at du sjekker om de stemmer."
     }
