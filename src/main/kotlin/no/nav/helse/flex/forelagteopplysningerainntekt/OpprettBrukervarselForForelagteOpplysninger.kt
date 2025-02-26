@@ -30,7 +30,7 @@ class OpprettBrukervarselForForelagteOpplysninger(
         startSyketilfelle: LocalDate,
         opprinneligOpprettet: Instant,
     ) {
-        val varselTekst = skapForelagteOpplysningerTekst(startSyketilfelle)
+        val varselTekst = skapForelagteOpplysningerTekst()
         val synligFremTil = opprinneligOpprettet.tilOsloZone().plusWeeks(3).toInstant()
         val lenkeTilForelagteOpplysninger = "$forelagteOpplysningerBaseUrl/$varselId"
 

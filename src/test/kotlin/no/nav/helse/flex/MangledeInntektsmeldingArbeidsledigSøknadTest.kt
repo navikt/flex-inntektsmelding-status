@@ -70,7 +70,7 @@ class MangledeInntektsmeldingArbeidsledigSøknadTest : FellesTestOppsett() {
         val beskjedInput = beskjedOpprettVarsel.value().tilOpprettVarselInstance()
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Status for sykefraværet som startet 29. mai 2022: " +
+            "Status i saken din om sykepenger: " +
             "Vi venter på inntektsmelding fra arbeidsgiver."
     }
 
@@ -89,7 +89,8 @@ class MangledeInntektsmeldingArbeidsledigSøknadTest : FellesTestOppsett() {
 
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Status for sykefraværet som startet 29. mai 2022: " +
-            "Saksbehandlingen er forsinket fordi vi fortsatt venter på inntektsmelding fra arbeidsgiver."
+            "Status i saken din om sykepenger: " +
+            "Vi mangler fortsatt inntektsmelding fra arbeidsgiver og har sendt en påminnelse til arbeidsgiveren din om dette." +
+            "Når vi får den kan vi begynne å behandle søknaden din."
     }
 }

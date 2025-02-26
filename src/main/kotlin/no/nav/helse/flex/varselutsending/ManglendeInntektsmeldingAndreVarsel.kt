@@ -137,7 +137,7 @@ class ManglendeInntektsmeldingAndreVarsel(
                     }
 
                 val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
-                val varselTekst = skapVenterPåInntektsmelding28Tekst(orgnavn, soknaden.startSyketilfelle)
+                val varselTekst = skapVenterPåInntektsmelding28Tekst(orgnavn)
 
                 brukervarsel.beskjedManglerInntektsmelding(
                     fnr = fnr,

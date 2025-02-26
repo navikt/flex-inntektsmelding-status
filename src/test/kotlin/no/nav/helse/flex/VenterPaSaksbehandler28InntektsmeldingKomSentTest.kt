@@ -137,8 +137,8 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Status for sykefraværet som startet 29. mai 2022: " +
-            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over forventet saksbehandlingstid."
+            "Status i saken din om sykepenger: Vi beklager! Saksbehandlingen tar dessverre lengre tid" +
+            "enn forventet. Vi regner med at saken din vil være ferdigbehandlet i løpet av de neste 4 ukene."
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
@@ -149,8 +149,8 @@ class VenterPaSaksbehandler28InntektsmeldingKomSentTest : FellesTestOppsett() {
         opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL"
         @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
-            "Status for sykefraværet som startet 29. mai 2022: " +
-            "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over forventet saksbehandlingstid."
+            "Status i saken din om sykepenger: Vi beklager! Saksbehandlingen tar dessverre lengre tid" +
+            "enn forventet. Vi regner med at saken din vil være ferdigbehandlet i løpet av de neste 4 ukene."
         opprettMelding.lenke shouldBeEqualTo SAKSBEHANDLINGSTID_URL
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO

@@ -12,7 +12,7 @@ import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.util.increment
 import no.nav.helse.flex.varseltekst.SAKSBEHANDLINGSTID_URL
-import no.nav.helse.flex.varseltekst.skapForsinketSaksbehandling28Tekst
+import no.nav.helse.flex.varseltekst.skapForsinketSaksbehandling56Tekst
 import no.nav.helse.flex.vedtaksperiodebehandling.HentAltForPerson
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
@@ -222,7 +222,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
 
                 log.info("Sender første forsinket saksbehandling varsel til vedtaksperiode ${perioden.vedtaksperiode.vedtaksperiodeId}")
 
-                val varselTekst = skapForsinketSaksbehandling28Tekst(soknaden.startSyketilfelle)
+                val varselTekst = skapForsinketSaksbehandling56Tekst()
                 val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
 
                 brukervarsel.beskjedForsinketSaksbehandling(
