@@ -136,7 +136,7 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
         beskjedInput.tekster.first().tekst shouldBeEqualTo
             "Status i saken din om sykepenger: " +
             "Vi mangler fortsatt inntektsmelding fra Flex AS og har sendt en påminnelse til arbeidsgiveren din om dette." +
-            "Når vi for den kan vi begynne å behandle søknaden din."
+            "Når vi får den kan vi begynne å behandle søknaden din."
         val opprettMeldingCr = meldingRecords.last()
         val melding = objectMapper.readValue<MeldingKafkaDto>(opprettMeldingCr.value())
         melding.fnr shouldBeEqualTo Testdata.fnr
@@ -149,7 +149,7 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
         opprettMelding.tekst shouldBeEqualTo
             "Status i saken din om sykepenger: " +
             "Vi mangler fortsatt inntektsmelding fra Flex AS og har sendt en påminnelse til arbeidsgiveren din om dette." +
-            "Når vi for den kan vi begynne å behandle søknaden din."
+            "Når vi får den kan vi begynne å behandle søknaden din."
 
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false

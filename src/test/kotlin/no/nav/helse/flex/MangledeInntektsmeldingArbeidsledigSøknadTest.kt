@@ -91,6 +91,6 @@ class MangledeInntektsmeldingArbeidsledigSøknadTest : FellesTestOppsett() {
         beskjedInput.tekster.first().tekst shouldBeEqualTo
             "Status i saken din om sykepenger: " +
             "Vi mangler fortsatt inntektsmelding fra arbeidsgiver og har sendt en påminnelse til arbeidsgiveren din om dette." +
-            "Når vi for den kan vi begynne å behandle søknaden din."
+            "Når vi får den kan vi begynne å behandle søknaden din."
     }
 }

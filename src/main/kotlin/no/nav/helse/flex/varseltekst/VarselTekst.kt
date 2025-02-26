@@ -10,7 +10,7 @@ fun skapVenterPåInntektsmelding15Tekst(orgnavn: String): String =
 fun skapVenterPåInntektsmelding28Tekst(orgnavn: String): String =
     "Status i saken din om sykepenger: " +
         "Vi mangler fortsatt inntektsmelding fra $orgnavn og har sendt en påminnelse til arbeidsgiveren din om dette." +
-        "Når vi for den kan vi begynne å behandle søknaden din."
+        "Når vi får den kan vi begynne å behandle søknaden din."
 
 fun skapForsinketSaksbehandling56Tekst(): String {
     @Suppress("ktlint:standard:max-line-length")
