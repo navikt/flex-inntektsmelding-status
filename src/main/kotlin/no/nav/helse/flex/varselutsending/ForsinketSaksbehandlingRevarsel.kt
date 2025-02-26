@@ -145,7 +145,7 @@ class ForsinketSaksbehandlingVarslingRevarsel(
             )
 
             val startSyketilfelle = revarslingsperiode.soknader.sortedBy { it.sendt }.last().startSyketilfelle
-            val varselTekst = skapRevarselForsinketSaksbehandlingTekst(startSyketilfelle)
+            val varselTekst = skapRevarselForsinketSaksbehandlingTekst()
             val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
 
             brukervarsel.beskjedForsinketSaksbehandling(

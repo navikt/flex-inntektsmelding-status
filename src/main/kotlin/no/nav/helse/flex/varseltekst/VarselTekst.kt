@@ -3,35 +3,30 @@ package no.nav.helse.flex.varseltekst
 import no.nav.helse.flex.util.norskDateFormat
 import java.time.LocalDate
 
-fun skapVenterPåInntektsmelding15Tekst(
-    orgnavn: String,
-    startSyketilfelle: LocalDate,
-): String =
-    "Status for sykefraværet som startet ${startSyketilfelle.formater()}: " +
+fun skapVenterPåInntektsmelding15Tekst(orgnavn: String): String =
+    "Status i saken din om sykepenger: " +
         "Vi venter på inntektsmelding fra $orgnavn."
 
-fun skapVenterPåInntektsmelding28Tekst(
-    orgnavn: String,
-    startSyketilfelle: LocalDate,
-): String =
-    "Status for sykefraværet som startet ${startSyketilfelle.formater()}: " +
-        "Saksbehandlingen er forsinket fordi vi fortsatt venter på inntektsmelding fra $orgnavn."
+fun skapVenterPåInntektsmelding28Tekst(orgnavn: String): String =
+    "Status i saken din om sykepenger: " +
+        "Vi mangler fortsatt inntektsmelding fra $orgnavn og har sendt en påminnelse til arbeidsgiveren din om dette." +
+        "Når vi for den kan vi begynne å behandle søknaden din."
 
-fun skapForsinketSaksbehandling28Tekst(startSyketilfelle: LocalDate): String {
+fun skapForsinketSaksbehandling56Tekst(): String {
     @Suppress("ktlint:standard:max-line-length")
-    return "Status for sykefraværet som startet ${startSyketilfelle.formater()}: " +
-        "Behandlingen av søknaden din om sykepenger tar lengre tid enn forventet. Vi beklager eventuelle ulemper dette medfører. Se vår oversikt over forventet saksbehandlingstid."
+    return "Status i saken din om sykepenger: Vi beklager! Saksbehandlingen tar dessverre lengre tid" +
+        "enn forventet. Vi regner med at saken din vil være ferdigbehandlet i løpet av de neste 4 ukene."
 }
 
-fun skapRevarselForsinketSaksbehandlingTekst(startSyketilfelle: LocalDate): String {
+fun skapRevarselForsinketSaksbehandlingTekst(): String {
     @Suppress("ktlint:standard:max-line-length")
-    return "Status for sykefraværet som startet ${startSyketilfelle.formater()}: " +
-        "Saksbehandling tar lengre tid enn forventet. Søknaden vil forhåpentligvis være ferdigbehandlet innen 4 uker. Vi beklager eventuelle ulemper dette medfører."
+    return "Status i saken din om sykepenger: Vi beklager! Saksbehandlingen tar dessverre lengre tid enn forventet." +
+        "Vi regner med at søknaden din om sykepenger vil være ferdigbehandlet i løpet av de neste 4 ukene."
 }
 
-fun skapForelagteOpplysningerTekst(startSyketilfelle: LocalDate): String =
-    "Status for sykefraværet som startet ${startSyketilfelle.formater()}: " +
-        "Vi har hentet opplysninger om inntekten din fra a-ordningen. Vi trenger at du sjekker om de stemmer."
+fun skapForelagteOpplysningerTekst(): String =
+    "Status i saken din om sykepenger: Vi har hentet opplysninger om inntekten din fra a-ordningen for sykefraværet." +
+        "Vi trenger at du sjekker om de stemmer."
 
 internal fun LocalDate.formater(): String? = this.format(norskDateFormat)
 

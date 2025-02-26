@@ -134,7 +134,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
                         organisasjonRepository.findByOrgnummer(soknaden.orgnummer)?.navn ?: soknaden.orgnummer
                     }
 
-                val varselTekst = skapVenterPåInntektsmelding15Tekst(orgnavn, soknaden.startSyketilfelle)
+                val varselTekst = skapVenterPåInntektsmelding15Tekst(orgnavn)
                 val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
 
                 log.info("Sender første mangler inntektsmelding varsel til vedtaksperiode ${perioden.vedtaksperiode.vedtaksperiodeId}")

@@ -95,7 +95,7 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
             eq("test-id"),
             eq(treUkerFrem.toInstant(ZoneOffset.UTC)),
             eq("https://test.test/test-id"),
-            eq(skapForelagteOpplysningerTekst(LocalDateTime.parse("2022-06-16T00:00:00.00").toLocalDate())),
+            eq(skapForelagteOpplysningerTekst()),
         )
         verify(mockMeldingKafkaProducer).produserMelding(eq("test-id"), any())
     }
@@ -127,8 +127,8 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
             lenke = any(),
             varselTekst =
                 eq(
-                    "Status for sykefraværet som startet 16. juni 2022: " +
-                        "Vi har hentet opplysninger om inntekten din fra a-ordningen. Vi trenger at du sjekker om de stemmer.",
+                    "Status i saken din om sykepenger: Vi har hentet opplysninger om inntekten din fra a-ordningen for sykefraværet." +
+                        "Vi trenger at du sjekker om de stemmer.",
                 ),
         )
     }
@@ -161,8 +161,9 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
 
         argCaptor.firstValue.opprettMelding
             .shouldNotBeNull()
-            .tekst `should be equal to` "Status for sykefraværet som startet 16. juni 2022: " +
-            "Vi har hentet opplysninger om inntekten din fra a-ordningen. Vi trenger at du sjekker om de stemmer."
+            .tekst `should be equal to` "Status i saken din om sykepenger:" +
+            "Vi har hentet opplysninger om inntekten din fra a-ordningen for sykefraværet." +
+            "Vi trenger at du sjekker om de stemmer."
     }
 
     private fun lagMelding(): PGobject {

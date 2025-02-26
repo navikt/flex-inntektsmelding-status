@@ -27,6 +27,8 @@ import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
 
+private const val s = "fra Flex AS."
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
     object Arbeidsgiver1 {
@@ -205,13 +207,11 @@ class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
         beskjedInput.link shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Status for sykefraværet som startet 28. mai 2022: " +
-            "Vi venter på inntektsmelding fra Flex AS."
+            "Status i saken din om sykepenger: Vi venter på inntektsmelding fra Flex AS."
 
         val beskjedCR2 = brukerVarslinger.last().value().tilOpprettVarselInstance()
         beskjedCR2.eksternVarsling.shouldBeNull()
-        beskjedCR2.tekster.first().tekst shouldBeEqualTo
-            "Status for sykefraværet som startet 28. mai 2022: " +
+        beskjedCR2.tekster.first().tekst shouldBeEqualTo "Status i saken din om sykepenger: " +
             "Vi venter på inntektsmelding fra Kebabfabrikken."
 
         val meldinger = meldingKafkaConsumer.ventPåRecords(2)
@@ -223,8 +223,9 @@ class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
         opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING"
         opprettMelding.tekst shouldBeEqualTo
-            "Status for sykefraværet som startet 28. mai 2022: " +
+            "Status i saken din om sykepenger: " +
             "Vi venter på inntektsmelding fra Flex AS."
+
         opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
@@ -232,7 +233,7 @@ class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
 
         val opprettMeldingTo = objectMapper.readValue<MeldingKafkaDto>(meldinger.last().value())
         opprettMeldingTo.opprettMelding!!.tekst shouldBeEqualTo
-            "Status for sykefraværet som startet 28. mai 2022: " +
+            "Status i saken din om sykepenger: " +
             "Vi venter på inntektsmelding fra Kebabfabrikken."
     }
 
