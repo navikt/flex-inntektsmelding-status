@@ -27,7 +27,6 @@ import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
     object Arbeidsgiver1 {
