@@ -107,7 +107,7 @@ class Brukervarsel(
                         default = true,
                     )
                 aktivFremTil = synligFremTil.atZone(UTC)
-                link = SAKSBEHANDLINGSTID_URL
+                link = null
                 eksternVarsling = EksternVarslingBestilling()
             }
 
