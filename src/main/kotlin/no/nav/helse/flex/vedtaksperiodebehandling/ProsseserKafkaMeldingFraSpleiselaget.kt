@@ -118,7 +118,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                 ),
             )
         }
-        kafkaDto.erTillattStatusEndring(vedtaksperiodeBehandling.sisteSpleisstatus)
         if (kafkaDto.status == Behandlingstatustype.OPPRETTET) {
             log.warn(
                 "Skal ikke motta status OPPRETTET for vedtaksperiodeId ${kafkaDto.vedtaksperiodeId} Den skal allerede være opprettet",
@@ -171,56 +170,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
 
             Behandlingstatustype.OPPRETTET -> {
                 throw IllegalStateException()
-            }
-        }
-    }
-
-    fun Behandlingstatusmelding.erTillattStatusEndring(gammelStatus: StatusVerdi) {
-        fun sjekkStatus(forventetGammelVerdi: List<StatusVerdi>) {
-            if (!forventetGammelVerdi.contains(gammelStatus)) {
-                log.warn(
-                    "Forventet ikke gammel status $gammelStatus for ny status ${this.status} for " +
-                        "vedtaksperiodeid ${this.vedtaksperiodeId} og behandlign id ${this.behandlingId}",
-                )
-            }
-        }
-
-        when (this.status) {
-            Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER -> {
-                sjekkStatus(listOf(StatusVerdi.OPPRETTET))
-            }
-
-            Behandlingstatustype.VENTER_PÅ_SAKSBEHANDLER -> {
-                sjekkStatus(
-                    listOf(
-                        StatusVerdi.VENTER_PÅ_ARBEIDSGIVER,
-                        StatusVerdi.VENTER_PÅ_SAKSBEHANDLER,
-                        StatusVerdi.VENTER_PÅ_ANNEN_PERIODE,
-                    ),
-                )
-            }
-
-            Behandlingstatustype.VENTER_PÅ_ANNEN_PERIODE -> {
-                sjekkStatus(
-                    listOf(
-                        StatusVerdi.VENTER_PÅ_ARBEIDSGIVER,
-                        StatusVerdi.VENTER_PÅ_ANNEN_PERIODE,
-                        StatusVerdi.VENTER_PÅ_SAKSBEHANDLER,
-                    ),
-                )
-            }
-
-            Behandlingstatustype.FERDIG -> {
-                sjekkStatus(
-                    listOf(
-                        StatusVerdi.VENTER_PÅ_SAKSBEHANDLER,
-                        StatusVerdi.VENTER_PÅ_ARBEIDSGIVER,
-                        StatusVerdi.VENTER_PÅ_ANNEN_PERIODE,
-                    ),
-                )
-            }
-
-            else -> {
             }
         }
     }
