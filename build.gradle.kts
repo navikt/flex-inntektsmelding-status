@@ -29,7 +29,7 @@ val sykepengesoknadKafkaVersion = "2025.02.19-16.24-5e00417f"
 val inntektsmeldingKontraktVersion = "2024.05.21-09-56-5528e"
 val tokenSupportVersion = "5.0.19"
 val mockitoKotlinVersion = "2.2.0"
-val unleashVersion = "9.2.6"
+val unleashVersion = "10.2.1"
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
