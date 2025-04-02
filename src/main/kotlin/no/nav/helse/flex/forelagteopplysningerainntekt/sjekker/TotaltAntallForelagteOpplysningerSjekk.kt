@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class TotaltAntallForelagteOpplysningerSjekk(
-    private val maxAntallForelagteOpplysninger: Int = 100,
+    private val maxAntallForelagteOpplysninger: Int = 500,
 ) {
     private val log = logger()
 
