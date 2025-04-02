@@ -24,7 +24,7 @@ class SendForelagteOpplysningerCronjob(
     private val log = logger()
 
     @Scheduled(
-        initialDelayString = "\${SEND_FORELAGTE_OPPLYSNINGER_FIXED_DELAY_MINUTES:15}",
+        initialDelay = 1,
         fixedDelayString = "\${SEND_FORELAGTE_OPPLYSNINGER_FIXED_DELAY_MINUTES:15}",
         timeUnit = TimeUnit.MINUTES,
     )
