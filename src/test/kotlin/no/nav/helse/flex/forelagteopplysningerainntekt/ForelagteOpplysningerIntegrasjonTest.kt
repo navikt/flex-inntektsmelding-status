@@ -156,21 +156,21 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
                 navn = "OrgNavn",
                 opprettet = Instant.now(),
                 oppdatert = Instant.now(),
-                oppdatertAv = "test"
-            )
+                oppdatertAv = "test",
+            ),
         )
-        sykepengesoknadRepository.save(Sykepengesoknad(
-            sykepengesoknadUuid = "85a2d1e3-6294-3e3d-b814-bdb838f92f47",
-            orgnummer = "123",
-            soknadstype = "ARBEIDSTAKER",
-            startSyketilfelle = LocalDate.of(2024, 1, 1),
-            fom = LocalDate.of(2024, 1, 1),
-            tom = LocalDate.of(2024, 1, 16),
-            fnr = "12345678910",
-            sendt = Instant.parse("2024-01-16T00:00:00.00Z"),
-            opprettetDatabase = Instant.parse("2024-01-16T00:00:00.00Z")
-        )
-
+        sykepengesoknadRepository.save(
+            Sykepengesoknad(
+                sykepengesoknadUuid = "85a2d1e3-6294-3e3d-b814-bdb838f92f47",
+                orgnummer = "123",
+                soknadstype = "ARBEIDSTAKER",
+                startSyketilfelle = LocalDate.of(2024, 1, 1),
+                fom = LocalDate.of(2024, 1, 1),
+                tom = LocalDate.of(2024, 1, 16),
+                fnr = "12345678910",
+                sendt = Instant.parse("2024-01-16T00:00:00.00Z"),
+                opprettetDatabase = Instant.parse("2024-01-16T00:00:00.00Z"),
+            ),
         )
         forelagteOpplysningerRepository.save(
             ForelagteOpplysningerDbRecord(
@@ -179,17 +179,18 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
                 forelagteOpplysningerMelding =
                     PGobject().apply {
                         type = "json"
-                        value = """
+                        value =
+                            """
                             {"tidsstempel": "2025-03-29T06:56:04.894421658", "behandlingId": "02babfa3-d579-4d44-82a3-8a730e164e56", "skatteinntekter": [{"beløp": 1, "måned": "2024-08"}, {"beløp": 1, "måned": "2024-09"}, {"beløp": 1, "måned": "2024-09"}, {"beløp": 1, "måned": "2024-10"}, {"beløp": 1, "måned": "2024-10"}], "vedtaksperiodeId": "815c37b4-9291-4d05-8de5-6050bff0374d", "omregnetÅrsinntekt": 1, "skjæringstidspunkt": "2024-11-18"}
-                        """.trimIndent()
+                            """.trimIndent()
                     },
                 opprettet = Instant.now(),
                 forelagt = null,
                 opprinneligOpprettet = Instant.now(),
-            )
+            ),
         )
 
-        sendForelagteOpplysningerCronjob.runMedParameter(now=Instant.now())
+        sendForelagteOpplysningerCronjob.runMedParameter(now = Instant.now())
 
         meldingKafkaConsumer.ventPåRecords(antall = 1)
         varslingConsumer.ventPåRecords(antall = 1)

@@ -41,8 +41,8 @@ class SendForelagteOpplysningerOppgave(
         }
 
         val erSpesiellForelagtOpplsyning = (
-            forelagteOpplysninger.vedtaksperiodeId == "815c37b4-9291-4d05-8de5-6050bff0374d"
-            && forelagteOpplysninger.behandlingId == "02babfa3-d579-4d44-82a3-8a730e164e56"
+            forelagteOpplysninger.vedtaksperiodeId == "815c37b4-9291-4d05-8de5-6050bff0374d" &&
+                forelagteOpplysninger.behandlingId == "02babfa3-d579-4d44-82a3-8a730e164e56"
         )
 
         if (!erSpesiellForelagtOpplsyning && !forsinkelseFraOpprinnelseTilVarselSjekk.sjekk(forelagteOpplysninger, now)) {
@@ -55,7 +55,9 @@ class SendForelagteOpplysningerOppgave(
                 behandlingId = forelagteOpplysninger.behandlingId,
             ) ?: run {
                 if (erSpesiellForelagtOpplsyning) {
-                    val soknad: Sykepengesoknad? = sykepengesoknadRepository.findBySykepengesoknadUuid("85a2d1e3-6294-3e3d-b814-bdb838f92f47")
+                    val soknad: Sykepengesoknad? =
+                        sykepengesoknadRepository
+                            .findBySykepengesoknadUuid("85a2d1e3-6294-3e3d-b814-bdb838f92f47")
                     requireNotNull(soknad) { "søknad for spesifikk forelagt opplysning finnes ikke" }
                     requireNotNull(soknad.orgnummer) { "spesifikk soknad skal ha orgnummer" }
                     val org = organisasjonRepository.findByOrgnummer(soknad.orgnummer)
@@ -66,7 +68,9 @@ class SendForelagteOpplysningerOppgave(
                         orgnummer = soknad.orgnummer,
                         orgNavn = org.navn,
                     )
-                } else null
+                } else {
+                    null
+                }
             }
 
         if (relevantInfoTilForelagteOpplysninger == null) {
