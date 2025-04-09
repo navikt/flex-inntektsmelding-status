@@ -6,6 +6,9 @@ import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.ForsinkelseFraOpp
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtSammeVedtaksperiodeSjekk
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
+import no.nav.helse.flex.organisasjon.OrganisasjonRepository
+import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
+import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.toJsonNode
 import org.postgresql.util.PGobject
 import org.springframework.stereotype.Component
@@ -21,6 +24,8 @@ class SendForelagteOpplysningerOppgave(
     private val opprettBrukervarselForForelagteOpplysninger: OpprettBrukervarselForForelagteOpplysninger,
     private val harForelagtSammeVedtaksperiode: HarForelagtSammeVedtaksperiodeSjekk,
     private val forsinkelseFraOpprinnelseTilVarselSjekk: ForsinkelseFraOpprinnelseTilVarselSjekk,
+    private val sykepengesoknadRepository: SykepengesoknadRepository,
+    private val organisasjonRepository: OrganisasjonRepository,
 ) {
     private val log = logger()
 
@@ -35,7 +40,12 @@ class SendForelagteOpplysningerOppgave(
             return false
         }
 
-        if (!forsinkelseFraOpprinnelseTilVarselSjekk.sjekk(forelagteOpplysninger, now)) {
+        val erSpesiellForelagtOpplsyning = (
+            forelagteOpplysninger.vedtaksperiodeId == "815c37b4-9291-4d05-8de5-6050bff0374d"
+            && forelagteOpplysninger.behandlingId == "02babfa3-d579-4d44-82a3-8a730e164e56"
+        )
+
+        if (!erSpesiellForelagtOpplsyning && !forsinkelseFraOpprinnelseTilVarselSjekk.sjekk(forelagteOpplysninger, now)) {
             return false
         }
 
@@ -43,7 +53,22 @@ class SendForelagteOpplysningerOppgave(
             hentRelevantInfoTilForelagtOpplysning.hentRelevantInfoFor(
                 vedtaksperiodeId = forelagteOpplysninger.vedtaksperiodeId,
                 behandlingId = forelagteOpplysninger.behandlingId,
-            )
+            ) ?: run {
+                if (erSpesiellForelagtOpplsyning) {
+                    val soknad: Sykepengesoknad? = sykepengesoknadRepository.findBySykepengesoknadUuid("85a2d1e3-6294-3e3d-b814-bdb838f92f47")
+                    requireNotNull(soknad) { "søknad for spesifikk forelagt opplysning finnes ikke" }
+                    requireNotNull(soknad.orgnummer) { "spesifikk soknad skal ha orgnummer" }
+                    val org = organisasjonRepository.findByOrgnummer(soknad.orgnummer)
+                    requireNotNull(org) { "organisasjon for spesifikk soknad finnes ikke" }
+                    RelevantInfoTilForelagtOpplysning(
+                        fnr = soknad.fnr,
+                        startSyketilfelle = soknad.startSyketilfelle,
+                        orgnummer = soknad.orgnummer,
+                        orgNavn = org.navn,
+                    )
+                } else null
+            }
+
         if (relevantInfoTilForelagteOpplysninger == null) {
             log.warn("Kunne ikke hente relevant info til forelagte opplysninger: ${forelagteOpplysninger.id}")
             return false
