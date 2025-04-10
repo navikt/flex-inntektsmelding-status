@@ -43,7 +43,12 @@ class SendForelagteOpplysningerCronjob(
             return SendForelagteOpplysningerCronjobResultat()
         }
 
-        return runMedParameter(osloDatetimeNow.toInstant())
+        try {
+            return runMedParameter(osloDatetimeNow.toInstant())
+        } catch (ex: Exception) {
+            log.error("Feil ved kjøring av ${this::class.simpleName}", ex)
+            return SendForelagteOpplysningerCronjobResultat()
+        }
     }
 
     fun runMedParameter(now: Instant): SendForelagteOpplysningerCronjobResultat {
