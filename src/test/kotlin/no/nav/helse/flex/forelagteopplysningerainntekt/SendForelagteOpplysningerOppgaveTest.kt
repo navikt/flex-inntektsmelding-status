@@ -6,8 +6,6 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.ForsinkelseFraOpprinnelseTilVarselSjekk
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtSammeVedtaksperiodeSjekk
-import no.nav.helse.flex.organisasjon.OrganisasjonRepository
-import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import org.amshove.kluent.shouldBeFalse
 import org.amshove.kluent.shouldBeTrue
 import org.junit.jupiter.api.Test
@@ -62,8 +60,6 @@ class SendForelagteOpplysningerOppgaveTest {
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
                 harForelagtSammeVedtaksperiode = harForelagtForPersonMedOrgNyligSjekkMock(),
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
-                sykepengesoknadRepository = mock<SykepengesoknadRepository>(),
-                organisasjonRepository = mock<OrganisasjonRepository>(),
             )
 
         oppgave.sendForelagteOpplysninger("_", forelagtTidspunkt)
@@ -88,8 +84,6 @@ class SendForelagteOpplysningerOppgaveTest {
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
                 harForelagtSammeVedtaksperiode = harForelagtSammeVedtaksperiodeSjekk,
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
-                sykepengesoknadRepository = mock<SykepengesoknadRepository>(),
-                organisasjonRepository = mock<OrganisasjonRepository>(),
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
@@ -113,8 +107,6 @@ class SendForelagteOpplysningerOppgaveTest {
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
                 harForelagtSammeVedtaksperiode = harForelagtSammeVedtaksperiodeSjekk,
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
-                sykepengesoknadRepository = mock<SykepengesoknadRepository>(),
-                organisasjonRepository = mock<OrganisasjonRepository>(),
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
@@ -138,55 +130,17 @@ class SendForelagteOpplysningerOppgaveTest {
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
                 harForelagtSammeVedtaksperiode = harForelagtForPersonMedOrgNyligSjekkMock(),
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekk,
-                sykepengesoknadRepository = mock<SykepengesoknadRepository>(),
-                organisasjonRepository = mock<OrganisasjonRepository>(),
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
         bleSendt.shouldBeFalse()
     }
 
-    @Test
-    fun `sjekk for forsinkelse fra opprinnelse burde ikke feile for spesiell forelagt opplysning`() {
-        val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
-            mock {
-                on { findById(any()) } doReturn
-                    Optional.of(
-                        lagTestForelagteOpplysninger(
-                            vedtaksperiodeId = "815c37b4-9291-4d05-8de5-6050bff0374d",
-                            behandlingId = "02babfa3-d579-4d44-82a3-8a730e164e56",
-                            forelagt = null,
-                        ),
-                    )
-            }
-        val forsinkelseFraOpprinnelseTilVarselSjekk: ForsinkelseFraOpprinnelseTilVarselSjekk =
-            mock {
-                on { sjekk(any(), any()) } doReturn false
-            }
-        val oppgave =
-            SendForelagteOpplysningerOppgave(
-                forelagteOpplysningerRepository = forelagteOpplysningerRepository,
-                hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock(),
-                opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
-                harForelagtSammeVedtaksperiode = harForelagtForPersonMedOrgNyligSjekkMock(),
-                forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekk,
-                sykepengesoknadRepository = mock<SykepengesoknadRepository>(),
-                organisasjonRepository = mock<OrganisasjonRepository>(),
-            )
-
-        val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
-        bleSendt.shouldBeTrue()
-    }
-
-    fun lagTestForelagteOpplysninger(
-        forelagt: Instant? = null,
-        vedtaksperiodeId: String = "_",
-        behandlingId: String = "_",
-    ): ForelagteOpplysningerDbRecord {
+    fun lagTestForelagteOpplysninger(forelagt: Instant? = null): ForelagteOpplysningerDbRecord {
         return ForelagteOpplysningerDbRecord(
             id = "test-id",
-            vedtaksperiodeId = vedtaksperiodeId,
-            behandlingId = behandlingId,
+            vedtaksperiodeId = "_",
+            behandlingId = "_",
             forelagteOpplysningerMelding =
                 PGobject().apply {
                     type = "json"
