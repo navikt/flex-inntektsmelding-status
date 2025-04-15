@@ -137,8 +137,7 @@ class LikesteInntektsmeldingMatchTest : FellesTestOppsett() {
         beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
         beskjedInput.tekster.first().tekst shouldBeEqualTo
-            "Status i saken din om sykepenger: Vi beklager! Saksbehandlingen tar dessverre lengre tid" +
-            "enn forventet. Vi regner med at saken din vil være ferdigbehandlet i løpet av de neste 4 ukene."
+            "Status i saken din om sykepenger: Vi beklager at saksbehandlingen tar lenger tid enn forventet. Vi behandler søknaden din så raskt vi kan. Trenger du mer informasjon om saken din, kan du skrive til oss eller ringe 55 55 33 33."
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
@@ -149,8 +148,7 @@ class LikesteInntektsmeldingMatchTest : FellesTestOppsett() {
         opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL"
         @Suppress("ktlint:standard:max-line-length")
         opprettMelding.tekst shouldBeEqualTo
-            "Status i saken din om sykepenger: Vi beklager! Saksbehandlingen tar dessverre lengre tid" +
-            "enn forventet. Vi regner med at saken din vil være ferdigbehandlet i løpet av de neste 4 ukene."
+            "Status i saken din om sykepenger: Vi beklager at saksbehandlingen tar lenger tid enn forventet. Vi behandler søknaden din så raskt vi kan. Trenger du mer informasjon om saken din, kan du skrive til oss eller ringe 55 55 33 33."
         opprettMelding.lenke.shouldBeEqualTo("https://www.nav.no/saksbehandlingstider#sykepenger")
         opprettMelding.lukkbar shouldBeEqualTo false
         opprettMelding.variant shouldBeEqualTo Variant.INFO
