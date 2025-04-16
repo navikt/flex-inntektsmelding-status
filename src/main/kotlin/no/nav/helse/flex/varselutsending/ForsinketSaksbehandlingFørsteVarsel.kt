@@ -34,7 +34,7 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
 ) {
     private val log = logger()
     private val varselGrense = if (environmentToggles.isProduction()) 120 else 4
-    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 2000 else 7
+    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 3600 else 7
 
     fun hentOgProsseser(now: Instant): Map<CronJobStatus, Int> {
         val sendtFoer = now.atOffset(ZoneOffset.UTC).minusDays(56).toInstant()
