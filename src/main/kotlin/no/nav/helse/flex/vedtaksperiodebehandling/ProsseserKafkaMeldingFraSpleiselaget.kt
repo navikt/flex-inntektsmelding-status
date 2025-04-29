@@ -48,41 +48,33 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             }
         }
         if (vedtaksperiodeBehandling == null) {
-            if (kafkaDto.status == Behandlingstatustype.OPPRETTET) {
-                val vedtaksperiodeBehandlingDbRecord =
-                    vedtaksperiodeBehandlingRepository.save(
-                        VedtaksperiodeBehandlingDbRecord(
-                            behandlingId = kafkaDto.behandlingId,
-                            vedtaksperiodeId = kafkaDto.vedtaksperiodeId,
-                            opprettetDatabase = Instant.now(),
-                            oppdatertDatabase = Instant.now(),
-                            sisteSpleisstatus = kafkaDto.status.tilStatusVerdi(),
-                            sisteSpleisstatusTidspunkt = kafkaDto.tidspunkt.toInstant(),
-                            sisteVarslingstatus = null,
-                            sisteVarslingstatusTidspunkt = null,
-                        ),
-                    )
-
-                lagreSøknadIder(vedtaksperiodeBehandlingDbRecord)
-
-                vedtaksperiodeBehandlingStatusRepository.save(
-                    VedtaksperiodeBehandlingStatusDbRecord(
-                        vedtaksperiodeBehandlingId = vedtaksperiodeBehandlingDbRecord.id!!,
+            val vedtaksperiodeBehandlingDbRecord =
+                vedtaksperiodeBehandlingRepository.save(
+                    VedtaksperiodeBehandlingDbRecord(
+                        behandlingId = kafkaDto.behandlingId,
+                        vedtaksperiodeId = kafkaDto.vedtaksperiodeId,
                         opprettetDatabase = Instant.now(),
-                        tidspunkt = kafkaDto.tidspunkt.toInstant(),
-                        status = kafkaDto.status.tilStatusVerdi(),
-                        dittSykefravaerMeldingId = null,
-                        brukervarselId = null,
+                        oppdatertDatabase = Instant.now(),
+                        sisteSpleisstatus = kafkaDto.status.tilStatusVerdi(),
+                        sisteSpleisstatusTidspunkt = kafkaDto.tidspunkt.toInstant(),
+                        sisteVarslingstatus = null,
+                        sisteVarslingstatusTidspunkt = null,
                     ),
                 )
 
-                return
-            }
+            lagreSøknadIder(vedtaksperiodeBehandlingDbRecord)
 
-            log.info(
-                "Fant ikke vedtaksperiodeBehandling for vedtaksperiodeId ${kafkaDto.vedtaksperiodeId} " +
-                    "og behandlingId ${kafkaDto.behandlingId}. Det kan skje for perioder opprettet før mai 2024",
+            vedtaksperiodeBehandlingStatusRepository.save(
+                VedtaksperiodeBehandlingStatusDbRecord(
+                    vedtaksperiodeBehandlingId = vedtaksperiodeBehandlingDbRecord.id!!,
+                    opprettetDatabase = Instant.now(),
+                    tidspunkt = kafkaDto.tidspunkt.toInstant(),
+                    status = kafkaDto.status.tilStatusVerdi(),
+                    dittSykefravaerMeldingId = null,
+                    brukervarselId = null,
+                ),
             )
+
             return
         }
 
