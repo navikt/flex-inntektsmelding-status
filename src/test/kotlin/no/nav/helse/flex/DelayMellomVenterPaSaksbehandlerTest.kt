@@ -93,10 +93,11 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
     @Test
     @Order(1)
     fun `Vi får beskjed at alle periodene venter på saksbehandler`() {
-        fun sendBehandlingstatusMelding(
+        fun sendBehandlingstatusMeldingForArbeidsgiver(
             soknad: SykepengesoknadDTO,
             vedtaksperiodeId: String,
             behandlingId: String,
+            sendOpprettetMelding: Boolean = true,
         ) {
             val tidspunkt = OffsetDateTime.now()
             val behandlingstatusmelding =
@@ -107,30 +108,38 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
                     tidspunkt = tidspunkt,
                     eksterneSøknadIder = listOf(soknad.id),
                 )
-            sendBehandlingsstatusMelding(behandlingstatusmelding)
+
+            if (sendOpprettetMelding) {
+                sendBehandlingsstatusMelding(behandlingstatusmelding)
+            }
+
             sendBehandlingsstatusMelding(
                 behandlingstatusmelding.copy(
                     status = Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER,
                 ),
             )
+
             sendBehandlingsstatusMelding(
                 behandlingstatusmelding.copy(
                     status = Behandlingstatustype.VENTER_PÅ_SAKSBEHANDLER,
                 ),
             )
+
             awaitOppdatertStatus(
                 VENTER_PÅ_SAKSBEHANDLER,
                 behandlingId = behandlingId,
                 vedtaksperiodeId = vedtaksperiodeId,
             )
         }
-        sendBehandlingstatusMelding(
+
+        sendBehandlingstatusMeldingForArbeidsgiver(
             soknad = Arbeidsgiver1.soknad1,
             vedtaksperiodeId = Arbeidsgiver1.vedtaksperiodeId1,
             behandlingId = Arbeidsgiver1.behandlingId1,
+            sendOpprettetMelding = false,
         )
 
-        sendBehandlingstatusMelding(
+        sendBehandlingstatusMeldingForArbeidsgiver(
             soknad = Arbeidsgiver2.soknad1,
             vedtaksperiodeId = Arbeidsgiver2.vedtaksperiodeId1,
             behandlingId = Arbeidsgiver2.behandlingId1,
