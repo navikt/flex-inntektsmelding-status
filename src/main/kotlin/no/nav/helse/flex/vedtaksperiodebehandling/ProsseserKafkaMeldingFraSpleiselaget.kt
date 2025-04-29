@@ -75,10 +75,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                 ),
             )
 
-            log.info(
-                "Fant ikke vedtaksperiodeBehandling for vedtaksperiodeId ${kafkaDto.vedtaksperiodeId} " +
-                    "og behandlingId ${kafkaDto.behandlingId}. Det kan skje for perioder opprettet før mai 2024",
-            )
             return
         }
 
