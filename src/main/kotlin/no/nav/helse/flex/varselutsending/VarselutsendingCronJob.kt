@@ -33,9 +33,7 @@ class VarselutsendingCronJob(
         return runMedParameter(Instant.now())
     }
 
-    fun runMedParameter(now: OffsetDateTime): Map<CronJobStatus, Int> {
-        return runMedParameter(now.toInstant())
-    }
+    fun runMedParameter(now: OffsetDateTime): Map<CronJobStatus, Int> = runMedParameter(now.toInstant())
 
     fun runMedParameter(now: Instant): Map<CronJobStatus, Int> {
         log.info("Starter VarselutsendingCronJob")

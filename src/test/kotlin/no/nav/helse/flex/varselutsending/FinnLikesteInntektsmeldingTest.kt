@@ -162,7 +162,11 @@ class FinnLikesteInntektsmeldingTest {
                 id = UUID.randomUUID().toString(),
                 virksomhetsnummer = Testdata.orgNr,
                 foersteFravaersdag = null,
-                mottattDato = soknad.startSyketilfelle.atStartOfDay().plusDays(29).toInstant(ZoneOffset.UTC),
+                mottattDato =
+                    soknad.startSyketilfelle
+                        .atStartOfDay()
+                        .plusDays(29)
+                        .toInstant(ZoneOffset.UTC),
                 vedtaksperiodeId = null,
                 arbeidsgivertype = "VIRKSOMHET",
                 fnr = Testdata.fnr,
@@ -198,7 +202,11 @@ class FinnLikesteInntektsmeldingTest {
                 id = UUID.randomUUID().toString(),
                 virksomhetsnummer = Testdata.orgNr,
                 foersteFravaersdag = null,
-                mottattDato = soknad.startSyketilfelle.atStartOfDay().plusDays(31).toInstant(ZoneOffset.UTC),
+                mottattDato =
+                    soknad.startSyketilfelle
+                        .atStartOfDay()
+                        .plusDays(31)
+                        .toInstant(ZoneOffset.UTC),
                 vedtaksperiodeId = null,
                 arbeidsgivertype = "VIRKSOMHET",
                 fnr = Testdata.fnr,

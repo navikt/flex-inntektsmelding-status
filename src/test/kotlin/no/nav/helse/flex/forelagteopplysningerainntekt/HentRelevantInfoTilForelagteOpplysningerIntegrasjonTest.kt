@@ -32,10 +32,11 @@ class HentRelevantInfoTilForelagteOpplysningerIntegrasjonTest : FellesTestOppset
             behandlingId = "b-id",
         )
 
-        hentRelevantInfoTilForelagtOpplysning.hentRelevantInfoFor(
-            vedtaksperiodeId = "v-id",
-            behandlingId = "b-id",
-        ).`should not be null`()
+        hentRelevantInfoTilForelagtOpplysning
+            .hentRelevantInfoFor(
+                vedtaksperiodeId = "v-id",
+                behandlingId = "b-id",
+            ).`should not be null`()
     }
 
     @Test
@@ -45,10 +46,11 @@ class HentRelevantInfoTilForelagteOpplysningerIntegrasjonTest : FellesTestOppset
             behandlingId = "b-id",
         )
 
-        hentRelevantInfoTilForelagtOpplysning.hentRelevantInfoFor(
-            vedtaksperiodeId = "annen-v-id",
-            behandlingId = "b-id",
-        ).`should be null`()
+        hentRelevantInfoTilForelagtOpplysning
+            .hentRelevantInfoFor(
+                vedtaksperiodeId = "annen-v-id",
+                behandlingId = "b-id",
+            ).`should be null`()
     }
 
     @Test
@@ -58,10 +60,11 @@ class HentRelevantInfoTilForelagteOpplysningerIntegrasjonTest : FellesTestOppset
             behandlingId = "b-id",
         )
 
-        hentRelevantInfoTilForelagtOpplysning.hentRelevantInfoFor(
-            vedtaksperiodeId = "v-id",
-            behandlingId = "annen-b-id",
-        ).`should be null`()
+        hentRelevantInfoTilForelagtOpplysning
+            .hentRelevantInfoFor(
+                vedtaksperiodeId = "v-id",
+                behandlingId = "annen-b-id",
+            ).`should be null`()
     }
 
     @Test

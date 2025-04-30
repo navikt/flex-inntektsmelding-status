@@ -48,18 +48,20 @@ class ForsinketSaksbehandlingRevarselFinnPersoner(
 
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_REVARSEL_FORSINKET_SAKSBEHANDLING] = fnrListe.size
 
-        fnrListe.map { fnr ->
-            forsinketSaksbehandlingVarslingRevarsel.prosseserRevarsel(
-                fnr,
-                varsletFør,
-                dryRun = true,
-                now = now,
-            )
-        }.dryRunSjekk(funksjonellGrenseForAntallVarsler, SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING)
+        fnrListe
+            .map { fnr ->
+                forsinketSaksbehandlingVarslingRevarsel.prosseserRevarsel(
+                    fnr,
+                    varsletFør,
+                    dryRun = true,
+                    now = now,
+                )
+            }.dryRunSjekk(funksjonellGrenseForAntallVarsler, SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING)
             .also { returMap[CronJobStatus.REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL_DRY_RUN] = it }
 
         fnrListe.forEachIndexed { idx, fnr ->
-            forsinketSaksbehandlingVarslingRevarsel.prosseserRevarsel(fnr, varsletFør, false, now)
+            forsinketSaksbehandlingVarslingRevarsel
+                .prosseserRevarsel(fnr, varsletFør, false, now)
                 .also {
                     returMap.increment(it)
                 }
@@ -124,8 +126,7 @@ class ForsinketSaksbehandlingVarslingRevarsel(
                         REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
                         VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
                     ).contains(it.vedtaksperiode.sisteVarslingstatus)
-                }
-                .filter { it.vedtaksperiode.sisteVarslingstatusTidspunkt?.isBefore(varsletFør) == true }
+                }.filter { it.vedtaksperiode.sisteVarslingstatusTidspunkt?.isBefore(varsletFør) == true }
 
         // Sorter og velg eldste revaslingsperiode basert på sisteVarslingstatusTidspunkt
         val revarslingsperiode = revarslingsperioder.minByOrNull { it.vedtaksperiode.sisteVarslingstatusTidspunkt!! }
@@ -144,7 +145,11 @@ class ForsinketSaksbehandlingVarslingRevarsel(
                 "Revarsler forsinket saksbehandling til vedtaksperiode ${revarslingsperiode.vedtaksperiode.vedtaksperiodeId}",
             )
 
-            val startSyketilfelle = revarslingsperiode.soknader.sortedBy { it.sendt }.last().startSyketilfelle
+            val startSyketilfelle =
+                revarslingsperiode.soknader
+                    .sortedBy { it.sendt }
+                    .last()
+                    .startSyketilfelle
             val varselTekst = skapRevarselForsinketSaksbehandlingTekst()
             val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
 

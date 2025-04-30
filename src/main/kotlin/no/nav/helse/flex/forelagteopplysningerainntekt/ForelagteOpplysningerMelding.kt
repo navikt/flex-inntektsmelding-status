@@ -10,5 +10,8 @@ data class ForelagteOpplysningerMelding(
     val omregnetÅrsinntekt: Double,
     val skatteinntekter: List<Skatteinntekt>,
 ) {
-    data class Skatteinntekt(val måned: YearMonth, val beløp: Double)
+    data class Skatteinntekt(
+        val måned: YearMonth,
+        val beløp: Double,
+    )
 }

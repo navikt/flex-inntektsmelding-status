@@ -45,18 +45,20 @@ class ManglendeInntektsmeldingAndreVarselFinnPersoner(
 
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] = fnrListe.size
 
-        fnrListe.map { fnr ->
-            manglendeInntektsmeldingAndreVarsel.prosseserManglendeInntektsmeldingAndreVarsel(
-                fnr,
-                sendtFoer,
-                dryRun = true,
-                now = now,
-            )
-        }.dryRunSjekk(funksjonellGrenseForAntallVarsler, SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING)
+        fnrListe
+            .map { fnr ->
+                manglendeInntektsmeldingAndreVarsel.prosseserManglendeInntektsmeldingAndreVarsel(
+                    fnr,
+                    sendtFoer,
+                    dryRun = true,
+                    now = now,
+                )
+            }.dryRunSjekk(funksjonellGrenseForAntallVarsler, SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING)
             .also { returMap[CronJobStatus.ANDRE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] = it }
 
         fnrListe.forEachIndexed { idx, fnr ->
-            manglendeInntektsmeldingAndreVarsel.prosseserManglendeInntektsmeldingAndreVarsel(fnr, sendtFoer, false, now = now)
+            manglendeInntektsmeldingAndreVarsel
+                .prosseserManglendeInntektsmeldingAndreVarsel(fnr, sendtFoer, false, now = now)
                 .also {
                     returMap.increment(it)
                 }

@@ -20,7 +20,13 @@ object Testdata {
     val fnrFlexer = "10987654321"
     val fom = LocalDate.of(2022, 5, 29)
     val tom = LocalDate.of(2022, 6, 30)
-    val sendtTidspunkt = LocalDate.of(2022, 7, 1).atStartOfDay().plusHours(10).atOffset(ZoneOffset.UTC).tilOsloZone()
+    val sendtTidspunkt =
+        LocalDate
+            .of(2022, 7, 1)
+            .atStartOfDay()
+            .plusHours(10)
+            .atOffset(ZoneOffset.UTC)
+            .tilOsloZone()
 
     val soknad =
         SykepengesoknadDTO(

@@ -75,10 +75,11 @@ class HentRelevantInfoTilForelagtOpplysning(
         behandlingId: String,
     ): List<Sykepengesoknad> {
         val vedtaksperiodeBehandlingId =
-            vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
-                vedtaksperiodeId = vedtaksperiodeId,
-                behandlingId = behandlingId,
-            )?.id
+            vedtaksperiodeBehandlingRepository
+                .findByVedtaksperiodeIdAndBehandlingId(
+                    vedtaksperiodeId = vedtaksperiodeId,
+                    behandlingId = behandlingId,
+                )?.id
 
         val relevanteVedtaksperiodebehandlingSykepengesoknaderRelations =
             vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingId(

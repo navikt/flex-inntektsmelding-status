@@ -28,7 +28,8 @@ class KorrigertSoknadVarslingTest : FellesTestOppsett() {
     @Test
     @Order(0)
     fun `Sykmeldt sender inn sykepengesøknad og korrigerer den`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
             .shouldBeEmpty()
         sendSoknad(soknad)
         sendSoknad(
@@ -52,7 +53,8 @@ class KorrigertSoknadVarslingTest : FellesTestOppsett() {
     @Test
     @Order(1)
     fun `Vi får beskjed at perioden venter på arbeidsgiver`() {
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
             .shouldBeEmpty()
 
         val tidspunkt = OffsetDateTime.now()

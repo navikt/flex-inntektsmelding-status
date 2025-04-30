@@ -81,7 +81,12 @@ class FlexInternalFrontendController(
         }
         if (req.vedtaksperiodeId != null) {
             val perioder = hentAltForPerson.hentAltForVedtaksperiode(req.vedtaksperiodeId)
-            val fnr = perioder.firstOrNull()?.soknader?.firstOrNull()?.fnr
+            val fnr =
+                perioder
+                    .firstOrNull()
+                    ?.soknader
+                    ?.firstOrNull()
+                    ?.fnr
             val inntektsmeldinger =
                 fnr?.let { inntektsmeldingRepository.findByFnrIn(listOf(it)) }
                     ?: return VedtakOgInntektsmeldingerResponse(emptyList(), emptyList(), emptyList())
@@ -116,6 +121,8 @@ class FlexInternalFrontendController(
         return varselutsendingCronJob
             .runMedParameter(now.tilOsloZone())
             .map { it.key.name to it.value.toString() }
-            .toMap().toMutableMap().also { it["now"] = now.tilOsloZone().toString() }
+            .toMap()
+            .toMutableMap()
+            .also { it["now"] = now.tilOsloZone().toString() }
     }
 }

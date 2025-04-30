@@ -41,9 +41,10 @@ class HentAltForPerson(
         return vedtaksperiodeBehandlinger.map { vb ->
 
             val soknadIdErForBehandling =
-                vedtaksperiodeBehandlingerSykepengesoknad.filter {
-                    it.vedtaksperiodeBehandlingId == vb.id
-                }.map { it.sykepengesoknadUuid }
+                vedtaksperiodeBehandlingerSykepengesoknad
+                    .filter {
+                        it.vedtaksperiodeBehandlingId == vb.id
+                    }.map { it.sykepengesoknadUuid }
             val soknaderForBehandling = soknader.filter { soknadIdErForBehandling.contains(it.sykepengesoknadUuid) }
             FullVedtaksperiodeBehandling(
                 vb,

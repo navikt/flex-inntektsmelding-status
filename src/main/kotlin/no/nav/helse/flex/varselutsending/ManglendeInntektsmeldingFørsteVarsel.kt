@@ -45,24 +45,25 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
 
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] = fnrListe.size
 
-        fnrListe.map { fnr ->
-            manglendeInntektsmeldingFørsteVarsel.prosseserManglendeInntektsmeldingKandidat(
-                fnr,
-                sendtFoer,
-                dryRun = true,
-                now = now,
-            )
-        }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING)
+        fnrListe
+            .map { fnr ->
+                manglendeInntektsmeldingFørsteVarsel.prosseserManglendeInntektsmeldingKandidat(
+                    fnr,
+                    sendtFoer,
+                    dryRun = true,
+                    now = now,
+                )
+            }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING)
             .also { returMap[CronJobStatus.FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] = it }
 
         fnrListe.forEachIndexed { idx, fnr ->
-            manglendeInntektsmeldingFørsteVarsel.prosseserManglendeInntektsmeldingKandidat(
-                fnr,
-                sendtFoer,
-                dryRun = false,
-                now = now,
-            )
-                .also {
+            manglendeInntektsmeldingFørsteVarsel
+                .prosseserManglendeInntektsmeldingKandidat(
+                    fnr,
+                    sendtFoer,
+                    dryRun = false,
+                    now = now,
+                ).also {
                     returMap.increment(it)
                 }
             val antallSendteVarsler = returMap[CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING]
@@ -106,9 +107,19 @@ class ManglendeInntektsmeldingFørsteVarsel(
             allePerioder
                 .filter { it.vedtaksperiode.sisteSpleisstatus == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }
                 .filter { periode -> periode.soknader.all { it.sendt.isBefore(sendtFoer) } }
-                .groupBy { it.soknader.sortedBy { it.sendt }.last().orgnummer }
-                .map { it.value.sortedBy { it.soknader.sortedBy { it.sendt }.first().fom } }
-                .map { it.first() }
+                .groupBy {
+                    it.soknader
+                        .sortedBy { it.sendt }
+                        .last()
+                        .orgnummer
+                }.map {
+                    it.value.sortedBy {
+                        it.soknader
+                            .sortedBy { it.sendt }
+                            .first()
+                            .fom
+                    }
+                }.map { it.first() }
                 .filter { it.vedtaksperiode.sisteVarslingstatus == null }
 
         if (venterPaaArbeidsgiver.isEmpty()) {

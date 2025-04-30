@@ -33,9 +33,10 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             kafkaDto.eksterneSøknadIder.forEach { eksternSøknadId ->
 
                 val eksternSøknadForDenneBehandlingenMangler =
-                    vedtaksperiodeBehandlingSykepengesoknadRepository.findBySykepengesoknadUuidIn(
-                        listOf(eksternSøknadId),
-                    ).none { it.vedtaksperiodeBehandlingId == vedtaksperiodeBehandlingDbRecord.id }
+                    vedtaksperiodeBehandlingSykepengesoknadRepository
+                        .findBySykepengesoknadUuidIn(
+                            listOf(eksternSøknadId),
+                        ).none { it.vedtaksperiodeBehandlingId == vedtaksperiodeBehandlingDbRecord.id }
 
                 if (eksternSøknadForDenneBehandlingenMangler) {
                     vedtaksperiodeBehandlingSykepengesoknadRepository.save(
@@ -79,9 +80,10 @@ class ProsseserKafkaMeldingFraSpleiselaget(
         }
 
         val soknadIder =
-            vedtaksperiodeBehandlingSykepengesoknadRepository.findByVedtaksperiodeBehandlingIdIn(
-                listOf(vedtaksperiodeBehandling.id!!),
-            ).map { it.sykepengesoknadUuid }
+            vedtaksperiodeBehandlingSykepengesoknadRepository
+                .findByVedtaksperiodeBehandlingIdIn(
+                    listOf(vedtaksperiodeBehandling.id!!),
+                ).map { it.sykepengesoknadUuid }
 
         val soknad = sykepengesoknadRepository.findBySykepengesoknadUuidIn(soknadIder).firstOrNull()
 

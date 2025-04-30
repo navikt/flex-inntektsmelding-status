@@ -10,7 +10,7 @@ import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 
 @Component
-class MeldingConsumer() {
+class MeldingConsumer {
     val log = logger()
 
     @KafkaListener(

@@ -15,20 +15,18 @@ import java.time.LocalDate
 import java.util.*
 
 class SendForelagteOpplysningerOppgaveTest {
-    private fun harForelagtForPersonMedOrgNyligSjekkMock(): HarForelagtSammeVedtaksperiodeSjekk {
-        return mock<HarForelagtSammeVedtaksperiodeSjekk> {
+    private fun harForelagtForPersonMedOrgNyligSjekkMock(): HarForelagtSammeVedtaksperiodeSjekk =
+        mock<HarForelagtSammeVedtaksperiodeSjekk> {
             on { sjekk(any(), any(), any()) } doReturn false
         }
-    }
 
-    private fun forsinkelseFraOpprinnelseTilVarselSjekkMock(): ForsinkelseFraOpprinnelseTilVarselSjekk {
-        return mock<ForsinkelseFraOpprinnelseTilVarselSjekk> {
+    private fun forsinkelseFraOpprinnelseTilVarselSjekkMock(): ForsinkelseFraOpprinnelseTilVarselSjekk =
+        mock<ForsinkelseFraOpprinnelseTilVarselSjekk> {
             on { sjekk(any(), any()) } doReturn true
         }
-    }
 
-    private fun hentRelevantInfoTilForelagtOpplysningMock(): HentRelevantInfoTilForelagtOpplysning {
-        return mock<HentRelevantInfoTilForelagtOpplysning> {
+    private fun hentRelevantInfoTilForelagtOpplysningMock(): HentRelevantInfoTilForelagtOpplysning =
+        mock<HentRelevantInfoTilForelagtOpplysning> {
             on { hentRelevantInfoFor(any(), any()) } doReturn
                 RelevantInfoTilForelagtOpplysning(
                     fnr = "test-fnr",
@@ -37,11 +35,8 @@ class SendForelagteOpplysningerOppgaveTest {
                     orgNavn = "Test Org",
                 )
         }
-    }
 
-    private fun opprettBrukervarselForForelagteOpplysningerMock(): OpprettBrukervarselForForelagteOpplysninger {
-        return mock()
-    }
+    private fun opprettBrukervarselForForelagteOpplysningerMock(): OpprettBrukervarselForForelagteOpplysninger = mock()
 
     @Test
     fun `burde lagre forelagt tidspunkt i db etter forelagt varsel er sendt`() {
@@ -136,8 +131,8 @@ class SendForelagteOpplysningerOppgaveTest {
         bleSendt.shouldBeFalse()
     }
 
-    fun lagTestForelagteOpplysninger(forelagt: Instant? = null): ForelagteOpplysningerDbRecord {
-        return ForelagteOpplysningerDbRecord(
+    fun lagTestForelagteOpplysninger(forelagt: Instant? = null): ForelagteOpplysningerDbRecord =
+        ForelagteOpplysningerDbRecord(
             id = "test-id",
             vedtaksperiodeId = "_",
             behandlingId = "_",
@@ -150,5 +145,4 @@ class SendForelagteOpplysningerOppgaveTest {
             forelagt = forelagt,
             opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
         )
-    }
 }

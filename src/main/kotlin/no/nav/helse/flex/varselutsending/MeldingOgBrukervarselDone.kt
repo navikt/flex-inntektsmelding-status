@@ -88,7 +88,8 @@ class MeldingOgBrukervarselDone(
             ),
         )
         val varsletManglerImStatus =
-            vedtaksperiodeBehandlingStatusRepository.findByVedtaksperiodeBehandlingIdIn(listOf(vedtaksperiodeBehandling.id))
+            vedtaksperiodeBehandlingStatusRepository
+                .findByVedtaksperiodeBehandlingIdIn(listOf(vedtaksperiodeBehandling.id))
                 .firstOrNull { it.status == statusVerdiSok }
                 ?: throw RuntimeException("Fant ikke varslet mangler im status, den skal være her")
 
