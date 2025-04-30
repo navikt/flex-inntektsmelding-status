@@ -48,24 +48,25 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
 
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] = fnrListe.size
 
-        fnrListe.map { fnr ->
-            forsinketSaksbehandlingVarslingFørsteVarsel.prosesserForsteForsinketSaksbehandlingVarsel(
-                fnr,
-                sendtFoer,
-                dryRun = true,
-                now = now,
-            )
-        }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING)
+        fnrListe
+            .map { fnr ->
+                forsinketSaksbehandlingVarslingFørsteVarsel.prosesserForsteForsinketSaksbehandlingVarsel(
+                    fnr,
+                    sendtFoer,
+                    dryRun = true,
+                    now = now,
+                )
+            }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING)
             .also { returMap[CronJobStatus.FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL_DRY_RUN] = it }
 
         fnrListe.forEachIndexed { idx, fnr ->
-            forsinketSaksbehandlingVarslingFørsteVarsel.prosesserForsteForsinketSaksbehandlingVarsel(
-                fnr,
-                sendtFoer,
-                false,
-                now = now,
-            )
-                .also {
+            forsinketSaksbehandlingVarslingFørsteVarsel
+                .prosesserForsteForsinketSaksbehandlingVarsel(
+                    fnr,
+                    sendtFoer,
+                    false,
+                    now = now,
+                ).also {
                     returMap.increment(it)
                 }
 
@@ -119,17 +120,26 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
             allePerioder
                 .filter { it.vedtaksperiode.sisteSpleisstatus == VENTER_PÅ_SAKSBEHANDLER }
                 .filter { periode -> periode.soknader.all { it.sendt.isBefore(sendtFoer) } }
-                .groupBy { it.soknader.sortedBy { it.sendt }.last().orgnummer }
-                .map { it.value.sortedBy { it.soknader.sortedBy { it.sendt }.first().fom } }
-                .map { it.first() }
+                .groupBy {
+                    it.soknader
+                        .sortedBy { it.sendt }
+                        .last()
+                        .orgnummer
+                }.map {
+                    it.value.sortedBy {
+                        it.soknader
+                            .sortedBy { it.sendt }
+                            .first()
+                            .fom
+                    }
+                }.map { it.first() }
                 .filter {
                     it.vedtaksperiode.sisteVarslingstatus == null ||
                         listOf(
                             VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE,
                             VARSLET_MANGLER_INNTEKTSMELDING_ANDRE_DONE,
                         ).contains(it.vedtaksperiode.sisteVarslingstatus)
-                }
-                .sortedBy { it.soknader.first().orgnummer }
+                }.sortedBy { it.soknader.first().orgnummer }
 
         // hvis varsel på nummer en så setter vi egen status på de andre orgnumrene
         val nyligVarslet =

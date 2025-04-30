@@ -10,10 +10,9 @@ const val UNLEASH_CONTEXT_FORELAGTE_OPPLYSNINGER = "flex-inntektsmelding-status-
 class UnleashToggles(
     private val unleash: Unleash,
 ) {
-    fun forelagteOpplysninger(): Boolean {
-        return unleash.isEnabled(
+    fun forelagteOpplysninger(): Boolean =
+        unleash.isEnabled(
             UNLEASH_CONTEXT_FORELAGTE_OPPLYSNINGER,
             UnleashContext.builder().build(),
         )
-    }
 }

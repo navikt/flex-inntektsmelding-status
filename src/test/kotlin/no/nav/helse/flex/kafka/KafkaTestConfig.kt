@@ -21,22 +21,20 @@ class KafkaTestConfig(
         ) + aivenKafkaConfig.commonConfig()
 
     @Bean
-    fun meldingKafkaConsumer(): Consumer<String, String> {
-        return DefaultKafkaConsumerFactory(
+    fun meldingKafkaConsumer(): Consumer<String, String> =
+        DefaultKafkaConsumerFactory(
             testConsumerProps("melding-consumer"),
             StringDeserializer(),
             StringDeserializer(),
         ).createConsumer()
-    }
 
     @Bean
-    fun varslingConsumer(): Consumer<String, String> {
-        return DefaultKafkaConsumerFactory(
+    fun varslingConsumer(): Consumer<String, String> =
+        DefaultKafkaConsumerFactory(
             testConsumerProps("varsling-consumer"),
             StringDeserializer(),
             StringDeserializer(),
         ).createConsumer()
-    }
 
     @Bean
     fun auditlogKafkaConsumer() = KafkaConsumer<String, String>(consumerConfig("auditlog-group-id"))

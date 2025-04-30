@@ -74,7 +74,8 @@ class LockRepositoryIntegrationTest : FellesTestOppsett() {
         val completed = countDownLatch.await(1L, TimeUnit.SECONDS)
         completed `should be` true
 
-        Duration.between(forsteTimestamp, andreTimestamp)
+        Duration
+            .between(forsteTimestamp, andreTimestamp)
             .toMillis() `should be in range` FORSINKELSE..FORSINKELSE + 200L
     }
 
@@ -116,7 +117,8 @@ class LockRepositoryIntegrationTest : FellesTestOppsett() {
         val completed = countDownLatch.await(1L, TimeUnit.SECONDS)
         completed `should be` true
 
-        Duration.between(forsteTimestamp, andreTimestamp)
+        Duration
+            .between(forsteTimestamp, andreTimestamp)
             .toMillis() `should be less than` FORSINKELSE
     }
 

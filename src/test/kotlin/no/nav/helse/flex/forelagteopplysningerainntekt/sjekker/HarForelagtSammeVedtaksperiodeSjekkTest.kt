@@ -56,8 +56,8 @@ class HarForelagtSammeVedtaksperiodeSjekkTest {
 private fun lagTestForelagteOpplysninger(
     id: String = UUID.randomUUID().toString(),
     forelagt: Instant? = null,
-): ForelagteOpplysningerDbRecord {
-    return ForelagteOpplysningerDbRecord(
+): ForelagteOpplysningerDbRecord =
+    ForelagteOpplysningerDbRecord(
         id = id,
         vedtaksperiodeId = "_",
         behandlingId = "_",
@@ -70,4 +70,3 @@ private fun lagTestForelagteOpplysninger(
         forelagt = forelagt,
         opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
     )
-}

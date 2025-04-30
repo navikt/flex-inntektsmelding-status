@@ -105,13 +105,13 @@ class InntektsmeldingLagringTest : FellesTestOppsett() {
     fun produserMelding(
         meldingUuid: String,
         melding: String,
-    ): RecordMetadata {
-        return producer.send(
-            ProducerRecord(
-                INNTEKTSMELDING_TOPIC,
-                meldingUuid,
-                melding,
-            ),
-        ).get()
-    }
+    ): RecordMetadata =
+        producer
+            .send(
+                ProducerRecord(
+                    INNTEKTSMELDING_TOPIC,
+                    meldingUuid,
+                    melding,
+                ),
+            ).get()
 }

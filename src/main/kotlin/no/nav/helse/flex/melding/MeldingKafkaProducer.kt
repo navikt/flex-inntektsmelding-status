@@ -24,12 +24,13 @@ class MeldingKafkaProducer(
         meldingKafkaDto.lukkMelding?.let {
             registry.counter("ditt_sykefravaer_lukk_melding_sendt").increment()
         }
-        return meldingProducer.send(
-            ProducerRecord(
-                DITT_SYKEFRAVAER_MELDING_TOPIC,
-                meldingUuid,
-                meldingKafkaDto.serialisertTilString(),
-            ),
-        ).get()
+        return meldingProducer
+            .send(
+                ProducerRecord(
+                    DITT_SYKEFRAVAER_MELDING_TOPIC,
+                    meldingUuid,
+                    meldingKafkaDto.serialisertTilString(),
+                ),
+            ).get()
     }
 }

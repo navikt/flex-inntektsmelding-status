@@ -23,8 +23,7 @@ class FlexInternalFrontendApiAuthTest : FellesTestOppsett() {
                     .header("Authorization", "Bearer ${skapAzureJwt("en-annen-client-id")}")
                     .content(FlexInternalFrontendController.HentVedtaksperioderPostRequest(fnr = fnr).serialisertTilString())
                     .contentType(MediaType.APPLICATION_JSON),
-            )
-            .andExpect(MockMvcResultMatchers.status().is4xxClientError)
+            ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
     }
 
     @Test
@@ -35,7 +34,6 @@ class FlexInternalFrontendApiAuthTest : FellesTestOppsett() {
                     .post("/api/v1/vedtak-og-inntektsmeldinger")
                     .content(FlexInternalFrontendController.HentVedtaksperioderPostRequest(fnr = fnr).serialisertTilString())
                     .contentType(MediaType.APPLICATION_JSON),
-            )
-            .andExpect(MockMvcResultMatchers.status().is4xxClientError)
+            ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
     }
 }

@@ -10,7 +10,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 
 val objectMapper: ObjectMapper =
-    JsonMapper.builder()
+    JsonMapper
+        .builder()
         .addModule(JavaTimeModule())
         .addModule(KotlinModule.Builder().build())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)

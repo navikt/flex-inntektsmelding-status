@@ -13,7 +13,8 @@ class FunksjonellGrenseAvbrytingTest : FellesTestOppsett() {
     fun `Vi sender inn 8 søknader som venter på arbeidsgiver`() {
         (0 until 8).forEach { index -> sendSoknaderSomVenterPaArbeidsgiver(index) }
 
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(Instant.now())
             .shouldHaveSize(8)
     }
 
@@ -40,7 +41,8 @@ class FunksjonellGrenseAvbrytingTest : FellesTestOppsett() {
     fun `Vi sender inn 8 søknader som venter på saksbehandler`() {
         (0 until 8).forEach { index -> sendSoknaderSomVenterPaSaksbehandler(index) }
 
-        vedtaksperiodeBehandlingRepository.finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(Instant.now())
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(Instant.now())
             .shouldHaveSize(8)
     }
 

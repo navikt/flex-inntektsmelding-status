@@ -36,8 +36,8 @@ class TotaltAntallForelagteOpplysningerSjekkTest {
     }
 }
 
-private fun lagTestForelagteOpplysninger(forelagt: Instant? = null): ForelagteOpplysningerDbRecord {
-    return ForelagteOpplysningerDbRecord(
+private fun lagTestForelagteOpplysninger(forelagt: Instant? = null): ForelagteOpplysningerDbRecord =
+    ForelagteOpplysningerDbRecord(
         id = "test-id",
         vedtaksperiodeId = "_",
         behandlingId = "_",
@@ -50,4 +50,3 @@ private fun lagTestForelagteOpplysninger(forelagt: Instant? = null): ForelagteOp
         forelagt = forelagt,
         opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
     )
-}

@@ -16,7 +16,8 @@ class ForsinkelseFraOpprinnelseTilVarselSjekk {
         now: Instant,
     ): Boolean {
         val dagerSidenMeldingFraSpleis =
-            forelagteOpplysninger.opprinneligOpprettet.tilOsloLocalDateTime()
+            forelagteOpplysninger.opprinneligOpprettet
+                .tilOsloLocalDateTime()
                 .until(now.tilOsloLocalDateTime(), ChronoUnit.DAYS)
         when {
             dagerSidenMeldingFraSpleis >= 6 -> {

@@ -28,11 +28,11 @@ fun finnLikesteInntektsmelding(
     }
 
     val matchPaOrgnrOgLikDato =
-        inntektsmeldinger.filter { it.virksomhetsnummer == soknaden.orgnummer }
+        inntektsmeldinger
+            .filter { it.virksomhetsnummer == soknaden.orgnummer }
             .filter {
                 (it.foersteFravaersdag ?: it.mottattDato.tilLocalDate()).erMindreEnn30DagerFra(soknaden.startSyketilfelle)
-            }
-            .sortedByDescending { it.mottattDato }
+            }.sortedByDescending { it.mottattDato }
             .firstOrNull()
 
     if (matchPaOrgnrOgLikDato != null) {

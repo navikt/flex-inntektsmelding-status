@@ -11,7 +11,5 @@ class UnleashTestConfig {
     private val fakeUnleash = FakeUnleash()
 
     @Bean
-    fun unleash(): FakeUnleash {
-        return fakeUnleash
-    }
+    fun unleash(): FakeUnleash = fakeUnleash
 }

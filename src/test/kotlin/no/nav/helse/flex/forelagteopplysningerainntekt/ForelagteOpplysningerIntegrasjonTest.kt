@@ -63,19 +63,21 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
                     ),
             )
 
-        forelagteOpplysningerRepository.existsByVedtaksperiodeIdAndBehandlingId(
-            vedtaksperiodeId = forelagteOpplysningerMelding.vedtaksperiodeId,
-            behandlingId = forelagteOpplysningerMelding.behandlingId,
-        ).shouldBeFalse()
+        forelagteOpplysningerRepository
+            .existsByVedtaksperiodeIdAndBehandlingId(
+                vedtaksperiodeId = forelagteOpplysningerMelding.vedtaksperiodeId,
+                behandlingId = forelagteOpplysningerMelding.behandlingId,
+            ).shouldBeFalse()
 
-        kafkaProducer.send(
-            ProducerRecord(
-                FORELAGTE_OPPLYSNINGER_TOPIC,
-                null,
-                forelagteOpplysningerMelding.vedtaksperiodeId,
-                forelagteOpplysningerMelding.serialisertTilString(),
-            ),
-        ).get()
+        kafkaProducer
+            .send(
+                ProducerRecord(
+                    FORELAGTE_OPPLYSNINGER_TOPIC,
+                    null,
+                    forelagteOpplysningerMelding.vedtaksperiodeId,
+                    forelagteOpplysningerMelding.serialisertTilString(),
+                ),
+            ).get()
 
         await().atMost(10, TimeUnit.SECONDS).until {
             forelagteOpplysningerRepository.existsByVedtaksperiodeIdAndBehandlingId(

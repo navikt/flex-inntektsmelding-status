@@ -157,9 +157,10 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
         perioderSomVenterPaaArbeidsgiver.shouldHaveSize(1)
         perioderSomVenterPaaArbeidsgiver.first() shouldBeEqualTo fnr
 
-        vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
-            OffsetDateTime.now().minusHours(3).toInstant(),
-        ).shouldBeEmpty()
+        vedtaksperiodeBehandlingRepository
+            .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
+                OffsetDateTime.now().minusHours(3).toInstant(),
+            ).shouldBeEmpty()
     }
 
     @Test

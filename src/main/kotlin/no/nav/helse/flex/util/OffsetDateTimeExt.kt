@@ -6,7 +6,8 @@ import java.util.*
 
 val osloZone = ZoneId.of("Europe/Oslo")
 val norskLocale =
-    Locale.Builder()
+    Locale
+        .Builder()
         .setLanguage("nb")
         .setRegion("NO")
         .build()
