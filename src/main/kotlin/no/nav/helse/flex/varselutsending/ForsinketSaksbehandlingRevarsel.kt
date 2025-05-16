@@ -44,7 +44,7 @@ class ForsinketSaksbehandlingRevarselFinnPersoner(
                 .finnPersonerForRevarslingSomVenterPåSaksbehandler(varsletFoer = varsletFør)
 
         val returMap = mutableMapOf<CronJobStatus, Int>()
-        log.info("Fant ${fnrListe.size} unike fnr for varselutsending for forsinket saksbehandling grunnet manglende inntektsmelding")
+        log.info("Fant ${fnrListe.size} unike fnr-kandidater som vil vurderes for varselutsending av revarsel for forsinket saksbehandling")
 
         returMap[CronJobStatus.UNIKE_FNR_KANDIDATER_REVARSEL_FORSINKET_SAKSBEHANDLING] = fnrListe.size
 
