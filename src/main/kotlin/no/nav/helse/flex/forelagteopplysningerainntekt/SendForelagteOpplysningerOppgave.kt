@@ -7,6 +7,7 @@ import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtSammeV
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.toJsonNode
+import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
 import org.postgresql.util.PGobject
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
@@ -21,8 +22,10 @@ class SendForelagteOpplysningerOppgave(
     private val opprettBrukervarselForForelagteOpplysninger: OpprettBrukervarselForForelagteOpplysninger,
     private val harForelagtSammeVedtaksperiode: HarForelagtSammeVedtaksperiodeSjekk,
     private val forsinkelseFraOpprinnelseTilVarselSjekk: ForsinkelseFraOpprinnelseTilVarselSjekk,
+    private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
 ) {
     private val log = logger()
+    val ikkeForelagtDato: Instant = Instant.EPOCH
 
     @Transactional(propagation = Propagation.REQUIRED)
     fun sendForelagteOpplysninger(
@@ -46,6 +49,12 @@ class SendForelagteOpplysningerOppgave(
             )
         if (relevantInfoTilForelagteOpplysninger == null) {
             log.warn("Kunne ikke hente relevant info til forelagte opplysninger: ${forelagteOpplysninger.id}")
+            forelagteOpplysningerRepository.save(
+                forelagteOpplysninger.copy(
+                    statusEndret = now,
+                    status = ForelagtStatus.IKKE_FORELAGT,
+                ),
+            )
             return false
         }
 
@@ -72,7 +81,7 @@ class SendForelagteOpplysningerOppgave(
             startSyketilfelle = relevantInfoTilForelagteOpplysninger.startSyketilfelle,
         )
         forelagteOpplysningerRepository.save(
-            forelagteOpplysninger.copy(forelagt = now),
+            forelagteOpplysninger.copy(statusEndret = now),
         )
         return true
     }

@@ -11,7 +11,7 @@ class TotaltAntallForelagteOpplysningerSjekk(
     private val log = logger()
 
     fun sjekk(forelagteOpplysninger: List<ForelagteOpplysningerDbRecord>) {
-        val ikkeForelagteOpplysninger = forelagteOpplysninger.filter { it.forelagt == null }
+        val ikkeForelagteOpplysninger = forelagteOpplysninger.filter { it.statusEndret == null }
         if (ikkeForelagteOpplysninger.size > maxAntallForelagteOpplysninger) {
             val message =
                 "Sjekk feilet: For mange forelagte opplysninger skal sendes ut på en gang. " +

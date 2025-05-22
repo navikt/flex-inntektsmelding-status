@@ -81,7 +81,7 @@ class HentAlleForelagteOpplysningerForPersonIntegrasjonTest : FellesTestOppsett(
                     value = "{}"
                 },
             opprettet = ANY_INSTANT,
-            forelagt = forelagt,
+            statusEndret = forelagt,
             opprinneligOpprettet = ANY_INSTANT,
         ).also {
             forelagteOpplysningerRepository.save(it)

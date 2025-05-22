@@ -47,6 +47,6 @@ private fun lagTestForelagteOpplysninger(forelagt: Instant? = null): ForelagteOp
                 value = "{}"
             },
         opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
-        forelagt = forelagt,
+        statusEndret = forelagt,
         opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
     )
