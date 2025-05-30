@@ -6,7 +6,6 @@ import com.nhaarman.mockitokotlin2.verify
 import no.nav.helse.flex.config.unleash.UnleashToggles
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.TotaltAntallForelagteOpplysningerSjekk
 import org.junit.jupiter.api.Test
-import org.postgresql.util.PGobject
 import java.time.Instant
 
 private val ANY_INSTANT = Instant.parse("2000-01-01T00:00:00.00Z")
@@ -16,7 +15,7 @@ class SendForelagteOpplysningerCronJobTest {
     fun `burde kalle på totaltAntallForelagteOpplysningerSjekk med alle forelagte opplysninger`() {
         val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
             mock {
-                on { findAllByForelagtIsNull() } doReturn
+                on { findAllByStatus(ForelagtStatus.SKAL_FORELEGGES) } doReturn
                     listOf(
                         lagTestForelagteOpplysninger(id = "1"),
                         lagTestForelagteOpplysninger(id = "2"),
@@ -42,21 +41,3 @@ class SendForelagteOpplysningerCronJobTest {
         )
     }
 }
-
-private fun lagTestForelagteOpplysninger(
-    id: String = "test-id",
-    forelagt: Instant? = null,
-): ForelagteOpplysningerDbRecord =
-    ForelagteOpplysningerDbRecord(
-        id = id,
-        vedtaksperiodeId = "_",
-        behandlingId = "_",
-        forelagteOpplysningerMelding =
-            PGobject().apply {
-                type = "json"
-                value = "{}"
-            },
-        opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
-        statusEndret = forelagt,
-        opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
-    )

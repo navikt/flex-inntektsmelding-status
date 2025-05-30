@@ -1,13 +1,11 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt.sjekker
 
-import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
+import no.nav.helse.flex.forelagteopplysningerainntekt.lagTestForelagteOpplysninger
 import org.amshove.kluent.AnyException
 import org.amshove.kluent.invoking
 import org.amshove.kluent.`should not throw`
 import org.amshove.kluent.`should throw`
 import org.junit.jupiter.api.Test
-import org.postgresql.util.PGobject
-import java.time.Instant
 
 class TotaltAntallForelagteOpplysningerSjekkTest {
     @Test
@@ -35,18 +33,3 @@ class TotaltAntallForelagteOpplysningerSjekkTest {
         } `should not throw` AnyException
     }
 }
-
-private fun lagTestForelagteOpplysninger(forelagt: Instant? = null): ForelagteOpplysningerDbRecord =
-    ForelagteOpplysningerDbRecord(
-        id = "test-id",
-        vedtaksperiodeId = "_",
-        behandlingId = "_",
-        forelagteOpplysningerMelding =
-            PGobject().apply {
-                type = "json"
-                value = "{}"
-            },
-        opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
-        statusEndret = forelagt,
-        opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
-    )

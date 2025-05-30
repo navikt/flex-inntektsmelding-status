@@ -1,6 +1,7 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt.sjekker
 
 import no.nav.helse.flex.FellesTestOppsett
+import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagtStatus
 import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
 import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
 import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
@@ -82,6 +83,7 @@ class HentAlleForelagteOpplysningerForPersonIntegrasjonTest : FellesTestOppsett(
                 },
             opprettet = ANY_INSTANT,
             statusEndret = forelagt,
+            status = ForelagtStatus.SKAL_FORELEGGES,
             opprinneligOpprettet = ANY_INSTANT,
         ).also {
             forelagteOpplysningerRepository.save(it)

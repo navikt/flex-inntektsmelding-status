@@ -10,7 +10,6 @@ import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingReposi
 import org.amshove.kluent.shouldBeFalse
 import org.amshove.kluent.shouldBeTrue
 import org.junit.jupiter.api.Test
-import org.postgresql.util.PGobject
 import java.time.Instant
 import java.time.LocalDate
 import java.util.*
@@ -167,20 +166,4 @@ class SendForelagteOpplysningerOppgaveTest {
             ).copy(status = ForelagtStatus.IKKE_FORELAGT),
         )
     }
-
-    fun lagTestForelagteOpplysninger(statusEndret: Instant? = null): ForelagteOpplysningerDbRecord =
-        ForelagteOpplysningerDbRecord(
-            id = "test-id",
-            vedtaksperiodeId = "_",
-            behandlingId = "_",
-            forelagteOpplysningerMelding =
-                PGobject().apply {
-                    type = "json"
-                    value = "{}"
-                },
-            opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
-            statusEndret = statusEndret,
-            status = ForelagtStatus.SKAL_FORELEGGES,
-            opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
-        )
 }

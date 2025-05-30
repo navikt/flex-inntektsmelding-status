@@ -55,7 +55,7 @@ class SendForelagteOpplysningerCronjob(
         log.info("Starter ${this::class.simpleName}")
 
         val usendteForelagteOpplysninger: List<ForelagteOpplysningerDbRecord> =
-            forelagteOpplysningerRepository.findAllByForelagtIsNull()
+            forelagteOpplysningerRepository.findAllByStatus(ForelagtStatus.SKAL_FORELEGGES)
 
         totaltAntallForelagteOpplysningerSjekk.sjekk(usendteForelagteOpplysninger)
 

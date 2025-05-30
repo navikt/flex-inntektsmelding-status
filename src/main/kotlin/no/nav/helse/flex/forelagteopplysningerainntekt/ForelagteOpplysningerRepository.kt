@@ -10,7 +10,7 @@ interface ForelagteOpplysningerRepository : CrudRepository<ForelagteOpplysninger
         behandlingId: String,
     ): Boolean
 
-    fun findAllByForelagtIsNull(): List<ForelagteOpplysningerDbRecord>
+    fun findAllByStatus(status: ForelagtStatus): List<ForelagteOpplysningerDbRecord>
 
     fun findAllByVedtaksperiodeIdAndBehandlingId(
         vedtaksperiodeId: String,
