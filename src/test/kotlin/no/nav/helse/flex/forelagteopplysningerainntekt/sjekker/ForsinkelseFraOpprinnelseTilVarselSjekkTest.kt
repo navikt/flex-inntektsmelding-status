@@ -1,12 +1,10 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt.sjekker
 
-import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
+import no.nav.helse.flex.forelagteopplysningerainntekt.lagTestForelagteOpplysninger
 import org.amshove.kluent.`should be false`
 import org.amshove.kluent.`should be true`
 import org.junit.jupiter.api.Test
-import org.postgresql.util.PGobject
 import java.time.Instant
-import java.util.UUID
 
 class ForsinkelseFraOpprinnelseTilVarselSjekkTest {
     @Test
@@ -39,22 +37,3 @@ class ForsinkelseFraOpprinnelseTilVarselSjekkTest {
         langForsinkelseSjekk.`should be true`()
     }
 }
-
-private fun lagTestForelagteOpplysninger(
-    id: String = UUID.randomUUID().toString(),
-    forelagt: Instant? = null,
-    opprinneligOpprettet: Instant = Instant.parse("2024-01-01T00:00:00.00Z"),
-): ForelagteOpplysningerDbRecord =
-    ForelagteOpplysningerDbRecord(
-        id = id,
-        vedtaksperiodeId = "_",
-        behandlingId = "_",
-        forelagteOpplysningerMelding =
-            PGobject().apply {
-                type = "json"
-                value = "{}"
-            },
-        opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
-        forelagt = forelagt,
-        opprinneligOpprettet = opprinneligOpprettet,
-    )

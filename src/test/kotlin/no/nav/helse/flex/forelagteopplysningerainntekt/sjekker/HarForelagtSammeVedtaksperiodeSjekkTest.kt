@@ -2,18 +2,16 @@ package no.nav.helse.flex.forelagteopplysningerainntekt.sjekker
 
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
-import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
+import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagtStatus
+import no.nav.helse.flex.forelagteopplysningerainntekt.lagTestForelagteOpplysninger
 import org.amshove.kluent.`should be`
 import org.junit.jupiter.api.Test
-import org.postgresql.util.PGobject
-import java.time.Instant
 import java.util.*
 
 class HarForelagtSammeVedtaksperiodeSjekkTest {
     @Test
     fun `Godtar at man har seg selv i listen over forelagte`() {
-        val testForelagteOpplysninger =
-            lagTestForelagteOpplysninger(forelagt = Instant.parse("2024-01-01T00:00:00.00Z"))
+        val testForelagteOpplysninger = lagTestForelagteOpplysninger()
         val hentAlleForelagteOpplysningerForPerson: HentAlleForelagteOpplysningerForPerson =
             mock {
                 on { hentAlleForelagteOpplysningerFor("_") } doReturn
@@ -33,8 +31,8 @@ class HarForelagtSammeVedtaksperiodeSjekkTest {
     }
 
     @Test
-    fun `feiler om vi har blitt bedt om flere forelegginger på samme vedtaksperiode med forskjellig behandlignsid`() {
-        val testdata = lagTestForelagteOpplysninger(forelagt = Instant.parse("2024-01-01T00:00:00.00Z"))
+    fun `feiler om vi har blitt bedt om flere forelegginger på samme vedtaksperiode med forskjellig behandlignsId`() {
+        val testdata = lagTestForelagteOpplysninger(status = ForelagtStatus.SENDT)
         val hentAlleForelagteOpplysningerForPerson: HentAlleForelagteOpplysningerForPerson =
             mock {
                 on { hentAlleForelagteOpplysningerFor("_") } doReturn
@@ -52,21 +50,3 @@ class HarForelagtSammeVedtaksperiodeSjekkTest {
         ) `should be` true
     }
 }
-
-private fun lagTestForelagteOpplysninger(
-    id: String = UUID.randomUUID().toString(),
-    forelagt: Instant? = null,
-): ForelagteOpplysningerDbRecord =
-    ForelagteOpplysningerDbRecord(
-        id = id,
-        vedtaksperiodeId = "_",
-        behandlingId = "_",
-        forelagteOpplysningerMelding =
-            PGobject().apply {
-                type = "json"
-                value = "{}"
-            },
-        opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
-        forelagt = forelagt,
-        opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
-    )

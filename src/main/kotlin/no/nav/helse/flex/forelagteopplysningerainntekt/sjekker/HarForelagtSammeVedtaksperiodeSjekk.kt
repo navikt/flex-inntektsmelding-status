@@ -1,5 +1,6 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt.sjekker
 
+import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagtStatus
 import org.springframework.stereotype.Component
 
 @Component
@@ -14,7 +15,7 @@ class HarForelagtSammeVedtaksperiodeSjekk(
         val alleForelagte =
             hentAlleForelagteOpplysningerForPerson.hentAlleForelagteOpplysningerFor(fnr = fnr)
         return alleForelagte
-            .filter { it.forelagt != null }
+            .filter { it.status == ForelagtStatus.SENDT }
             .any { it.vedtaksperiodeId == vedtaksperiodeId && it.id != forelagteOpplysningerId }
     }
 }

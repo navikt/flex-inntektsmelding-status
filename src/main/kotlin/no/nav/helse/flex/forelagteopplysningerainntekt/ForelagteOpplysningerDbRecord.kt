@@ -18,7 +18,8 @@ data class ForelagteOpplysningerDbRecord(
     val forelagteOpplysningerMelding: PGobject,
     val opprettet: Instant,
     val opprinneligOpprettet: Instant = opprettet,
-    val forelagt: Instant?,
+    val status: ForelagtStatus,
+    val statusEndret: Instant?,
 ) {
     companion object {
         fun parseConsumerRecord(consumerRecord: ConsumerRecord<String, String>): ForelagteOpplysningerDbRecord {
@@ -32,9 +33,16 @@ data class ForelagteOpplysningerDbRecord(
                         it.value = consumerRecord.value()
                     },
                 opprettet = Instant.now(),
-                forelagt = null,
+                statusEndret = Instant.now(),
+                status = ForelagtStatus.NY,
                 opprinneligOpprettet = forelagteOpplysningerMelding.tidsstempel.tilOsloInstant(),
             )
         }
     }
+}
+
+enum class ForelagtStatus {
+    AVBRUTT,
+    SENDT,
+    NY,
 }

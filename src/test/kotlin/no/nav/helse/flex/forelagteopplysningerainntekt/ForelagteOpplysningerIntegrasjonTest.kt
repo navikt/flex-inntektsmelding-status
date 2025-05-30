@@ -122,7 +122,8 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
                                 ).serialisertTilString()
                         },
                     opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
-                    forelagt = null,
+                    statusEndret = Instant.parse("2024-01-01T00:00:00.00Z"),
+                    status = ForelagtStatus.NY,
                     opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
                 ),
             )
@@ -146,7 +147,8 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
         varslingConsumer.ventPåRecords(antall = 1)
 
         forelagteOpplysningerRepository.findById(forelagteOpplysningerMelding.id!!).get().let {
-            it.forelagt `should not be` null
+            it.statusEndret `should not be` null
+            it.status `should be equal to` ForelagtStatus.SENDT
         }
     }
 

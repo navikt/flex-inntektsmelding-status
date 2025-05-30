@@ -46,6 +46,12 @@ class SendForelagteOpplysningerOppgave(
             )
         if (relevantInfoTilForelagteOpplysninger == null) {
             log.warn("Kunne ikke hente relevant info til forelagte opplysninger: ${forelagteOpplysninger.id}")
+            forelagteOpplysningerRepository.save(
+                forelagteOpplysninger.copy(
+                    statusEndret = now,
+                    status = ForelagtStatus.AVBRUTT,
+                ),
+            )
             return false
         }
 
@@ -64,7 +70,7 @@ class SendForelagteOpplysningerOppgave(
         }
 
         opprettBrukervarselForForelagteOpplysninger.opprettVarslinger(
-            varselId = forelagteOpplysninger.id!!,
+            varselId = forelagteOpplysninger.id,
             melding = forelagteOpplysninger.forelagteOpplysningerMelding,
             fnr = relevantInfoTilForelagteOpplysninger.fnr,
             orgNavn = relevantInfoTilForelagteOpplysninger.orgNavn,
@@ -72,7 +78,7 @@ class SendForelagteOpplysningerOppgave(
             startSyketilfelle = relevantInfoTilForelagteOpplysninger.startSyketilfelle,
         )
         forelagteOpplysningerRepository.save(
-            forelagteOpplysninger.copy(forelagt = now),
+            forelagteOpplysninger.copy(statusEndret = now, status = ForelagtStatus.SENDT),
         )
         return true
     }

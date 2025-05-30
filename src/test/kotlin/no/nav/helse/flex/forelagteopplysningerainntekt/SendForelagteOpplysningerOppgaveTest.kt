@@ -6,10 +6,9 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.ForsinkelseFraOpprinnelseTilVarselSjekk
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtSammeVedtaksperiodeSjekk
-import org.amshove.kluent.shouldBeFalse
-import org.amshove.kluent.shouldBeTrue
+import org.amshove.kluent.`should be false`
+import org.amshove.kluent.`should be true`
 import org.junit.jupiter.api.Test
-import org.postgresql.util.PGobject
 import java.time.Instant
 import java.time.LocalDate
 import java.util.*
@@ -39,8 +38,8 @@ class SendForelagteOpplysningerOppgaveTest {
     private fun opprettBrukervarselForForelagteOpplysningerMock(): OpprettBrukervarselForForelagteOpplysninger = mock()
 
     @Test
-    fun `burde lagre forelagt tidspunkt i db etter forelagt varsel er sendt`() {
-        val forelagtOpplysning = lagTestForelagteOpplysninger(forelagt = null)
+    fun `burde lagre status SENDT i db etter forelagt varsel er sendt`() {
+        val forelagtOpplysning = lagTestForelagteOpplysninger()
 
         val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
             mock {
@@ -59,14 +58,16 @@ class SendForelagteOpplysningerOppgaveTest {
 
         oppgave.sendForelagteOpplysninger("_", forelagtTidspunkt)
 
-        verify(forelagteOpplysningerRepository).save(forelagtOpplysning.copy(forelagt = forelagtTidspunkt))
+        verify(
+            forelagteOpplysningerRepository,
+        ).save(forelagtOpplysning.copy(statusEndret = forelagtTidspunkt, status = ForelagtStatus.SENDT))
     }
 
     @Test
-    fun `burde returnere true dersom sjekker er gyldige`() {
+    fun `burde returnere true dersom valideringssjekker er gyldige`() {
         val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
             mock {
-                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(forelagt = null))
+                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger())
             }
         val harForelagtSammeVedtaksperiodeSjekk =
             mock<HarForelagtSammeVedtaksperiodeSjekk> {
@@ -82,14 +83,14 @@ class SendForelagteOpplysningerOppgaveTest {
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
-        bleSendt.shouldBeTrue()
+        bleSendt.`should be true`()
     }
 
     @Test
-    fun `burde returnere false dersom sjekk for nylig forelagt feiler`() {
+    fun `burde kalle HarForelagtSammeVedtaksperiodeSjekk`() {
         val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
             mock {
-                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(forelagt = null))
+                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger())
             }
         val harForelagtSammeVedtaksperiodeSjekk: HarForelagtSammeVedtaksperiodeSjekk =
             mock {
@@ -105,14 +106,14 @@ class SendForelagteOpplysningerOppgaveTest {
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
-        bleSendt.shouldBeFalse()
+        bleSendt.`should be false`()
     }
 
     @Test
     fun `burde returnere false dersom sjekk for forsinkelse fra opprinnelse feiler`() {
         val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
             mock {
-                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(forelagt = null))
+                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger())
             }
         val forsinkelseFraOpprinnelseTilVarselSjekk: ForsinkelseFraOpprinnelseTilVarselSjekk =
             mock {
@@ -128,21 +129,35 @@ class SendForelagteOpplysningerOppgaveTest {
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
-        bleSendt.shouldBeFalse()
+        bleSendt.`should be false`()
     }
 
-    fun lagTestForelagteOpplysninger(forelagt: Instant? = null): ForelagteOpplysningerDbRecord =
-        ForelagteOpplysningerDbRecord(
-            id = "test-id",
-            vedtaksperiodeId = "_",
-            behandlingId = "_",
-            forelagteOpplysningerMelding =
-                PGobject().apply {
-                    type = "json"
-                    value = "{}"
-                },
-            opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
-            forelagt = forelagt,
-            opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
+    @Test
+    fun `burde sette status til AVBRUTT for forelagt oppplysning som mangler relevant info`() {
+        val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
+            mock {
+                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger())
+            }
+        val hentRelevantInfoTilForelagtOpplysningMock: HentRelevantInfoTilForelagtOpplysning =
+            mock<HentRelevantInfoTilForelagtOpplysning> {
+                on { hentRelevantInfoFor(any(), any()) } doReturn null
+            }
+        val oppgave =
+            SendForelagteOpplysningerOppgave(
+                forelagteOpplysningerRepository = forelagteOpplysningerRepository,
+                hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock,
+                opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
+                harForelagtSammeVedtaksperiode = harForelagtForPersonMedOrgNyligSjekkMock(),
+                forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
+            )
+        val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
+        bleSendt.`should be false`()
+        verify(
+            forelagteOpplysningerRepository,
+        ).save(
+            lagTestForelagteOpplysninger(
+                statusEndret = Instant.parse("2024-01-01T00:00:00.00Z"),
+            ).copy(status = ForelagtStatus.AVBRUTT),
         )
+    }
 }
