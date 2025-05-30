@@ -38,8 +38,8 @@ class SendForelagteOpplysningerOppgaveTest {
     private fun opprettBrukervarselForForelagteOpplysningerMock(): OpprettBrukervarselForForelagteOpplysninger = mock()
 
     @Test
-    fun `burde lagre forelagt tidspunkt i db etter forelagt varsel er sendt`() {
-        val forelagtOpplysning = lagTestForelagteOpplysninger(statusEndret = null)
+    fun `burde lagre status SENDT i db etter forelagt varsel er sendt`() {
+        val forelagtOpplysning = lagTestForelagteOpplysninger()
 
         val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
             mock {
@@ -64,10 +64,10 @@ class SendForelagteOpplysningerOppgaveTest {
     }
 
     @Test
-    fun `burde returnere true dersom sjekker er gyldige`() {
+    fun `burde returnere true dersom valideringssjekker er gyldige`() {
         val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
             mock {
-                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(statusEndret = null))
+                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger())
             }
         val harForelagtSammeVedtaksperiodeSjekk =
             mock<HarForelagtSammeVedtaksperiodeSjekk> {
@@ -87,10 +87,10 @@ class SendForelagteOpplysningerOppgaveTest {
     }
 
     @Test
-    fun `burde returnere false dersom sjekk for nylig forelagt feiler`() {
+    fun `burde kalle HarForelagtSammeVedtaksperiodeSjekk`() {
         val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
             mock {
-                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(statusEndret = null))
+                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger())
             }
         val harForelagtSammeVedtaksperiodeSjekk: HarForelagtSammeVedtaksperiodeSjekk =
             mock {
@@ -113,7 +113,7 @@ class SendForelagteOpplysningerOppgaveTest {
     fun `burde returnere false dersom sjekk for forsinkelse fra opprinnelse feiler`() {
         val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
             mock {
-                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(statusEndret = null))
+                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger())
             }
         val forsinkelseFraOpprinnelseTilVarselSjekk: ForsinkelseFraOpprinnelseTilVarselSjekk =
             mock {
@@ -133,10 +133,10 @@ class SendForelagteOpplysningerOppgaveTest {
     }
 
     @Test
-    fun `burde håndtere forelagt oppplysning som mangler relevant info`() {
+    fun `burde sette status til AVBRUTT for forelagt oppplysning som mangler relevant info`() {
         val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
             mock {
-                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(statusEndret = null))
+                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger())
             }
         val hentRelevantInfoTilForelagtOpplysningMock: HentRelevantInfoTilForelagtOpplysning =
             mock<HentRelevantInfoTilForelagtOpplysning> {

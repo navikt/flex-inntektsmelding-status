@@ -148,6 +148,7 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
 
         forelagteOpplysningerRepository.findById(forelagteOpplysningerMelding.id!!).get().let {
             it.statusEndret `should not be` null
+            it.status `should be equal to` ForelagtStatus.SENDT
         }
     }
 

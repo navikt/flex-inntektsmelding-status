@@ -6,14 +6,12 @@ import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagtStatus
 import no.nav.helse.flex.forelagteopplysningerainntekt.lagTestForelagteOpplysninger
 import org.amshove.kluent.`should be`
 import org.junit.jupiter.api.Test
-import java.time.Instant
 import java.util.*
 
 class HarForelagtSammeVedtaksperiodeSjekkTest {
     @Test
     fun `Godtar at man har seg selv i listen over forelagte`() {
-        val testForelagteOpplysninger =
-            lagTestForelagteOpplysninger(statusEndret = Instant.parse("2024-01-01T00:00:00.00Z"))
+        val testForelagteOpplysninger = lagTestForelagteOpplysninger()
         val hentAlleForelagteOpplysningerForPerson: HentAlleForelagteOpplysningerForPerson =
             mock {
                 on { hentAlleForelagteOpplysningerFor("_") } doReturn
@@ -33,7 +31,7 @@ class HarForelagtSammeVedtaksperiodeSjekkTest {
     }
 
     @Test
-    fun `feiler om vi har blitt bedt om flere forelegginger på samme vedtaksperiode med forskjellig behandlignsid`() {
+    fun `feiler om vi har blitt bedt om flere forelegginger på samme vedtaksperiode med forskjellig behandlignsId`() {
         val testdata = lagTestForelagteOpplysninger(status = ForelagtStatus.SENDT)
         val hentAlleForelagteOpplysningerForPerson: HentAlleForelagteOpplysningerForPerson =
             mock {
