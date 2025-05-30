@@ -6,7 +6,7 @@ import java.time.Instant
 fun lagTestForelagteOpplysninger(
     id: String = "test-id",
     statusEndret: Instant? = null,
-    status: ForelagtStatus = ForelagtStatus.SKAL_FORELEGGES,
+    status: ForelagtStatus = ForelagtStatus.NY,
     opprinneligOpprettet: Instant = Instant.parse("2024-01-01T00:00:00.00Z"),
 ): ForelagteOpplysningerDbRecord =
     ForelagteOpplysningerDbRecord(

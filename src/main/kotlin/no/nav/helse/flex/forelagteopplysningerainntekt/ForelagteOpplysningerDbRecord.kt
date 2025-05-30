@@ -34,7 +34,7 @@ data class ForelagteOpplysningerDbRecord(
                     },
                 opprettet = Instant.now(),
                 statusEndret = Instant.now(),
-                status = ForelagtStatus.SKAL_FORELEGGES,
+                status = ForelagtStatus.NY,
                 opprinneligOpprettet = forelagteOpplysningerMelding.tidsstempel.tilOsloInstant(),
             )
         }
@@ -42,7 +42,7 @@ data class ForelagteOpplysningerDbRecord(
 }
 
 enum class ForelagtStatus {
-    IKKE_FORELAGT,
-    FORELAGT,
-    SKAL_FORELEGGES,
+    AVBRUTT,
+    SENDT,
+    NY,
 }

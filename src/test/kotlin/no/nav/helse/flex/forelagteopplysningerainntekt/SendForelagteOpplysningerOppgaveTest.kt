@@ -6,7 +6,6 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.ForsinkelseFraOpprinnelseTilVarselSjekk
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtSammeVedtaksperiodeSjekk
-import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
 import org.amshove.kluent.`should be false`
 import org.amshove.kluent.`should be true`
 import org.junit.jupiter.api.Test
@@ -38,8 +37,6 @@ class SendForelagteOpplysningerOppgaveTest {
 
     private fun opprettBrukervarselForForelagteOpplysningerMock(): OpprettBrukervarselForForelagteOpplysninger = mock()
 
-    private fun vedtaksperiodeBehandlingRepositoryMock(): VedtaksperiodeBehandlingRepository = mock()
-
     @Test
     fun `burde lagre forelagt tidspunkt i db etter forelagt varsel er sendt`() {
         val forelagtOpplysning = lagTestForelagteOpplysninger(statusEndret = null)
@@ -63,7 +60,7 @@ class SendForelagteOpplysningerOppgaveTest {
 
         verify(
             forelagteOpplysningerRepository,
-        ).save(forelagtOpplysning.copy(statusEndret = forelagtTidspunkt, status = ForelagtStatus.FORELAGT))
+        ).save(forelagtOpplysning.copy(statusEndret = forelagtTidspunkt, status = ForelagtStatus.SENDT))
     }
 
     @Test
@@ -160,7 +157,7 @@ class SendForelagteOpplysningerOppgaveTest {
         ).save(
             lagTestForelagteOpplysninger(
                 statusEndret = Instant.parse("2024-01-01T00:00:00.00Z"),
-            ).copy(status = ForelagtStatus.IKKE_FORELAGT),
+            ).copy(status = ForelagtStatus.AVBRUTT),
         )
     }
 }

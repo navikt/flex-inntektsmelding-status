@@ -34,7 +34,7 @@ class HarForelagtSammeVedtaksperiodeSjekkTest {
 
     @Test
     fun `feiler om vi har blitt bedt om flere forelegginger på samme vedtaksperiode med forskjellig behandlignsid`() {
-        val testdata = lagTestForelagteOpplysninger(status = ForelagtStatus.FORELAGT)
+        val testdata = lagTestForelagteOpplysninger(status = ForelagtStatus.SENDT)
         val hentAlleForelagteOpplysningerForPerson: HentAlleForelagteOpplysningerForPerson =
             mock {
                 on { hentAlleForelagteOpplysningerFor("_") } doReturn

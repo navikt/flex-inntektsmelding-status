@@ -49,7 +49,7 @@ class SendForelagteOpplysningerOppgave(
             forelagteOpplysningerRepository.save(
                 forelagteOpplysninger.copy(
                     statusEndret = now,
-                    status = ForelagtStatus.IKKE_FORELAGT,
+                    status = ForelagtStatus.AVBRUTT,
                 ),
             )
             return false
@@ -78,7 +78,7 @@ class SendForelagteOpplysningerOppgave(
             startSyketilfelle = relevantInfoTilForelagteOpplysninger.startSyketilfelle,
         )
         forelagteOpplysningerRepository.save(
-            forelagteOpplysninger.copy(statusEndret = now, status = ForelagtStatus.FORELAGT),
+            forelagteOpplysninger.copy(statusEndret = now, status = ForelagtStatus.SENDT),
         )
         return true
     }

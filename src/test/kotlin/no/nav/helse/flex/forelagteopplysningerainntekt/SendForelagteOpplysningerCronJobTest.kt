@@ -15,7 +15,7 @@ class SendForelagteOpplysningerCronJobTest {
     fun `burde kalle på totaltAntallForelagteOpplysningerSjekk med alle forelagte opplysninger`() {
         val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
             mock {
-                on { findAllByStatus(ForelagtStatus.SKAL_FORELEGGES) } doReturn
+                on { findAllByStatus(ForelagtStatus.NY) } doReturn
                     listOf(
                         lagTestForelagteOpplysninger(id = "1"),
                         lagTestForelagteOpplysninger(id = "2"),

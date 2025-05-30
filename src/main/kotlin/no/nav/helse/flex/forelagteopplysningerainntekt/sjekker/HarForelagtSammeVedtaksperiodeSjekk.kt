@@ -15,7 +15,7 @@ class HarForelagtSammeVedtaksperiodeSjekk(
         val alleForelagte =
             hentAlleForelagteOpplysningerForPerson.hentAlleForelagteOpplysningerFor(fnr = fnr)
         return alleForelagte
-            .filter { it.status == ForelagtStatus.FORELAGT }
+            .filter { it.status == ForelagtStatus.SENDT }
             .any { it.vedtaksperiodeId == vedtaksperiodeId && it.id != forelagteOpplysningerId }
     }
 }

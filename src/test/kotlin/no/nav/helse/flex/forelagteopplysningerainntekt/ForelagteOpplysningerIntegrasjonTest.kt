@@ -123,7 +123,7 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
                         },
                     opprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
                     statusEndret = Instant.parse("2024-01-01T00:00:00.00Z"),
-                    status = ForelagtStatus.SKAL_FORELEGGES,
+                    status = ForelagtStatus.NY,
                     opprinneligOpprettet = Instant.parse("2024-01-01T00:00:00.00Z"),
                 ),
             )
