@@ -7,8 +7,8 @@ import com.nhaarman.mockitokotlin2.verify
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.ForsinkelseFraOpprinnelseTilVarselSjekk
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtSammeVedtaksperiodeSjekk
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
-import org.amshove.kluent.shouldBeFalse
-import org.amshove.kluent.shouldBeTrue
+import org.amshove.kluent.`should be false`
+import org.amshove.kluent.`should be true`
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -61,7 +61,9 @@ class SendForelagteOpplysningerOppgaveTest {
 
         oppgave.sendForelagteOpplysninger("_", forelagtTidspunkt)
 
-        verify(forelagteOpplysningerRepository).save(forelagtOpplysning.copy(statusEndret = forelagtTidspunkt))
+        verify(
+            forelagteOpplysningerRepository,
+        ).save(forelagtOpplysning.copy(statusEndret = forelagtTidspunkt, status = ForelagtStatus.FORELAGT))
     }
 
     @Test
@@ -84,7 +86,7 @@ class SendForelagteOpplysningerOppgaveTest {
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
-        bleSendt.shouldBeTrue()
+        bleSendt.`should be true`()
     }
 
     @Test
@@ -107,7 +109,7 @@ class SendForelagteOpplysningerOppgaveTest {
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
-        bleSendt.shouldBeFalse()
+        bleSendt.`should be false`()
     }
 
     @Test
@@ -130,7 +132,7 @@ class SendForelagteOpplysningerOppgaveTest {
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
-        bleSendt.shouldBeFalse()
+        bleSendt.`should be false`()
     }
 
     @Test
@@ -152,7 +154,7 @@ class SendForelagteOpplysningerOppgaveTest {
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
             )
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
-        bleSendt.shouldBeFalse()
+        bleSendt.`should be false`()
         verify(
             forelagteOpplysningerRepository,
         ).save(

@@ -70,7 +70,7 @@ class SendForelagteOpplysningerOppgave(
         }
 
         opprettBrukervarselForForelagteOpplysninger.opprettVarslinger(
-            varselId = forelagteOpplysninger.id!!,
+            varselId = forelagteOpplysninger.id,
             melding = forelagteOpplysninger.forelagteOpplysningerMelding,
             fnr = relevantInfoTilForelagteOpplysninger.fnr,
             orgNavn = relevantInfoTilForelagteOpplysninger.orgNavn,
@@ -78,7 +78,7 @@ class SendForelagteOpplysningerOppgave(
             startSyketilfelle = relevantInfoTilForelagteOpplysninger.startSyketilfelle,
         )
         forelagteOpplysningerRepository.save(
-            forelagteOpplysninger.copy(statusEndret = now),
+            forelagteOpplysninger.copy(statusEndret = now, status = ForelagtStatus.FORELAGT),
         )
         return true
     }
