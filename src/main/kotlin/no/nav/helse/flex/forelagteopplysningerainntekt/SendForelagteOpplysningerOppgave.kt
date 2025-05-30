@@ -7,7 +7,6 @@ import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtSammeV
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.toJsonNode
-import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
 import org.postgresql.util.PGobject
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
@@ -22,10 +21,8 @@ class SendForelagteOpplysningerOppgave(
     private val opprettBrukervarselForForelagteOpplysninger: OpprettBrukervarselForForelagteOpplysninger,
     private val harForelagtSammeVedtaksperiode: HarForelagtSammeVedtaksperiodeSjekk,
     private val forsinkelseFraOpprinnelseTilVarselSjekk: ForsinkelseFraOpprinnelseTilVarselSjekk,
-    private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
 ) {
     private val log = logger()
-    val ikkeForelagtDato: Instant = Instant.EPOCH
 
     @Transactional(propagation = Propagation.REQUIRED)
     fun sendForelagteOpplysninger(

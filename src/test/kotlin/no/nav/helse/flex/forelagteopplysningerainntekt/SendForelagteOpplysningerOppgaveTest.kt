@@ -57,7 +57,6 @@ class SendForelagteOpplysningerOppgaveTest {
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
                 harForelagtSammeVedtaksperiode = harForelagtForPersonMedOrgNyligSjekkMock(),
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
-                vedtaksperiodeBehandlingRepository = vedtaksperiodeBehandlingRepositoryMock(),
             )
 
         oppgave.sendForelagteOpplysninger("_", forelagtTidspunkt)
@@ -82,7 +81,6 @@ class SendForelagteOpplysningerOppgaveTest {
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
                 harForelagtSammeVedtaksperiode = harForelagtSammeVedtaksperiodeSjekk,
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
-                vedtaksperiodeBehandlingRepository = vedtaksperiodeBehandlingRepositoryMock(),
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
@@ -106,7 +104,6 @@ class SendForelagteOpplysningerOppgaveTest {
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
                 harForelagtSammeVedtaksperiode = harForelagtSammeVedtaksperiodeSjekk,
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
-                vedtaksperiodeBehandlingRepository = vedtaksperiodeBehandlingRepositoryMock(),
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
@@ -130,7 +127,6 @@ class SendForelagteOpplysningerOppgaveTest {
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
                 harForelagtSammeVedtaksperiode = harForelagtForPersonMedOrgNyligSjekkMock(),
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekk,
-                vedtaksperiodeBehandlingRepository = vedtaksperiodeBehandlingRepositoryMock(),
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
@@ -154,7 +150,6 @@ class SendForelagteOpplysningerOppgaveTest {
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
                 harForelagtSammeVedtaksperiode = harForelagtForPersonMedOrgNyligSjekkMock(),
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
-                vedtaksperiodeBehandlingRepository = vedtaksperiodeBehandlingRepositoryMock(),
             )
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
         bleSendt.shouldBeFalse()
