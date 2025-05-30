@@ -1,5 +1,6 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt.sjekker
 
+import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagtStatus
 import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
 import no.nav.helse.flex.logger
 import org.springframework.stereotype.Component
@@ -11,15 +12,15 @@ class TotaltAntallForelagteOpplysningerSjekk(
     private val log = logger()
 
     fun sjekk(forelagteOpplysninger: List<ForelagteOpplysningerDbRecord>) {
-        val ikkeForelagteOpplysninger = forelagteOpplysninger.filter { it.statusEndret == null }
-        if (ikkeForelagteOpplysninger.size > maxAntallForelagteOpplysninger) {
+        val forelagteOpplysningerSkalForelegges = forelagteOpplysninger.filter { it.status == ForelagtStatus.SKAL_FORELEGGES }
+        if (forelagteOpplysningerSkalForelegges.size > maxAntallForelagteOpplysninger) {
             val message =
                 "Sjekk feilet: For mange forelagte opplysninger skal sendes ut på en gang. " +
-                    "Antall: ${ikkeForelagteOpplysninger.size}"
+                    "Antall: ${forelagteOpplysningerSkalForelegges.size}"
             log.error(message)
             throw RuntimeException(message)
         } else {
-            log.info("Antall forelagte opplysninger som sendes ut på en gang: ${ikkeForelagteOpplysninger.size}")
+            log.info("Antall forelagte opplysninger som sendes ut på en gang: ${forelagteOpplysningerSkalForelegges.size}")
         }
     }
 }

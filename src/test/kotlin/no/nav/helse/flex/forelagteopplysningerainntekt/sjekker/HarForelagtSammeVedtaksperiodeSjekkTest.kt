@@ -2,6 +2,7 @@ package no.nav.helse.flex.forelagteopplysningerainntekt.sjekker
 
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
+import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagtStatus
 import no.nav.helse.flex.forelagteopplysningerainntekt.lagTestForelagteOpplysninger
 import org.amshove.kluent.`should be`
 import org.junit.jupiter.api.Test
@@ -33,7 +34,7 @@ class HarForelagtSammeVedtaksperiodeSjekkTest {
 
     @Test
     fun `feiler om vi har blitt bedt om flere forelegginger på samme vedtaksperiode med forskjellig behandlignsid`() {
-        val testdata = lagTestForelagteOpplysninger(statusEndret = Instant.parse("2024-01-01T00:00:00.00Z"))
+        val testdata = lagTestForelagteOpplysninger(status = ForelagtStatus.FORELAGT)
         val hentAlleForelagteOpplysningerForPerson: HentAlleForelagteOpplysningerForPerson =
             mock {
                 on { hentAlleForelagteOpplysningerFor("_") } doReturn
