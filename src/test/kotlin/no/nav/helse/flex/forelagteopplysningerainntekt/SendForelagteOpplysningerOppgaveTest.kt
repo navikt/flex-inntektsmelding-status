@@ -134,7 +134,7 @@ class SendForelagteOpplysningerOppgaveTest {
     }
 
     @Test
-    fun `burde håndtere forelagt oppplysning som er sendt til behandling utenfor speil`() {
+    fun `burde håndtere forelagt oppplysning som mangler relevant info`() {
         val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
             mock {
                 on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger(statusEndret = null))
