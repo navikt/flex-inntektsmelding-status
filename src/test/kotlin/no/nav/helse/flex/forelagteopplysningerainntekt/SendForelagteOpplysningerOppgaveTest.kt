@@ -5,7 +5,6 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.ForsinkelseFraOpprinnelseTilVarselSjekk
-import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HarForelagtSammeVedtaksperiodeSjekk
 import org.amshove.kluent.`should be false`
 import org.amshove.kluent.`should be true`
 import org.junit.jupiter.api.Test
@@ -14,11 +13,6 @@ import java.time.LocalDate
 import java.util.*
 
 class SendForelagteOpplysningerOppgaveTest {
-    private fun harForelagtForPersonMedOrgNyligSjekkMock(): HarForelagtSammeVedtaksperiodeSjekk =
-        mock<HarForelagtSammeVedtaksperiodeSjekk> {
-            on { sjekk(any(), any(), any()) } doReturn false
-        }
-
     private fun forsinkelseFraOpprinnelseTilVarselSjekkMock(): ForsinkelseFraOpprinnelseTilVarselSjekk =
         mock<ForsinkelseFraOpprinnelseTilVarselSjekk> {
             on { sjekk(any(), any()) } doReturn true
@@ -52,7 +46,6 @@ class SendForelagteOpplysningerOppgaveTest {
                 forelagteOpplysningerRepository = forelagteOpplysningerRepository,
                 hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock(),
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
-                harForelagtSammeVedtaksperiode = harForelagtForPersonMedOrgNyligSjekkMock(),
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
             )
 
@@ -69,44 +62,16 @@ class SendForelagteOpplysningerOppgaveTest {
             mock {
                 on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger())
             }
-        val harForelagtSammeVedtaksperiodeSjekk =
-            mock<HarForelagtSammeVedtaksperiodeSjekk> {
-                on { sjekk(any(), any(), any()) } doReturn false
-            }
         val oppgave =
             SendForelagteOpplysningerOppgave(
                 forelagteOpplysningerRepository = forelagteOpplysningerRepository,
                 hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock(),
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
-                harForelagtSammeVedtaksperiode = harForelagtSammeVedtaksperiodeSjekk,
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
         bleSendt.`should be true`()
-    }
-
-    @Test
-    fun `burde kalle HarForelagtSammeVedtaksperiodeSjekk`() {
-        val forelagteOpplysningerRepository: ForelagteOpplysningerRepository =
-            mock {
-                on { findById(any()) } doReturn Optional.of(lagTestForelagteOpplysninger())
-            }
-        val harForelagtSammeVedtaksperiodeSjekk: HarForelagtSammeVedtaksperiodeSjekk =
-            mock {
-                on { sjekk(any(), any(), any()) } doReturn true
-            }
-        val oppgave =
-            SendForelagteOpplysningerOppgave(
-                forelagteOpplysningerRepository = forelagteOpplysningerRepository,
-                hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock(),
-                opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
-                harForelagtSammeVedtaksperiode = harForelagtSammeVedtaksperiodeSjekk,
-                forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
-            )
-
-        val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
-        bleSendt.`should be false`()
     }
 
     @Test
@@ -124,7 +89,6 @@ class SendForelagteOpplysningerOppgaveTest {
                 forelagteOpplysningerRepository = forelagteOpplysningerRepository,
                 hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock(),
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
-                harForelagtSammeVedtaksperiode = harForelagtForPersonMedOrgNyligSjekkMock(),
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekk,
             )
 
@@ -147,7 +111,6 @@ class SendForelagteOpplysningerOppgaveTest {
                 forelagteOpplysningerRepository = forelagteOpplysningerRepository,
                 hentRelevantInfoTilForelagtOpplysning = hentRelevantInfoTilForelagtOpplysningMock,
                 opprettBrukervarselForForelagteOpplysninger = opprettBrukervarselForForelagteOpplysningerMock(),
-                harForelagtSammeVedtaksperiode = harForelagtForPersonMedOrgNyligSjekkMock(),
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
             )
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
