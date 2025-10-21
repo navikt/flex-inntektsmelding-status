@@ -132,7 +132,7 @@ class ForsinketSaksbehandlingVarslingRevarsel(
         val revarslingsperiode = revarslingsperioder.minByOrNull { it.vedtaksperiode.sisteVarslingstatusTidspunkt!! }
 
         if (revarslingsperiode == null) {
-            log.error("Fant ingen perioder for revarsel for fnr $fnr")
+            log.error("Fant ingen perioder for revarsel for forsinket saksbehandling")
             return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL
         }
 
