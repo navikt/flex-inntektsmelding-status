@@ -51,7 +51,7 @@ import java.net.URI
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-private class PostgreSQLContainer14 : PostgreSQLContainer("postgres:17-alpine")
+private class PostgreSQLContainer14 : PostgreSQLContainer("postgres:14-alpine")
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureObservability
