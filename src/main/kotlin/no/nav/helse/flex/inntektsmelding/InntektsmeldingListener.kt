@@ -22,4 +22,4 @@ class InntektsmeldingListener(
     }
 }
 
-const val INNTEKTSMELDING_TOPIC = "helsearbeidsgiver." + "privat-sykepenger-inntektsmelding"
+const val INNTEKTSMELDING_TOPIC = "helsearbeidsgiver." + "inntektsmelding-bruker"
