@@ -12,6 +12,7 @@ class InntektsmeldingListener(
     @KafkaListener(
         topics = [INNTEKTSMELDING_TOPIC],
         containerFactory = "aivenKafkaListenerContainerFactory",
+        properties = ["auto.offset.reset = earliest"],
     )
     fun listen(
         cr: ConsumerRecord<String, String>,
@@ -22,4 +23,4 @@ class InntektsmeldingListener(
     }
 }
 
-const val INNTEKTSMELDING_TOPIC = "helsearbeidsgiver." + "privat-sykepenger-inntektsmelding"
+const val INNTEKTSMELDING_TOPIC = "helsearbeidsgiver." + "inntektsmelding-bruker"
