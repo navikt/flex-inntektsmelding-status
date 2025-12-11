@@ -86,7 +86,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
     private val meldingKafkaProducer: MeldingKafkaProducer,
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
-    @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
+    @param:Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
 ) {
     val log = logger()
 
