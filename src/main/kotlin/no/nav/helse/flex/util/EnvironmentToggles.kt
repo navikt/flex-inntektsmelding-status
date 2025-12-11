@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class EnvironmentToggles(
-    @Value("\${NAIS_CLUSTER_NAME}") private val naisCluster: String,
+    @param:Value("\${NAIS_CLUSTER_NAME}") private val naisCluster: String,
 ) {
     fun isProduction() = "prod-gcp" == naisCluster
 

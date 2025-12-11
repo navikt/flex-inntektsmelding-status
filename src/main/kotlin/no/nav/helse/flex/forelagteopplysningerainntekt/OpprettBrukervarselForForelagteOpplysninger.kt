@@ -18,7 +18,7 @@ import java.time.LocalDate
 class OpprettBrukervarselForForelagteOpplysninger(
     private val brukervarsel: Brukervarsel,
     private val meldingKafkaProducer: MeldingKafkaProducer,
-    @Value("\${FORELAGTE_OPPLYSNINGER_BASE_URL}") private val forelagteOpplysningerBaseUrl: String,
+    @param:Value("\${FORELAGTE_OPPLYSNINGER_BASE_URL}") private val forelagteOpplysningerBaseUrl: String,
 ) {
     private val log = logger()
 

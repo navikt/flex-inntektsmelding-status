@@ -16,7 +16,7 @@ import java.time.ZoneOffset.UTC
 @Component
 class Brukervarsel(
     private val kafkaProducer: KafkaProducer<String, String>,
-    @Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
+    @param:Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
 ) {
     val log = logger()
 
