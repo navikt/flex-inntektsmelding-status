@@ -22,7 +22,7 @@ repositories {
 }
 
 val testContainersVersion = "2.0.2"
-val logstashLogbackEncoderVersion = "8.1"
+val logstashLogbackEncoderVersion = "9.0"
 val kluentVersion = "1.73"
 val varselKotlinBuilderVersion = "1.1.0"
 val sykepengesoknadKafkaVersion = "2025.11.18-06.24-f860ace9"
