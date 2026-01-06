@@ -1,6 +1,8 @@
 package no.nav.helse.flex.sykepengesoknad
 
 import org.springframework.data.annotation.Id
+import org.springframework.data.jdbc.repository.query.Modifying
+import org.springframework.data.jdbc.repository.query.Query
 import org.springframework.data.repository.CrudRepository
 import org.springframework.stereotype.Repository
 import java.time.Instant
@@ -13,6 +15,10 @@ interface SykepengesoknadRepository : CrudRepository<Sykepengesoknad, String> {
     fun findBySykepengesoknadUuidIn(sykepengesoknadUuid: List<String>): List<Sykepengesoknad>
 
     fun findByFnr(fnr: String): List<Sykepengesoknad>
+
+    @Modifying
+    @Query("DELETE FROM sykepengesoknad WHERE sykepengesoknad_uuid IN (:soknader)")
+    fun deleteAllBySykepengesoknadUuid(soknader: List<String>)
 }
 
 data class Sykepengesoknad(

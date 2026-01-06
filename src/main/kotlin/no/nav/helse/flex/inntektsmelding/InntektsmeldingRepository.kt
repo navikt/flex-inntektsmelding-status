@@ -8,4 +8,8 @@ interface InntektsmeldingRepository : CrudRepository<InntektsmeldingDbRecord, St
     fun existsByInntektsmeldingId(innteksmeldingId: String): Boolean
 
     fun findByFnrIn(fnrs: List<String>): List<InntektsmeldingDbRecord>
+
+    fun findByFnr(string: String): List<InntektsmeldingDbRecord>
+
+    fun deleteByFnr(fnr: String)
 }

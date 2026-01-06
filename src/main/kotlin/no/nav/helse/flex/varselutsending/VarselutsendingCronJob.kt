@@ -25,7 +25,7 @@ class VarselutsendingCronJob(
             log.info("Det er helg, jobben kjøres ikke")
             return emptyMap()
         }
-        if (osloDatetimeNow.hour < 9 || osloDatetimeNow.hour > 15) {
+        if (osloDatetimeNow.hour !in 9..15) {
             log.info("Det er ikke dagtid, jobben kjøres ikke")
             return emptyMap()
         }
