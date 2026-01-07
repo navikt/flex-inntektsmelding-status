@@ -10,6 +10,8 @@ FORELAGTE_OPPLYSNINGER_BASE_URL: https://testurl.no
 
 SEND_FORELAGTE_OPPLYSNINGER_FIXED_DELAY_MINUTES: 1
 
+logging.config: "classpath:logback-test.xml"
+
 spring:
   main.banner-mode: 'off'
   profiles:
@@ -21,13 +23,11 @@ spring:
       minimum-idle: 1
       maximum-pool-size: 3
 
-
 no.nav.security.jwt:
   issuer:
     azureator:
       discoveryurl: http://localhost:${mock-oauth2-server.port}/azureator/.well-known/openid-configuration
       accepted_audience: flex-inntektsmelding-status-client-id
 
-
-logging.config: "classpath:logback-test.xml"
 AZURE_APP_PRE_AUTHORIZED_APPS: "[{\"name\":\"dev-gcp:flex:flex-internal-frontend\",\"clientId\":\"flex-internal-frontend-client-id\"}]"
+NAIS_CLUSTER_NAME: "test"

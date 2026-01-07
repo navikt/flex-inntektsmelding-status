@@ -138,6 +138,8 @@ interface VedtaksperiodeBehandlingSykepengesoknadRepository : CrudRepository<Ved
 @Repository
 interface VedtaksperiodeBehandlingStatusRepository : CrudRepository<VedtaksperiodeBehandlingStatusDbRecord, String> {
     fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingStatusDbRecord>
+
+    fun deleteByVedtaksperiodeBehandlingIdIn(ider: List<String>)
 }
 
 @Table("vedtaksperiode_behandling_status")

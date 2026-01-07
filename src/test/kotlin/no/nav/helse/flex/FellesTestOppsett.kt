@@ -17,6 +17,8 @@ import no.nav.helse.flex.kafka.*
 import no.nav.helse.flex.organisasjon.OrganisasjonRepository
 import no.nav.helse.flex.sykepengesoknad.SykepengesoknadRepository
 import no.nav.helse.flex.sykepengesoknad.kafka.SykepengesoknadDTO
+import no.nav.helse.flex.testdata.TESTDATA_RESET_TOPIC
+import no.nav.helse.flex.testdata.TestdataResetService
 import no.nav.helse.flex.varselutsending.VarselutsendingCronJob
 import no.nav.helse.flex.vedtaksperiodebehandling.*
 import no.nav.inntektsmeldingkontrakt.Inntektsmelding
@@ -105,10 +107,16 @@ abstract class FellesTestOppsett {
     lateinit var varslingConsumer: Consumer<String, String>
 
     @Autowired
+    lateinit var testdataResetConsumer: Consumer<String, String>
+
+    @Autowired
     lateinit var kafkaProducer: Producer<String, String>
 
     @Autowired
     lateinit var hentAltForPerson: HentAltForPerson
+
+    @Autowired
+    lateinit var testdataService: TestdataResetService
 
     @Autowired
     lateinit var auditlogKafkaConsumer: Consumer<String, String>
@@ -148,6 +156,8 @@ abstract class FellesTestOppsett {
         meldingKafkaConsumer.hentProduserteRecords().shouldBeEmpty()
         auditlogKafkaConsumer.subscribeHvisIkkeSubscribed(AUDIT_TOPIC)
         auditlogKafkaConsumer.hentProduserteRecords().shouldBeEmpty()
+        testdataResetConsumer.subscribeHvisIkkeSubscribed(TESTDATA_RESET_TOPIC)
+        testdataResetConsumer.hentProduserteRecords().shouldBeEmpty()
     }
 
     @BeforeAll

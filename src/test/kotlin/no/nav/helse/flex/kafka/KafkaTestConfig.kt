@@ -29,6 +29,14 @@ class KafkaTestConfig(
         ).createConsumer()
 
     @Bean
+    fun testdataResetConsumer(): Consumer<String, String> =
+        DefaultKafkaConsumerFactory(
+            testConsumerProps("testdata-reset-consumer"),
+            StringDeserializer(),
+            StringDeserializer(),
+        ).createConsumer()
+
+    @Bean
     fun varslingConsumer(): Consumer<String, String> =
         DefaultKafkaConsumerFactory(
             testConsumerProps("varsling-consumer"),
