@@ -3,8 +3,8 @@ environment: prod
 replicas_min: 1
 replicas_max: 1
 cpu: 400m
-memory: 1024Mi
-db_tier: db-custom-1-3840
+memory: 1536Mi
+db_tier: db-custom-2-7680
 db_highAvailability: true
 db_pointInTimeRecovery: true
 db_tempFileLimit: 3072000
