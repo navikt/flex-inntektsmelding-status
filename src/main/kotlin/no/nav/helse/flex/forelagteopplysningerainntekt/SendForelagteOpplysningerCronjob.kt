@@ -29,6 +29,7 @@ class SendForelagteOpplysningerCronjob(
         timeUnit = TimeUnit.MINUTES,
     )
     fun run(): SendForelagteOpplysningerCronjobResultat {
+        log.info("Sjekker om ${this::class.simpleName} skal kjøre")
         if (!unleashToggles.forelagteOpplysninger()) {
             log.info("Feature toggle er skudd av for forelagte opplysninger")
             return SendForelagteOpplysningerCronjobResultat()
