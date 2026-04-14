@@ -30,6 +30,9 @@ val inntektsmeldingKontraktVersion = "2025.04.04-01-56-365d3"
 val tokenSupportVersion = "5.0.39"
 val mockitoKotlinVersion = "2.2.0"
 val unleashVersion = "11.2.1"
+val jacksonVersion = "2.20.2"
+
+extra["jackson.version"] = jacksonVersion
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
