@@ -11,6 +11,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import java.time.Instant
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 @SpringBootTest(classes = [SchedulerConfig::class, ScheduledTasks::class])
@@ -53,12 +55,33 @@ class SchedulerConfigTest {
     }
 
     @Test
-    fun `flere oppgaver kjorer samtidig pa samme planlegger`() {
-        val antallOppgaver = 2
-        val timeoutMillis = 800L
+    fun `lang jobb blokkerer ikke kort jobb`() {
+        val scheduler = oppgavePlanlegger as ThreadPoolTaskScheduler
+        val kortJobbUtfort = AtomicBoolean(false)
+        val langJobbStartet = AtomicBoolean(false)
+        val slippLangJobbLos = CountDownLatch(1)
 
-        planlagteOppgaver.forberedKonkurrerendeOppgaver(antallOppgaver)
-        planlagteOppgaver.ventPaAlleKonkurrerendeOppgaver(timeoutMillis)
-        planlagteOppgaver.alleKonkurrerendeOppgaverUtfort().`should be true`()
+        // Simulerer VarselutsendingCronJob som holder en tråd opptatt lenge
+        scheduler.schedule(
+            {
+                langJobbStartet.set(true)
+                slippLangJobbLos.await(5, TimeUnit.SECONDS)
+            },
+            Instant.now(),
+        )
+
+        await().atMost(Durations.ONE_SECOND).until { langJobbStartet.get() }
+
+        // Simulerer SendForelagteOpplysningerCronjob som skal kjøre mens lang jobb pågår
+        scheduler.schedule(
+            { kortJobbUtfort.set(true) },
+            Instant.now(),
+        )
+
+        // Kort jobb skal fullføres på den andre tråden mens lang jobb fortsatt kjører
+        await().atMost(Durations.ONE_SECOND).until { kortJobbUtfort.get() }
+        kortJobbUtfort.get().`should be true`()
+
+        slippLangJobbLos.countDown()
     }
 }
