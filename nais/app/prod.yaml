@@ -7,7 +7,7 @@ memory: 2048Mi
 db_tier: db-custom-2-7680
 db_highAvailability: true
 db_pointInTimeRecovery: true
-db_tempFileLimit: 3072000
+db_tempFileLimit: 6144000
 azureTenant: nav.no
 external-host:
   - flex-unleash-api.nav.cloud.nais.io
