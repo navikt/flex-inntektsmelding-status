@@ -12,7 +12,6 @@ import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import java.time.Instant
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 @SpringBootTest(classes = [SchedulerConfig::class, ScheduledTasks::class])
@@ -61,27 +60,29 @@ class SchedulerConfigTest {
         val langJobbStartet = AtomicBoolean(false)
         val slippLangJobbLos = CountDownLatch(1)
 
-        // Simulerer VarselutsendingCronJob som holder en tråd opptatt lenge
-        scheduler.schedule(
-            {
-                langJobbStartet.set(true)
-                slippLangJobbLos.await(5, TimeUnit.SECONDS)
-            },
-            Instant.now(),
-        )
+        try {
+            // Simulerer VarselutsendingCronJob som holder en tråd opptatt lenge
+            scheduler.schedule(
+                {
+                    langJobbStartet.set(true)
+                    slippLangJobbLos.await()
+                },
+                Instant.now(),
+            )
 
-        await().atMost(Durations.ONE_SECOND).until { langJobbStartet.get() }
+            await().atMost(Durations.ONE_SECOND).until { langJobbStartet.get() }
 
-        // Simulerer SendForelagteOpplysningerCronjob som skal kjøre mens lang jobb pågår
-        scheduler.schedule(
-            { kortJobbUtfort.set(true) },
-            Instant.now(),
-        )
+            // Simulerer SendForelagteOpplysningerCronjob som skal kjøre mens lang jobb pågår
+            scheduler.schedule(
+                { kortJobbUtfort.set(true) },
+                Instant.now(),
+            )
 
-        // Kort jobb skal fullføres på den andre tråden mens lang jobb fortsatt kjører
-        await().atMost(Durations.ONE_SECOND).until { kortJobbUtfort.get() }
-        kortJobbUtfort.get().`should be true`()
-
-        slippLangJobbLos.countDown()
+            // Kort jobb skal fullføres på den andre tråden mens lang jobb fortsatt kjører
+            await().atMost(Durations.ONE_SECOND).until { kortJobbUtfort.get() }
+            kortJobbUtfort.get().`should be true`()
+        } finally {
+            slippLangJobbLos.countDown()
+        }
     }
 }
