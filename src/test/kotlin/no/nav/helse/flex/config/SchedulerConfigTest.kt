@@ -10,12 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
-import org.springframework.test.annotation.DirtiesContext
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 
 @SpringBootTest(classes = [SchedulerConfig::class, ScheduledTasks::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class SchedulerConfigTest {
     @Autowired
     private lateinit var oppgavePlanlegger: TaskScheduler
@@ -29,7 +27,7 @@ class SchedulerConfigTest {
     }
 
     @Test
-    fun `umiddelbar oppgave pa planlegger utfores`() {
+    fun `umiddelbar oppgave på planlegger utfores`() {
         val scheduler = oppgavePlanlegger as ThreadPoolTaskScheduler
         val oppgaveUtfort = AtomicBoolean(false)
 
