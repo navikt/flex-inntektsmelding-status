@@ -69,6 +69,10 @@ spec:
             value: "on"
           - name: temp_file_limit
             value: "{{db_tempFileLimit}}"
+        {{#each db_flags}}
+          - name: {{@key}}
+            value: "{{this}}"
+        {{/each}}
   accessPolicy:
     inbound:
       rules:
