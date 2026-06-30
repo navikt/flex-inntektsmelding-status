@@ -106,7 +106,7 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
 
         val denForrigeVarselstatusen =
             vedtaksperiodeBehandlingStatusRepository
-                .findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))
+                .findByVedtaksperiodeBehandlingIdIn(listOf(status.id))
                 .first { it.status == VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE }
 
         val varslingRecords = varslingConsumer.ventPåRecords(2)

@@ -166,7 +166,7 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
                 .ventPåRecords(1)
                 .first()
         doneBrukervarsel.key() shouldBeEqualTo statusManglerIm.brukervarselId!!
-        doneBrukervarsel.value().tilInaktiverVarselInstance().varselId shouldBeEqualTo statusManglerIm.brukervarselId!!
+        doneBrukervarsel.value().tilInaktiverVarselInstance().varselId shouldBeEqualTo statusManglerIm.brukervarselId
 
         val cr = meldingKafkaConsumer.ventPåRecords(1).first()
         val doneDittSykefravaer: MeldingKafkaDto = cr.value().let { objectMapper.readValue(it) }
