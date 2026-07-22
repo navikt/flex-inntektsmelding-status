@@ -1,6 +1,7 @@
 package no.nav.helse.flex.vedtaksperiodebehandling
 
 import org.springframework.data.annotation.Id
+import org.springframework.data.jdbc.repository.query.Modifying
 import org.springframework.data.jdbc.repository.query.Query
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.CrudRepository
@@ -140,6 +141,28 @@ interface VedtaksperiodeBehandlingStatusRepository : CrudRepository<Vedtaksperio
     fun findByVedtaksperiodeBehandlingIdIn(ider: List<String>): List<VedtaksperiodeBehandlingStatusDbRecord>
 
     fun deleteByVedtaksperiodeBehandlingIdIn(ider: List<String>)
+
+    @Modifying
+    @Query(
+        """
+        DELETE FROM vedtaksperiode_behandling_status
+        WHERE id IN (
+            SELECT id FROM vedtaksperiode_behandling_status
+            WHERE status IN (
+                'OPPRETTET',
+                'VENTER_PÅ_ARBEIDSGIVER',
+                'VENTER_PÅ_SAKSBEHANDLER',
+                'VENTER_PÅ_ANNEN_PERIODE',
+                'FERDIG',
+                'BEHANDLES_UTENFOR_SPEIL'
+            )
+            LIMIT :antall
+        )
+        """,
+    )
+    fun slettSpeilstatuserBatch(
+        @Param("antall") antall: Int,
+    ): Int
 }
 
 @Table("vedtaksperiode_behandling_status")
