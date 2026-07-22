@@ -30,8 +30,22 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
 ) {
     private val log = logger()
 
-    private val maxAntallUtsendelsePerKjoring = if (environmentToggles.isProduction()) 7000 else 4
-    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 8000 else 7
+    private val maxAntallUtsendelsePerKjoring =
+        if (environmentToggles.isProduction()) {
+            7000
+        } else if (environmentToggles.isDevGcp()) {
+            500
+        } else {
+            4
+        }
+    private val funksjonellGrenseForAntallVarsler =
+        if (environmentToggles.isProduction()) {
+            8000
+        } else if (environmentToggles.isDevGcp()) {
+            600
+        } else {
+            7
+        }
 
     fun hentOgProsseser(now: Instant): Map<CronJobStatus, Int> {
         val sendtFoer = now.minus(15, DAYS)
