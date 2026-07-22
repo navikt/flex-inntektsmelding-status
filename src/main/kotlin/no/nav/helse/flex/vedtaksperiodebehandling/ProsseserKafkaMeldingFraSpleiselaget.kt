@@ -47,22 +47,30 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                 }
             }
         }
+
+        val sisteSpleisstatusTidspunkt = kafkaDto.tidspunkt.toInstant()
+        val sisteSpleisstatus = kafkaDto.status.tilStatusVerdi()
+        val now = Instant.now()
+
         if (vedtaksperiodeBehandling == null) {
             val vedtaksperiodeBehandlingDbRecord =
                 vedtaksperiodeBehandlingRepository.save(
                     VedtaksperiodeBehandlingDbRecord(
                         behandlingId = kafkaDto.behandlingId,
                         vedtaksperiodeId = kafkaDto.vedtaksperiodeId,
-                        opprettetDatabase = Instant.now(),
-                        oppdatertDatabase = Instant.now(),
-                        sisteSpleisstatus = kafkaDto.status.tilStatusVerdi(),
-                        sisteSpleisstatusTidspunkt = kafkaDto.tidspunkt.toInstant(),
+                        opprettetDatabase = now,
+                        oppdatertDatabase = now,
+                        sisteSpleisstatus = sisteSpleisstatus,
+                        sisteSpleisstatusTidspunkt = sisteSpleisstatusTidspunkt,
                         sisteVarslingstatus = null,
                         sisteVarslingstatusTidspunkt = null,
                     ),
                 )
 
             lagreSøknadIder(vedtaksperiodeBehandlingDbRecord)
+            log.info(
+                "Lagret ny vedtaksperiodeBehandling vedtaksperiodeId ${kafkaDto.vedtaksperiodeId} med status $sisteSpleisstatus og tidspunkt $sisteSpleisstatusTidspunkt",
+            )
             return
         }
 
@@ -90,11 +98,17 @@ class ProsseserKafkaMeldingFraSpleiselaget(
         val oppdatertStatusVedtaksperiodeBehandling =
             vedtaksperiodeBehandlingRepository.save(
                 vedtaksperiodeBehandling.copy(
-                    sisteSpleisstatus = kafkaDto.status.tilStatusVerdi(),
-                    sisteSpleisstatusTidspunkt = kafkaDto.tidspunkt.toInstant(),
-                    oppdatertDatabase = Instant.now(),
+                    sisteSpleisstatus = sisteSpleisstatus,
+                    sisteSpleisstatusTidspunkt = sisteSpleisstatusTidspunkt,
+                    oppdatertDatabase = now,
                 ),
             )
+
+        if (vedtaksperiodeBehandling.sisteSpleisstatus != sisteSpleisstatus) {
+            log.info(
+                "Oppdatert vedtaksperiodeBehandling vedtaksperiodeId ${kafkaDto.vedtaksperiodeId} med status $sisteSpleisstatus og tidspunkt $sisteSpleisstatusTidspunkt",
+            )
+        }
 
         when (kafkaDto.status) {
             Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER -> {
