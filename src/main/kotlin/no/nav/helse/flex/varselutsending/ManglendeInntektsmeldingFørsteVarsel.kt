@@ -30,8 +30,22 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
 ) {
     private val log = logger()
 
-    private val maxAntallUtsendelsePerKjoring = if (environmentToggles.isProduction()) 7000 else 4
-    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 8000 else 7
+    private val maxAntallUtsendelsePerKjoring =
+        if (environmentToggles.isProduction()) {
+            7000
+        } else if (environmentToggles.isDevGcp()) {
+            500
+        } else {
+            4
+        }
+    private val funksjonellGrenseForAntallVarsler =
+        if (environmentToggles.isProduction()) {
+            8000
+        } else if (environmentToggles.isDevGcp()) {
+            600
+        } else {
+            7
+        }
 
     fun hentOgProsseser(now: Instant): Map<CronJobStatus, Int> {
         val sendtFoer = now.minus(15, DAYS)
@@ -131,7 +145,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
                 val soknaden = perioden.soknader.sortedBy { it.sendt }.last()
 
                 val randomGenerator =
-                    SeededUuid(perioden.statuser.first { it.status == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }.id!!)
+                    SeededUuid(perioden.vedtaksperiode.id!!, StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE)
 
                 val brukervarselId = randomGenerator.nextUUID()
 
@@ -178,7 +192,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
 
                 vedtaksperiodeBehandlingStatusRepository.save(
                     VedtaksperiodeBehandlingStatusDbRecord(
-                        vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
+                        vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id,
                         opprettetDatabase = now,
                         tidspunkt = now,
                         status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,

@@ -11,7 +11,6 @@ import java.time.Instant
 @Component
 class ProsseserKafkaMeldingFraSpleiselaget(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
-    private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
     private val vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository,
     private val sykepengesoknadRepository: SykepengesoknadRepository,
     private val lockRepository: LockRepository,
@@ -48,34 +47,30 @@ class ProsseserKafkaMeldingFraSpleiselaget(
                 }
             }
         }
+
+        val sisteSpleisstatusTidspunkt = kafkaDto.tidspunkt.toInstant()
+        val sisteSpleisstatus = kafkaDto.status.tilStatusVerdi()
+        val now = Instant.now()
+
         if (vedtaksperiodeBehandling == null) {
             val vedtaksperiodeBehandlingDbRecord =
                 vedtaksperiodeBehandlingRepository.save(
                     VedtaksperiodeBehandlingDbRecord(
                         behandlingId = kafkaDto.behandlingId,
                         vedtaksperiodeId = kafkaDto.vedtaksperiodeId,
-                        opprettetDatabase = Instant.now(),
-                        oppdatertDatabase = Instant.now(),
-                        sisteSpleisstatus = kafkaDto.status.tilStatusVerdi(),
-                        sisteSpleisstatusTidspunkt = kafkaDto.tidspunkt.toInstant(),
+                        opprettetDatabase = now,
+                        oppdatertDatabase = now,
+                        sisteSpleisstatus = sisteSpleisstatus,
+                        sisteSpleisstatusTidspunkt = sisteSpleisstatusTidspunkt,
                         sisteVarslingstatus = null,
                         sisteVarslingstatusTidspunkt = null,
                     ),
                 )
 
             lagreSøknadIder(vedtaksperiodeBehandlingDbRecord)
-
-            vedtaksperiodeBehandlingStatusRepository.save(
-                VedtaksperiodeBehandlingStatusDbRecord(
-                    vedtaksperiodeBehandlingId = vedtaksperiodeBehandlingDbRecord.id!!,
-                    opprettetDatabase = Instant.now(),
-                    tidspunkt = kafkaDto.tidspunkt.toInstant(),
-                    status = kafkaDto.status.tilStatusVerdi(),
-                    dittSykefravaerMeldingId = null,
-                    brukervarselId = null,
-                ),
+            log.info(
+                "Lagret ny vedtaksperiodeBehandling vedtaksperiodeId ${kafkaDto.vedtaksperiodeId} med status $sisteSpleisstatus og tidspunkt $sisteSpleisstatusTidspunkt",
             )
-
             return
         }
 
@@ -93,25 +88,6 @@ class ProsseserKafkaMeldingFraSpleiselaget(
         }
         lagreSøknadIder(vedtaksperiodeBehandling)
 
-        fun oppdaterdatabaseMedSisteStatus(): VedtaksperiodeBehandlingDbRecord {
-            vedtaksperiodeBehandlingStatusRepository.save(
-                VedtaksperiodeBehandlingStatusDbRecord(
-                    vedtaksperiodeBehandlingId = vedtaksperiodeBehandling.id,
-                    opprettetDatabase = Instant.now(),
-                    tidspunkt = kafkaDto.tidspunkt.toInstant(),
-                    status = kafkaDto.status.tilStatusVerdi(),
-                    dittSykefravaerMeldingId = null,
-                    brukervarselId = null,
-                ),
-            )
-            return vedtaksperiodeBehandlingRepository.save(
-                vedtaksperiodeBehandling.copy(
-                    sisteSpleisstatus = kafkaDto.status.tilStatusVerdi(),
-                    sisteSpleisstatusTidspunkt = kafkaDto.tidspunkt.toInstant(),
-                    oppdatertDatabase = Instant.now(),
-                ),
-            )
-        }
         if (kafkaDto.status == Behandlingstatustype.OPPRETTET) {
             log.warn(
                 "Skal ikke motta status OPPRETTET for vedtaksperiodeId ${kafkaDto.vedtaksperiodeId} Den skal allerede være opprettet",
@@ -119,7 +95,20 @@ class ProsseserKafkaMeldingFraSpleiselaget(
             return
         }
 
-        val oppdatertStatusVedtaksperiodeBehandling = oppdaterdatabaseMedSisteStatus()
+        val oppdatertStatusVedtaksperiodeBehandling =
+            vedtaksperiodeBehandlingRepository.save(
+                vedtaksperiodeBehandling.copy(
+                    sisteSpleisstatus = sisteSpleisstatus,
+                    sisteSpleisstatusTidspunkt = sisteSpleisstatusTidspunkt,
+                    oppdatertDatabase = now,
+                ),
+            )
+
+        if (vedtaksperiodeBehandling.sisteSpleisstatus != sisteSpleisstatus) {
+            log.info(
+                "Oppdatert vedtaksperiodeBehandling vedtaksperiodeId ${kafkaDto.vedtaksperiodeId} med status $sisteSpleisstatus og tidspunkt $sisteSpleisstatusTidspunkt",
+            )
+        }
 
         when (kafkaDto.status) {
             Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER -> {

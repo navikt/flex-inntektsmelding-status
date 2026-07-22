@@ -33,8 +33,22 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
     environmentToggles: EnvironmentToggles,
 ) {
     private val log = logger()
-    private val varselGrense = if (environmentToggles.isProduction()) 120 else 4
-    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isProduction()) 2000 else 7
+    private val varselGrense =
+        if (environmentToggles.isProduction()) {
+            120
+        } else if (environmentToggles.isDevGcp()) {
+            500
+        } else {
+            4
+        }
+    private val funksjonellGrenseForAntallVarsler =
+        if (environmentToggles.isProduction()) {
+            2000
+        } else if (environmentToggles.isDevGcp()) {
+            600
+        } else {
+            7
+        }
 
     fun hentOgProsseser(now: Instant): Map<CronJobStatus, Int> {
         val sendtFoer = now.atOffset(ZoneOffset.UTC).minusDays(56).toInstant()
@@ -162,7 +176,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
             return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL
         }
         var harSendtEtVarsel = false
-        forstePerArbeidsgiver.forEachIndexed { idx, perioden ->
+        forstePerArbeidsgiver.forEachIndexed { _, perioden ->
             val soknaden = perioden.soknader.sortedBy { it.sendt }.last()
 
             if (harSendtEtVarsel) {
@@ -190,7 +204,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
             }
 
             val randomGenerator =
-                SeededUuid(perioden.statuser.first { it.status == VENTER_PÅ_SAKSBEHANDLER }.id!!)
+                SeededUuid(perioden.vedtaksperiode.id!!, VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE)
             val inntektsmeldinger = inntektesmeldingRepository.findByFnrIn(listOf(fnr))
 
             val inntektsmelding =
@@ -207,7 +221,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                 if (!dryRun) {
                     vedtaksperiodeBehandlingStatusRepository.save(
                         VedtaksperiodeBehandlingStatusDbRecord(
-                            vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
+                            vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id,
                             opprettetDatabase = now,
                             tidspunkt = now,
                             status = VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
@@ -262,7 +276,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
 
                 vedtaksperiodeBehandlingStatusRepository.save(
                     VedtaksperiodeBehandlingStatusDbRecord(
-                        vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
+                        vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id,
                         opprettetDatabase = now,
                         tidspunkt = now,
                         status = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,

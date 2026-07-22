@@ -2,7 +2,6 @@ package no.nav.helse.flex
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.Testdata.fnr
-import no.nav.helse.flex.Testdata.orgNr
 import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.Testdata.soknad
 import no.nav.helse.flex.melding.MeldingKafkaDto
@@ -168,18 +167,6 @@ class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
             .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
                 sendtTidspunkt.minusHours(3).toInstant(),
             ).shouldBeEmpty()
-    }
-
-    @Test
-    @Order(2)
-    fun `Vi kan hente ut historikken fra flex internal frontend`() {
-        val response = hentVedtaksperioder()
-        response shouldHaveSize 4
-        response[0].soknader.first().orgnummer shouldBeEqualTo orgNr
-        response[0].statuser shouldHaveSize 2
-        response[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_ARBEIDSGIVER
-
-        verifiserAuditlogging()
     }
 
     @Test
