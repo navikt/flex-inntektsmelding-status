@@ -142,7 +142,7 @@ interface VedtaksperiodeBehandlingStatusRepository : CrudRepository<Vedtaksperio
     fun deleteByVedtaksperiodeBehandlingIdIn(ider: List<String>)
 }
 
-@Table("vedtaksperiode_behandling_status")
+@Table("vedtaksperiode_behandling_status_v2")
 data class VedtaksperiodeBehandlingStatusDbRecord(
     @Id
     val id: String? = null,

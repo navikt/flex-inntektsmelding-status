@@ -254,7 +254,7 @@ abstract class FellesTestOppsett {
         jdbcTemplate.update("DELETE FROM organisasjon")
         jdbcTemplate.update("DELETE FROM sykepengesoknad")
         jdbcTemplate.update("DELETE FROM inntektsmelding")
-        jdbcTemplate.update("DELETE FROM vedtaksperiode_behandling_status")
+        jdbcTemplate.update("DELETE FROM vedtaksperiode_behandling_status_v2")
         jdbcTemplate.update("DELETE FROM vedtaksperiode_behandling_sykepengesoknad")
         jdbcTemplate.update("DELETE FROM vedtaksperiode_behandling")
         jdbcTemplate.update("DELETE FROM FORELAGTE_OPPLYSNINGER_AINNTEKT")
