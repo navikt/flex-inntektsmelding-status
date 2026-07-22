@@ -124,7 +124,7 @@ class ManglendeInntektsmeldingAndreVarsel(
                 meldingOgBrukervarselDone.doneSendteManglerImVarsler(perioden.vedtaksperiode, fnr)
 
                 val randomGenerator =
-                    SeededUuid(perioden.statuser.first { it.status == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }.id!!, 2)
+                    SeededUuid(perioden.vedtaksperiode.id!!, StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE)
 
                 val brukervarselId = randomGenerator.nextUUID()
 
@@ -169,7 +169,7 @@ class ManglendeInntektsmeldingAndreVarsel(
 
                 vedtaksperiodeBehandlingStatusRepository.save(
                     VedtaksperiodeBehandlingStatusDbRecord(
-                        vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id!!,
+                        vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id,
                         opprettetDatabase = now,
                         tidspunkt = now,
                         status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,

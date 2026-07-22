@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.DAYS
-import kotlin.collections.last
 
 @Component
 class ForsinketSaksbehandlingRevarselFinnPersoner(
@@ -137,7 +136,13 @@ class ForsinketSaksbehandlingVarslingRevarsel(
         }
 
         if (!dryRun) {
-            val randomGenerator = SeededUuid(revarslingsperiode.statuser.maxByOrNull { it.tidspunkt }!!.id!!)
+            val rundeNr = revarslingsperiode.statuser.count { it.status == REVARSLET_VENTER_PÅ_SAKSBEHANDLER }
+            val randomGenerator =
+                SeededUuid(
+                    revarslingsperiode.vedtaksperiode.id!!,
+                    REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
+                    rundeNr,
+                )
             meldingOgBrukervarselDone.doneForsinketSbVarsel(revarslingsperiode.vedtaksperiode, fnr)
             val brukervarselId = randomGenerator.nextUUID()
 
@@ -145,11 +150,6 @@ class ForsinketSaksbehandlingVarslingRevarsel(
                 "Revarsler forsinket saksbehandling til vedtaksperiode ${revarslingsperiode.vedtaksperiode.vedtaksperiodeId}",
             )
 
-            val startSyketilfelle =
-                revarslingsperiode.soknader
-                    .sortedBy { it.sendt }
-                    .last()
-                    .startSyketilfelle
             val varselTekst = skapRevarselForsinketSaksbehandlingTekst()
             val synligFremTil = OffsetDateTime.now().plusMonths(4).toInstant()
 
@@ -180,7 +180,7 @@ class ForsinketSaksbehandlingVarslingRevarsel(
 
             vedtaksperiodeBehandlingStatusRepository.save(
                 VedtaksperiodeBehandlingStatusDbRecord(
-                    vedtaksperiodeBehandlingId = revarslingsperiode.vedtaksperiode.id!!,
+                    vedtaksperiodeBehandlingId = revarslingsperiode.vedtaksperiode.id,
                     opprettetDatabase = now,
                     tidspunkt = now,
                     status = REVARSLET_VENTER_PÅ_SAKSBEHANDLER,

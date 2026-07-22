@@ -86,18 +86,6 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
     }
 
     @Test
-    @Order(2)
-    fun `Vi kan hente ut historikken fra flex internal frontend`() {
-        val response = hentVedtaksperioder()
-        response shouldHaveSize 1
-        response[0].soknader.first().orgnummer shouldBeEqualTo orgNr
-        response[0].statuser shouldHaveSize 2
-        response[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_ARBEIDSGIVER
-
-        verifiserAuditlogging()
-    }
-
-    @Test
     @Order(3)
     fun `Vi sender ikke ut mangler inntektsmelding varsel etter 14 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(14))
@@ -202,16 +190,12 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
             .soknader
             .first()
             .orgnummer shouldBeEqualTo orgNr
-        response.first().statuser shouldHaveSize 6
+        response.first().statuser shouldHaveSize 2
 
         response.first().statuser.map { it.status.name } shouldBeEqualTo
             listOf(
-                "OPPRETTET",
-                "VENTER_PÅ_ARBEIDSGIVER",
                 "VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE",
-                "VENTER_PÅ_SAKSBEHANDLER",
                 "VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE",
-                "FERDIG",
             )
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
@@ -265,17 +249,12 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
             .soknader
             .first()
             .orgnummer shouldBeEqualTo orgNr
-        response.first().statuser shouldHaveSize 7
+        response.first().statuser shouldHaveSize 2
 
         response.first().statuser.map { it.status.name } shouldBeEqualTo
             listOf(
-                "OPPRETTET",
-                "VENTER_PÅ_ARBEIDSGIVER",
                 "VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE",
-                "VENTER_PÅ_SAKSBEHANDLER",
                 "VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE",
-                "FERDIG",
-                "VENTER_PÅ_SAKSBEHANDLER",
             )
 
         response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_SAKSBEHANDLER

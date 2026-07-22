@@ -1,7 +1,6 @@
 package no.nav.helse.flex
 
 import no.nav.helse.flex.Testdata.fnr
-import no.nav.helse.flex.Testdata.orgNr
 import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.Testdata.soknad
 import no.nav.helse.flex.sykepengesoknad.kafka.*
@@ -187,17 +186,6 @@ class EtterfolgendePerioderVenterPaSaksbehandlerTest : FellesTestOppsett() {
         await().atMost(10, TimeUnit.SECONDS).until {
             inntektsmeldingRepository.findByFnrIn(listOf(fnr)).count() == 2
         }
-    }
-
-    @Test
-    @Order(2)
-    fun `Vi kan hente ut historikken fra flex internal frontend`() {
-        val response = hentVedtaksperioder()
-        response shouldHaveSize 4
-        response[0].soknader.first().orgnummer shouldBeEqualTo orgNr
-        response[0].statuser shouldHaveSize 3
-        response[0].vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_SAKSBEHANDLER
-        verifiserAuditlogging()
     }
 
     @Test

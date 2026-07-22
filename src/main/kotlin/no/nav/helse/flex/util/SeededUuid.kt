@@ -1,20 +1,20 @@
 package no.nav.helse.flex.util
 
+import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
 import java.util.*
 import kotlin.random.Random
 
 class SeededUuid(
-    seedString: String,
-    intitialSkips: Int = 0,
+    uuid: String,
+    varselstatus: StatusVerdi,
+    antall: Int = 0,
 ) {
     val randomGenerator: Random
 
     init {
-        val seed = UUID.fromString(seedString)
+        val navn = "$uuid|${varselstatus.name}|$antall"
+        val seed = UUID.nameUUIDFromBytes(navn.toByteArray())
         randomGenerator = Random(seed.mostSignificantBits xor seed.leastSignificantBits)
-        repeat(intitialSkips) {
-            nextUUID()
-        }
     }
 
     fun nextUUID(): String {

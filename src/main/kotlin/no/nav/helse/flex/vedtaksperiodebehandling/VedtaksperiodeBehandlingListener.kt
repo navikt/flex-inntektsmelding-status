@@ -10,7 +10,7 @@ import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 
 @Component
-class VedtaksperiodeBehandlingConsumer(
+class VedtaksperiodeBehandlingListener(
     private val prosseserKafkaMeldingFraSpleiselaget: ProsseserKafkaMeldingFraSpleiselaget,
 ) {
     val log = logger()
