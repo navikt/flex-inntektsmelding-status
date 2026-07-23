@@ -10,4 +10,6 @@ class EnvironmentToggles(
     fun isProduction() = "prod-gcp" == naisCluster
 
     fun isDevGcp() = "dev-gcp" == naisCluster
+
+    fun isNais() = isProduction() || isDevGcp()
 }
