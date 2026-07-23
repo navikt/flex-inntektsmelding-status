@@ -20,7 +20,6 @@ class VedtaksperiodeBehandlingListener(
         containerFactory = "aivenKafkaListenerContainerFactory",
         id = "flex-inntektsmelding-status-vedtaksperiode-behandling",
         idIsGroup = false,
-        autoStartup = "\${SIS_LISTENER_ENABLED:true}",
     )
     fun listen(
         cr: ConsumerRecord<String, String>,

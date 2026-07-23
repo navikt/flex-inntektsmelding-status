@@ -33,22 +33,8 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
     environmentToggles: EnvironmentToggles,
 ) {
     private val log = logger()
-    private val varselGrense =
-        if (environmentToggles.isProduction()) {
-            120
-        } else if (environmentToggles.isDevGcp()) {
-            500
-        } else {
-            4
-        }
-    private val funksjonellGrenseForAntallVarsler =
-        if (environmentToggles.isProduction()) {
-            2000
-        } else if (environmentToggles.isDevGcp()) {
-            600
-        } else {
-            7
-        }
+    private val maxAntallUtsendelsePerKjoring = if (environmentToggles.isNais()) 120 else 4
+    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isNais()) 2000 else 7
 
     fun hentOgProsseser(now: Instant): Map<CronJobStatus, Int> {
         val sendtFoer = now.atOffset(ZoneOffset.UTC).minusDays(56).toInstant()
@@ -85,7 +71,7 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
                 }
 
             val antallSendteVarsler = returMap[CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING]
-            if (antallSendteVarsler != null && antallSendteVarsler >= varselGrense) {
+            if (antallSendteVarsler != null && antallSendteVarsler >= maxAntallUtsendelsePerKjoring) {
                 returMap[CronJobStatus.THROTTLET_FØRSTE_FORSINKER_SAKSBEHANDLING_VARSEL] = fnrListe.size - idx - 1
                 return returMap
             }
