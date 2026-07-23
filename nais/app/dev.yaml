@@ -17,3 +17,4 @@ env:
   FORELAGTE_OPPLYSNINGER_BASE_URL: https://www.ekstern.dev.nav.no/syk/sykefravaer/beskjed
   KAFKA_AUTO_OFFSET_RESET: earliest
   SEND_FORELAGTE_OPPLYSNINGER_FIXED_DELAY_MINUTES: 1
+  SIS_LISTENER_ENABLED: "false"
