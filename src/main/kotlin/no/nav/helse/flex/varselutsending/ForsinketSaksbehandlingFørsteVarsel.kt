@@ -11,6 +11,7 @@ import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.util.increment
+import no.nav.helse.flex.util.ventPaAlle
 import no.nav.helse.flex.varseltekst.SAKSBEHANDLINGSTID_URL
 import no.nav.helse.flex.varseltekst.skapForsinketSaksbehandling56Tekst
 import no.nav.helse.flex.vedtaksperiodebehandling.HentAltForPerson
@@ -18,6 +19,7 @@ import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusDbRecord
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusRepository
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -25,6 +27,8 @@ import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit.DAYS
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicInteger
 
 @Component
 class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
@@ -51,31 +55,29 @@ class ForsinketSaksbehandlingFørsteVarselFinnPersoner(
         fnrListe
             .map { fnr ->
                 forsinketSaksbehandlingVarslingFørsteVarsel.prosesserForsteForsinketSaksbehandlingVarsel(
-                    fnr,
-                    sendtFoer,
+                    fnr = fnr,
+                    sendtFoer = sendtFoer,
                     dryRun = true,
                     now = now,
                 )
-            }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING)
+            }.let { ventPaAlle(it) }
+            .dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING)
             .also { returMap[CronJobStatus.FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL_DRY_RUN] = it }
 
-        fnrListe.forEachIndexed { idx, fnr ->
-            forsinketSaksbehandlingVarslingFørsteVarsel
-                .prosesserForsteForsinketSaksbehandlingVarsel(
-                    fnr,
-                    sendtFoer,
-                    false,
+        val sendtTeller = AtomicInteger(0)
+        fnrListe
+            .map { fnr ->
+                forsinketSaksbehandlingVarslingFørsteVarsel.prosesserForsteForsinketSaksbehandlingVarsel(
+                    fnr = fnr,
+                    sendtFoer = sendtFoer,
+                    dryRun = false,
                     now = now,
-                ).also {
-                    returMap.increment(it)
-                }
+                    sendtTeller = sendtTeller,
+                    maxAntallUtsendelse = maxAntallUtsendelsePerKjoring,
+                )
+            }.let { ventPaAlle(it) }
+            .forEach { returMap.increment(it) }
 
-            val antallSendteVarsler = returMap[CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING]
-            if (antallSendteVarsler != null && antallSendteVarsler >= maxAntallUtsendelsePerKjoring) {
-                returMap[CronJobStatus.THROTTLET_FØRSTE_FORSINKER_SAKSBEHANDLING_VARSEL] = fnrListe.size - idx - 1
-                return returMap
-            }
-        }
         return returMap
     }
 }
@@ -92,14 +94,21 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
 ) {
     private val log = logger()
 
+    @Async("varselutsendingTaskExecutor")
     @Transactional(propagation = Propagation.REQUIRED)
     fun prosesserForsteForsinketSaksbehandlingVarsel(
         fnr: String,
         sendtFoer: Instant,
         dryRun: Boolean,
         now: Instant,
-    ): CronJobStatus {
+        sendtTeller: AtomicInteger? = null,
+        maxAntallUtsendelse: Int = Int.MAX_VALUE,
+    ): CompletableFuture<CronJobStatus> {
         if (!dryRun) {
+            requireNotNull(sendtTeller) { "sendtTeller må være satt når dryRun er false" }
+            if (sendtTeller.get() >= maxAntallUtsendelse) {
+                return CompletableFuture.completedFuture(CronJobStatus.THROTTLET_FØRSTE_FORSINKER_SAKSBEHANDLING_VARSEL)
+            }
             lockRepository.settAdvisoryTransactionLock(fnr)
         }
 
@@ -113,7 +122,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                 ).contains(it.vedtaksperiode.sisteVarslingstatus)
             }
         if (varslerAlleredeOmVenterSbPaaPeriode) {
-            return CronJobStatus.VARSLER_ALLEREDE_OM_VENTER_PA_SAKSBEHANDLER
+            return CompletableFuture.completedFuture(CronJobStatus.VARSLER_ALLEREDE_OM_VENTER_PA_SAKSBEHANDLER)
         }
 
         val forstePerArbeidsgiver =
@@ -156,10 +165,10 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                 }
 
         if (nyligVarslet) {
-            return CronJobStatus.HAR_FATT_NYLIG_VARSEL
+            return CompletableFuture.completedFuture(CronJobStatus.HAR_FATT_NYLIG_VARSEL)
         }
         if (forstePerArbeidsgiver.isEmpty()) {
-            return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL
+            return CompletableFuture.completedFuture(CronJobStatus.INGEN_PERIODE_FUNNET_FOR_FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL)
         }
         var harSendtEtVarsel = false
         forstePerArbeidsgiver.forEachIndexed { _, perioden ->
@@ -200,7 +209,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                     "Fant ikke inntektsmelding for vedtaksperiodeId ${perioden.vedtaksperiode.vedtaksperiodeId} " +
                         "med start syketilfelle ${soknaden.startSyketilfelle}",
                 )
-                return CronJobStatus.FANT_INGEN_INNTEKTSMELDING
+                return CompletableFuture.completedFuture(CronJobStatus.FANT_INGEN_INNTEKTSMELDING)
             }
 
             if (inntektsmelding.fullRefusjon) {
@@ -224,10 +233,13 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
                         ),
                     )
                 }
-                return CronJobStatus.VARSLER_IKKE_GRUNNET_FULL_REFUSJON
+                return CompletableFuture.completedFuture(CronJobStatus.VARSLER_IKKE_GRUNNET_FULL_REFUSJON)
             }
             harSendtEtVarsel = true
             if (!dryRun) {
+                if (sendtTeller!!.incrementAndGet() > maxAntallUtsendelse) {
+                    return CompletableFuture.completedFuture(CronJobStatus.THROTTLET_FØRSTE_FORSINKER_SAKSBEHANDLING_VARSEL)
+                }
                 val brukervarselId = randomGenerator.nextUUID()
 
                 log.info("Sender første forsinket saksbehandling varsel til vedtaksperiode ${perioden.vedtaksperiode.vedtaksperiodeId}")
@@ -281,6 +293,6 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
             }
         }
 
-        return CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING
+        return CompletableFuture.completedFuture(CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING)
     }
 }

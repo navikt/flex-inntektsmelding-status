@@ -10,6 +10,7 @@ import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.util.increment
+import no.nav.helse.flex.util.ventPaAlle
 import no.nav.helse.flex.varseltekst.SAKSBEHANDLINGSTID_URL
 import no.nav.helse.flex.varseltekst.skapRevarselForsinketSaksbehandlingTekst
 import no.nav.helse.flex.varselutsending.CronJobStatus.SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING
@@ -18,12 +19,15 @@ import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusDbRecord
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusRepository
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.DAYS
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicInteger
 
 @Component
 class ForsinketSaksbehandlingRevarselFinnPersoner(
@@ -50,27 +54,29 @@ class ForsinketSaksbehandlingRevarselFinnPersoner(
         fnrListe
             .map { fnr ->
                 forsinketSaksbehandlingVarslingRevarsel.prosseserRevarsel(
-                    fnr,
-                    varsletFør,
+                    fnr = fnr,
+                    varsletFør = varsletFør,
                     dryRun = true,
                     now = now,
                 )
-            }.dryRunSjekk(funksjonellGrenseForAntallVarsler, SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING)
+            }.let { ventPaAlle(it) }
+            .dryRunSjekk(funksjonellGrenseForAntallVarsler, SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING)
             .also { returMap[CronJobStatus.REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL_DRY_RUN] = it }
 
-        fnrListe.forEachIndexed { idx, fnr ->
-            forsinketSaksbehandlingVarslingRevarsel
-                .prosseserRevarsel(fnr, varsletFør, false, now)
-                .also {
-                    returMap.increment(it)
-                }
+        val sendtTeller = AtomicInteger(0)
+        fnrListe
+            .map { fnr ->
+                forsinketSaksbehandlingVarslingRevarsel.prosseserRevarsel(
+                    fnr = fnr,
+                    varsletFør = varsletFør,
+                    dryRun = false,
+                    now = now,
+                    sendtTeller = sendtTeller,
+                    maxAntallUtsendelse = maxAntallUtsendelsePerKjoring,
+                )
+            }.let { ventPaAlle(it) }
+            .forEach { returMap.increment(it) }
 
-            val antallSendteVarsler = returMap[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING]
-            if (antallSendteVarsler != null && antallSendteVarsler >= maxAntallUtsendelsePerKjoring) {
-                returMap[CronJobStatus.THROTTLET_REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL] = fnrListe.size - idx - 1
-                return returMap
-            }
-        }
         return returMap
     }
 }
@@ -87,14 +93,21 @@ class ForsinketSaksbehandlingVarslingRevarsel(
 ) {
     private val log = logger()
 
+    @Async("varselutsendingTaskExecutor")
     @Transactional(propagation = Propagation.REQUIRED)
     fun prosseserRevarsel(
         fnr: String,
         varsletFør: Instant,
         dryRun: Boolean,
         now: Instant,
-    ): CronJobStatus {
+        sendtTeller: AtomicInteger? = null,
+        maxAntallUtsendelse: Int = Int.MAX_VALUE,
+    ): CompletableFuture<CronJobStatus> {
         if (!dryRun) {
+            requireNotNull(sendtTeller) { "sendtTeller må være satt når dryRun er false" }
+            if (sendtTeller.get() >= maxAntallUtsendelse) {
+                return CompletableFuture.completedFuture(CronJobStatus.THROTTLET_REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL)
+            }
             lockRepository.settAdvisoryTransactionLock(fnr)
         }
 
@@ -114,7 +127,7 @@ class ForsinketSaksbehandlingVarslingRevarsel(
                 }
 
         if (nyligVarslet) {
-            return CronJobStatus.HAR_FATT_NYLIG_VARSEL
+            return CompletableFuture.completedFuture(CronJobStatus.HAR_FATT_NYLIG_VARSEL)
         }
 
         val revarslingsperioder =
@@ -132,10 +145,13 @@ class ForsinketSaksbehandlingVarslingRevarsel(
 
         if (revarslingsperiode == null) {
             log.error("Fant ingen perioder for revarsel for forsinket saksbehandling")
-            return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL
+            return CompletableFuture.completedFuture(CronJobStatus.INGEN_PERIODE_FUNNET_FOR_REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL)
         }
 
         if (!dryRun) {
+            if (sendtTeller!!.incrementAndGet() > maxAntallUtsendelse) {
+                return CompletableFuture.completedFuture(CronJobStatus.THROTTLET_REVARSEL_FORSINKET_SAKSBEHANDLING_VARSEL)
+            }
             val rundeNr = revarslingsperiode.statuser.count { it.status == REVARSLET_VENTER_PÅ_SAKSBEHANDLER }
             val randomGenerator =
                 SeededUuid(
@@ -198,6 +214,6 @@ class ForsinketSaksbehandlingVarslingRevarsel(
             )
         }
 
-        return SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING
+        return CompletableFuture.completedFuture(SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING)
     }
 }
