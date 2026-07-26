@@ -6,8 +6,9 @@ import no.nav.helse.flex.auditlogging.EventType
 import no.nav.helse.flex.clientidvalidation.ClientIdValidation
 import no.nav.helse.flex.clientidvalidation.ClientIdValidation.NamespaceAndApp
 import no.nav.helse.flex.config.OIDCIssuer.AZUREATOR
-import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
+import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerResponse
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.HentAlleForelagteOpplysningerForPerson
+import no.nav.helse.flex.forelagteopplysningerainntekt.toResponse
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingDbRecord
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingRepository
 import no.nav.helse.flex.kafka.AuditLogProducer
@@ -45,7 +46,7 @@ class FlexInternalFrontendController(
     data class VedtakOgInntektsmeldingerResponse(
         val vedtaksperioder: List<FullVedtaksperiodeBehandling>,
         val inntektsmeldinger: List<InntektsmeldingDbRecord>,
-        val forelagteOpplysninger: List<ForelagteOpplysningerDbRecord>,
+        val forelagteOpplysninger: List<ForelagteOpplysningerResponse>,
     )
 
     @PostMapping(
@@ -63,7 +64,10 @@ class FlexInternalFrontendController(
         if (req.fnr != null) {
             val perioder = hentAltForPerson.hentAltForPerson(req.fnr)
             val inntektsmeldinger = inntektsmeldingRepository.findByFnrIn(listOf(req.fnr))
-            val forelagte = hentAlleForelagteOpplysningerForPerson.hentAlleForelagteOpplysningerFor(req.fnr)
+            val forelagte =
+                hentAlleForelagteOpplysningerForPerson
+                    .hentAlleForelagteOpplysningerFor(req.fnr)
+                    .map { it.toResponse() }
             auditLogProducer.lagAuditLog(
                 AuditEntry(
                     appNavn = "flex-internal",
@@ -90,7 +94,10 @@ class FlexInternalFrontendController(
             val inntektsmeldinger =
                 fnr?.let { inntektsmeldingRepository.findByFnrIn(listOf(it)) }
                     ?: return VedtakOgInntektsmeldingerResponse(emptyList(), emptyList(), emptyList())
-            val forelagte = hentAlleForelagteOpplysningerForPerson.hentAlleForelagteOpplysningerFor(fnr)
+            val forelagte =
+                hentAlleForelagteOpplysningerForPerson
+                    .hentAlleForelagteOpplysningerFor(fnr)
+                    .map { it.toResponse() }
             auditLogProducer.lagAuditLog(
                 AuditEntry(
                     appNavn = "flex-internal",
