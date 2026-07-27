@@ -1,10 +1,8 @@
 package no.nav.helse.flex.varselutsending
 
 import no.nav.helse.flex.logger
-import no.nav.helse.flex.util.tilOsloZone
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.time.DayOfWeek
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
@@ -20,7 +18,7 @@ class VarselutsendingCronJob(
 
     @Scheduled(initialDelay = 10, fixedDelay = 15, timeUnit = TimeUnit.MINUTES)
     fun run(): Map<CronJobStatus, Int> {
-        val osloDatetimeNow = OffsetDateTime.now().tilOsloZone()
+        /*val osloDatetimeNow = OffsetDateTime.now().tilOsloZone()
         if (osloDatetimeNow.dayOfWeek in setOf(DayOfWeek.SUNDAY, DayOfWeek.SATURDAY)) {
             log.info("Det er helg, jobben kjøres ikke")
             return emptyMap()
@@ -28,7 +26,7 @@ class VarselutsendingCronJob(
         if (osloDatetimeNow.hour !in 9..15) {
             log.info("Det er ikke dagtid, jobben kjøres ikke")
             return emptyMap()
-        }
+        }*/
 
         return runMedParameter(Instant.now())
     }

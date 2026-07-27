@@ -5,9 +5,8 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.annotation.EnableAsync
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
-import java.util.concurrent.Executors
 
 @Configuration
 @EnableAsync
@@ -22,8 +21,18 @@ class SchedulerConfig {
         }
 
     @Bean
-    fun varselutsendingTaskExecutor(): ConcurrentTaskExecutor =
-        ConcurrentTaskExecutor(
-            Executors.newFixedThreadPool(5, Thread.ofPlatform().name("varselutsending-", 1).factory()),
-        )
+    fun varselutsendingTaskExecutor(): ThreadPoolTaskExecutor =
+        object : ThreadPoolTaskExecutor() {
+            override fun shutdown() {
+                threadPoolExecutor.queue.clear()
+                super.shutdown()
+            }
+        }.apply {
+            corePoolSize = 5
+            maxPoolSize = 5
+            setThreadNamePrefix("varselutsending-")
+            setWaitForTasksToCompleteOnShutdown(true)
+            setAwaitTerminationSeconds(20)
+            initialize()
+        }
 }
