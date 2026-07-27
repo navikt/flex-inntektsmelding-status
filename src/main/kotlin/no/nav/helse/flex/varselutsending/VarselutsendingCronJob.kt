@@ -1,11 +1,14 @@
 package no.nav.helse.flex.varselutsending
 
 import no.nav.helse.flex.logger
+import no.nav.helse.flex.util.tilOsloZone
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
+import kotlin.time.measureTime
 
 @Component
 class VarselutsendingCronJob(
@@ -18,7 +21,7 @@ class VarselutsendingCronJob(
 
     @Scheduled(initialDelay = 10, fixedDelay = 15, timeUnit = TimeUnit.MINUTES)
     fun run(): Map<CronJobStatus, Int> {
-        /*val osloDatetimeNow = OffsetDateTime.now().tilOsloZone()
+        val osloDatetimeNow = OffsetDateTime.now().tilOsloZone()
         if (osloDatetimeNow.dayOfWeek in setOf(DayOfWeek.SUNDAY, DayOfWeek.SATURDAY)) {
             log.info("Det er helg, jobben kjøres ikke")
             return emptyMap()
@@ -26,7 +29,7 @@ class VarselutsendingCronJob(
         if (osloDatetimeNow.hour !in 9..15) {
             log.info("Det er ikke dagtid, jobben kjøres ikke")
             return emptyMap()
-        }*/
+        }
 
         return runMedParameter(Instant.now())
     }
@@ -37,13 +40,24 @@ class VarselutsendingCronJob(
         log.info("Starter VarselutsendingCronJob")
         val resultat = HashMap<CronJobStatus, Int>()
 
-        manglendeInntektsmeldingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
-        manglendeInntektsmeldingAndreVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
-        forsinketSaksbehandlingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
-        forsinketSaksbehandlingRevarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+        val tidBrukt =
+            measureTime {
+                manglendeInntektsmeldingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+                manglendeInntektsmeldingAndreVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+                forsinketSaksbehandlingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+                forsinketSaksbehandlingRevarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+            }
+
+        val antallSendt =
+            listOf(
+                CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING,
+                CronJobStatus.SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING,
+                CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING,
+                CronJobStatus.SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING,
+            ).sumOf { resultat[it] ?: 0 }
 
         log.info(
-            "Resultat fra VarselutsendingCronJob: ${
+            "Resultat fra VarselutsendingCronJob (${tidBrukt.inWholeSeconds}s, $antallSendt sendt): ${
                 resultat.map { "${it.key}: ${it.value}" }.sorted().joinToString(
                     separator = "\n",
                     prefix = "\n",

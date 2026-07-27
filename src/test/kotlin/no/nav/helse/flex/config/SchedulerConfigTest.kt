@@ -124,4 +124,65 @@ class SchedulerConfigTest {
         infligtFerdig.get() shouldBeEqualTo 5
         queuedKjorte.get() shouldBeEqualTo false
     }
+
+    @Test
+    fun `shutdown fra scheduler-tråd - inflight fullfører, køede droppes, nye avvises uten exception`() {
+        val config = SchedulerConfig()
+        val executor = config.varselutsendingTaskExecutor()
+        val scheduler = config.taskScheduler() as ThreadPoolTaskScheduler
+
+        val alleInflightStartet = CountDownLatch(5)
+        val treTasksIKo = CountDownLatch(1)
+        val slippLøs = CountDownLatch(1)
+        val infligtFerdig = AtomicInteger(0)
+        val queuedKjorte = AtomicBoolean(false)
+        val postShutdownKjorte = AtomicBoolean(false)
+        val postShutdownGikkBra = AtomicBoolean(false)
+        val cronJobbFerdig = CountDownLatch(1)
+
+        scheduler.schedule({
+            try {
+                repeat(5) {
+                    executor.submitCompletable<Unit> {
+                        alleInflightStartet.countDown()
+                        slippLøs.await(10, TimeUnit.SECONDS)
+                        infligtFerdig.incrementAndGet()
+                    }
+                }
+                alleInflightStartet.await()
+
+                repeat(3) { executor.submit { queuedKjorte.set(true) } }
+                treTasksIKo.countDown()
+
+                await().atMost(Durations.TWO_SECONDS).until { executor.threadPoolExecutor.isShutdown }
+
+                try {
+                    val future = executor.submitCompletable<Unit> { postShutdownKjorte.set(true) }
+                    postShutdownGikkBra.set(future.isCompletedExceptionally)
+                } catch (_: Exception) {
+                }
+            } finally {
+                cronJobbFerdig.countDown()
+            }
+        }, Instant.now())
+
+        alleInflightStartet.await()
+        treTasksIKo.await()
+
+        val shutdownThread = Thread { executor.shutdown() }
+        shutdownThread.start()
+
+        await().atMost(Durations.ONE_SECOND).until { executor.threadPoolExecutor.queue.isEmpty() }
+
+        slippLøs.countDown()
+        cronJobbFerdig.await(15, TimeUnit.SECONDS)
+        shutdownThread.join(15_000)
+
+        infligtFerdig.get() shouldBeEqualTo 5
+        queuedKjorte.get() shouldBeEqualTo false
+        postShutdownKjorte.get() shouldBeEqualTo false
+        postShutdownGikkBra.get() shouldBeEqualTo true
+
+        scheduler.destroy()
+    }
 }
