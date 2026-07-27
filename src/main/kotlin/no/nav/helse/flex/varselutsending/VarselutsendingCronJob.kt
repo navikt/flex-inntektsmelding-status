@@ -8,6 +8,7 @@ import java.time.DayOfWeek
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
+import kotlin.time.measureTime
 
 @Component
 class VarselutsendingCronJob(
@@ -39,13 +40,24 @@ class VarselutsendingCronJob(
         log.info("Starter VarselutsendingCronJob")
         val resultat = HashMap<CronJobStatus, Int>()
 
-        manglendeInntektsmeldingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
-        manglendeInntektsmeldingAndreVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
-        forsinketSaksbehandlingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
-        forsinketSaksbehandlingRevarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+        val tidBrukt =
+            measureTime {
+                manglendeInntektsmeldingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+                manglendeInntektsmeldingAndreVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+                forsinketSaksbehandlingFørsteVarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+                forsinketSaksbehandlingRevarselFinnPersoner.hentOgProsseser(now).also { resultat.putAll(it) }
+            }
+
+        val antallSendt =
+            listOf(
+                CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING,
+                CronJobStatus.SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING,
+                CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING,
+                CronJobStatus.SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING,
+            ).sumOf { resultat[it] ?: 0 }
 
         log.info(
-            "Resultat fra VarselutsendingCronJob: ${
+            "Resultat fra VarselutsendingCronJob (${tidBrukt.inWholeSeconds}s, $antallSendt sendt): ${
                 resultat.map { "${it.key}: ${it.value}" }.sorted().joinToString(
                     separator = "\n",
                     prefix = "\n",

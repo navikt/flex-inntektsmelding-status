@@ -3,6 +3,7 @@ package no.nav.helse.flex.config
 import no.nav.helse.flex.testconfig.ScheduledTasks
 import org.amshove.kluent.`should be instance of`
 import org.amshove.kluent.`should be true`
+import org.amshove.kluent.shouldBeEqualTo
 import org.awaitility.Awaitility.await
 import org.awaitility.Durations
 import org.junit.jupiter.api.Test
@@ -12,7 +13,9 @@ import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import java.time.Instant
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 @SpringBootTest(classes = [SchedulerConfig::class, ScheduledTasks::class])
 class SchedulerConfigTest {
@@ -84,5 +87,102 @@ class SchedulerConfigTest {
         } finally {
             slippLangJobbLos.countDown()
         }
+    }
+
+    @Test
+    fun `shutdown clearer køen - inflight fullfører, køede tasks kjøres ikke`() {
+        val executor = SchedulerConfig().varselutsendingTaskExecutor()
+
+        val slippLøs = CountDownLatch(1)
+        val alleInflightStartet = CountDownLatch(5)
+        val infligtFerdig = AtomicInteger(0)
+        val queuedKjorte = AtomicBoolean(false)
+
+        repeat(5) {
+            executor.submit {
+                alleInflightStartet.countDown()
+                slippLøs.await(10, TimeUnit.SECONDS)
+                infligtFerdig.incrementAndGet()
+            }
+        }
+        alleInflightStartet.await()
+
+        repeat(3) {
+            executor.submit { queuedKjorte.set(true) }
+        }
+
+        val shutdownThread = Thread { executor.shutdown() }
+        shutdownThread.start()
+
+        await().atMost(Durations.ONE_SECOND).until {
+            executor.threadPoolExecutor.queue.isEmpty()
+        }
+
+        slippLøs.countDown()
+        shutdownThread.join(10_000)
+
+        infligtFerdig.get() shouldBeEqualTo 5
+        queuedKjorte.get() shouldBeEqualTo false
+    }
+
+    @Test
+    fun `shutdown fra scheduler-tråd - inflight fullfører, køede droppes, nye avvises uten exception`() {
+        val config = SchedulerConfig()
+        val executor = config.varselutsendingTaskExecutor()
+        val scheduler = config.taskScheduler() as ThreadPoolTaskScheduler
+
+        val alleInflightStartet = CountDownLatch(5)
+        val treTasksIKo = CountDownLatch(1)
+        val slippLøs = CountDownLatch(1)
+        val infligtFerdig = AtomicInteger(0)
+        val queuedKjorte = AtomicBoolean(false)
+        val postShutdownKjorte = AtomicBoolean(false)
+        val postShutdownGikkBra = AtomicBoolean(false)
+        val cronJobbFerdig = CountDownLatch(1)
+
+        scheduler.schedule({
+            try {
+                repeat(5) {
+                    executor.submitCompletable<Unit> {
+                        alleInflightStartet.countDown()
+                        slippLøs.await(10, TimeUnit.SECONDS)
+                        infligtFerdig.incrementAndGet()
+                    }
+                }
+                alleInflightStartet.await()
+
+                repeat(3) { executor.submit { queuedKjorte.set(true) } }
+                treTasksIKo.countDown()
+
+                await().atMost(Durations.TWO_SECONDS).until { executor.threadPoolExecutor.isShutdown }
+
+                try {
+                    val future = executor.submitCompletable<Unit> { postShutdownKjorte.set(true) }
+                    postShutdownGikkBra.set(future.isCompletedExceptionally)
+                } catch (_: Exception) {
+                }
+            } finally {
+                cronJobbFerdig.countDown()
+            }
+        }, Instant.now())
+
+        alleInflightStartet.await()
+        treTasksIKo.await()
+
+        val shutdownThread = Thread { executor.shutdown() }
+        shutdownThread.start()
+
+        await().atMost(Durations.ONE_SECOND).until { executor.threadPoolExecutor.queue.isEmpty() }
+
+        slippLøs.countDown()
+        cronJobbFerdig.await(15, TimeUnit.SECONDS)
+        shutdownThread.join(15_000)
+
+        infligtFerdig.get() shouldBeEqualTo 5
+        queuedKjorte.get() shouldBeEqualTo false
+        postShutdownKjorte.get() shouldBeEqualTo false
+        postShutdownGikkBra.get() shouldBeEqualTo true
+
+        scheduler.destroy()
     }
 }

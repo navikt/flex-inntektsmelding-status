@@ -12,15 +12,19 @@ import no.nav.helse.flex.sykepengesoknad.kafka.SoknadstypeDTO
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.util.increment
+import no.nav.helse.flex.util.ventPaAlle
 import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding15Tekst
 import no.nav.helse.flex.vedtaksperiodebehandling.*
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.DAYS
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicInteger
 
 @Component
 class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
@@ -48,30 +52,28 @@ class ManglendeInntektsmeldingFørsteVarselFinnPersoner(
         fnrListe
             .map { fnr ->
                 manglendeInntektsmeldingFørsteVarsel.prosseserManglendeInntektsmeldingKandidat(
-                    fnr,
-                    sendtFoer,
+                    fnr = fnr,
+                    sendtFoer = sendtFoer,
                     dryRun = true,
                     now = now,
                 )
-            }.dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING)
+            }.let { ventPaAlle(it) }
+            .dryRunSjekk(funksjonellGrenseForAntallVarsler, CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING)
             .also { returMap[CronJobStatus.FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] = it }
 
-        fnrListe.forEachIndexed { idx, fnr ->
-            manglendeInntektsmeldingFørsteVarsel
-                .prosseserManglendeInntektsmeldingKandidat(
+        val sendtTeller = AtomicInteger(0)
+        fnrListe
+            .map { fnr ->
+                manglendeInntektsmeldingFørsteVarsel.prosseserManglendeInntektsmeldingKandidat(
                     fnr,
                     sendtFoer,
                     dryRun = false,
                     now = now,
-                ).also {
-                    returMap.increment(it)
-                }
-            val antallSendteVarsler = returMap[CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING]
-            if (antallSendteVarsler != null && antallSendteVarsler >= maxAntallUtsendelsePerKjoring) {
-                returMap[CronJobStatus.THROTTLET_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL] = fnrListe.size - idx - 1
-                return returMap
-            }
-        }
+                    sendtTeller = sendtTeller,
+                    maxAntallUtsendelse = maxAntallUtsendelsePerKjoring,
+                )
+            }.let { ventPaAlle(it) }
+            .forEach { returMap.increment(it) }
 
         return returMap
     }
@@ -90,14 +92,21 @@ class ManglendeInntektsmeldingFørsteVarsel(
 ) {
     val log = logger()
 
+    @Async("varselutsendingTaskExecutor")
     @Transactional(propagation = Propagation.REQUIRED)
     fun prosseserManglendeInntektsmeldingKandidat(
         fnr: String,
         sendtFoer: Instant,
         dryRun: Boolean,
         now: Instant,
-    ): CronJobStatus {
+        sendtTeller: AtomicInteger? = null,
+        maxAntallUtsendelse: Int = Int.MAX_VALUE,
+    ): CompletableFuture<CronJobStatus> {
         if (!dryRun) {
+            requireNotNull(sendtTeller) { "sendtTeller må være satt når dryRun er false" }
+            if (sendtTeller.get() >= maxAntallUtsendelse) {
+                return CompletableFuture.completedFuture(CronJobStatus.THROTTLET_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL)
+            }
             lockRepository.settAdvisoryTransactionLock(fnr)
         }
 
@@ -123,10 +132,13 @@ class ManglendeInntektsmeldingFørsteVarsel(
                 .filter { it.vedtaksperiode.sisteVarslingstatus == null }
 
         if (venterPaaArbeidsgiver.isEmpty()) {
-            return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL
+            return CompletableFuture.completedFuture(CronJobStatus.INGEN_PERIODE_FUNNET_FOR_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL)
         }
 
         if (!dryRun) {
+            if (sendtTeller!!.incrementAndGet() > maxAntallUtsendelse) {
+                return CompletableFuture.completedFuture(CronJobStatus.THROTTLET_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL)
+            }
             venterPaaArbeidsgiver.forEachIndexed { idx, perioden ->
                 val soknaden = perioden.soknader.sortedBy { it.sendt }.last()
 
@@ -196,6 +208,6 @@ class ManglendeInntektsmeldingFørsteVarsel(
                 )
             }
         }
-        return CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING
+        return CompletableFuture.completedFuture(CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING)
     }
 }

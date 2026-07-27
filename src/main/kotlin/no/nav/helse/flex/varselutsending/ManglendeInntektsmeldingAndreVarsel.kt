@@ -12,16 +12,20 @@ import no.nav.helse.flex.sykepengesoknad.kafka.SoknadstypeDTO
 import no.nav.helse.flex.util.EnvironmentToggles
 import no.nav.helse.flex.util.SeededUuid
 import no.nav.helse.flex.util.increment
+import no.nav.helse.flex.util.ventPaAlle
 import no.nav.helse.flex.varseltekst.skapVenterPåInntektsmelding28Tekst
 import no.nav.helse.flex.varselutsending.CronJobStatus.SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING
 import no.nav.helse.flex.vedtaksperiodebehandling.*
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.DAYS
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicInteger
 
 @Component
 class ManglendeInntektsmeldingAndreVarselFinnPersoner(
@@ -48,26 +52,28 @@ class ManglendeInntektsmeldingAndreVarselFinnPersoner(
         fnrListe
             .map { fnr ->
                 manglendeInntektsmeldingAndreVarsel.prosseserManglendeInntektsmeldingAndreVarsel(
-                    fnr,
-                    sendtFoer,
+                    fnr = fnr,
+                    sendtFoer = sendtFoer,
                     dryRun = true,
                     now = now,
                 )
-            }.dryRunSjekk(funksjonellGrenseForAntallVarsler, SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING)
+            }.let { ventPaAlle(it) }
+            .dryRunSjekk(funksjonellGrenseForAntallVarsler, SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING)
             .also { returMap[CronJobStatus.ANDRE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] = it }
 
-        fnrListe.forEachIndexed { idx, fnr ->
-            manglendeInntektsmeldingAndreVarsel
-                .prosseserManglendeInntektsmeldingAndreVarsel(fnr, sendtFoer, false, now = now)
-                .also {
-                    returMap.increment(it)
-                }
-            val antallSendteVarsler = returMap[SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING]
-            if (antallSendteVarsler != null && antallSendteVarsler >= maxAntallUtsendelsePerKjoring) {
-                returMap[CronJobStatus.THROTTLET_ANDRE_MANGLER_INNTEKTSMELDING_VARSEL] = fnrListe.size - idx - 1
-                return returMap
-            }
-        }
+        val sendtTeller = AtomicInteger(0)
+        fnrListe
+            .map { fnr ->
+                manglendeInntektsmeldingAndreVarsel.prosseserManglendeInntektsmeldingAndreVarsel(
+                    fnr = fnr,
+                    sendtFoer = sendtFoer,
+                    dryRun = false,
+                    now = now,
+                    sendtTeller = sendtTeller,
+                    maxAntallUtsendelse = maxAntallUtsendelsePerKjoring,
+                )
+            }.let { ventPaAlle(it) }
+            .forEach { returMap.increment(it) }
 
         return returMap
     }
@@ -85,14 +91,21 @@ class ManglendeInntektsmeldingAndreVarsel(
     private val vedtaksperiodeBehandlingStatusRepository: VedtaksperiodeBehandlingStatusRepository,
     @param:Value("\${INNTEKTSMELDING_MANGLER_URL}") private val inntektsmeldingManglerUrl: String,
 ) {
+    @Async("varselutsendingTaskExecutor")
     @Transactional(propagation = Propagation.REQUIRED)
     fun prosseserManglendeInntektsmeldingAndreVarsel(
         fnr: String,
         sendtFoer: Instant,
         dryRun: Boolean,
         now: Instant,
-    ): CronJobStatus {
+        sendtTeller: AtomicInteger? = null,
+        maxAntallUtsendelse: Int = Int.MAX_VALUE,
+    ): CompletableFuture<CronJobStatus> {
         if (!dryRun) {
+            requireNotNull(sendtTeller) { "sendtTeller må være satt når dryRun er false" }
+            if (sendtTeller.get() >= maxAntallUtsendelse) {
+                return CompletableFuture.completedFuture(CronJobStatus.THROTTLET_ANDRE_MANGLER_INNTEKTSMELDING_VARSEL)
+            }
             lockRepository.settAdvisoryTransactionLock(fnr)
         }
 
@@ -105,7 +118,7 @@ class ManglendeInntektsmeldingAndreVarsel(
                 .filter { periode -> periode.soknader.all { it.sendt.isBefore(sendtFoer) } }
 
         if (venterPaaArbeidsgiver.isEmpty()) {
-            return CronJobStatus.INGEN_PERIODE_FUNNET_FOR_ANDER_MANGLER_INNTEKTSMELDING_VARSEL
+            return CompletableFuture.completedFuture(CronJobStatus.INGEN_PERIODE_FUNNET_FOR_ANDER_MANGLER_INNTEKTSMELDING_VARSEL)
         }
 
         val harFattVarselNylig =
@@ -114,11 +127,14 @@ class ManglendeInntektsmeldingAndreVarsel(
                 .any { it.isAfter(now.minus(10, DAYS)) }
 
         if (harFattVarselNylig) {
-            return CronJobStatus.HAR_FATT_NYLIG_VARSEL
+            return CompletableFuture.completedFuture(CronJobStatus.HAR_FATT_NYLIG_VARSEL)
         }
 
-        venterPaaArbeidsgiver.forEachIndexed { idx, perioden ->
-            if (!dryRun) {
+        if (!dryRun) {
+            if (sendtTeller!!.incrementAndGet() > maxAntallUtsendelse) {
+                return CompletableFuture.completedFuture(CronJobStatus.THROTTLET_ANDRE_MANGLER_INNTEKTSMELDING_VARSEL)
+            }
+            venterPaaArbeidsgiver.forEachIndexed { idx, perioden ->
                 val soknaden = perioden.soknader.sortedBy { it.sendt }.last()
 
                 meldingOgBrukervarselDone.doneSendteManglerImVarsler(perioden.vedtaksperiode, fnr)
@@ -188,6 +204,6 @@ class ManglendeInntektsmeldingAndreVarsel(
             }
         }
 
-        return SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING
+        return CompletableFuture.completedFuture(SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING)
     }
 }
