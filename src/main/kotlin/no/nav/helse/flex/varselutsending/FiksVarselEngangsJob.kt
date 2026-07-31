@@ -7,11 +7,22 @@ import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingReposi
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingSykepengesoknadRepository
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 @Component
 class FiksVarselEngangsJob(
+    private val fiksVarsel: FiksVarsel,
+) {
+    @Scheduled(initialDelay = 2, fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
+    fun run() {
+        fiksVarsel.run()
+    }
+}
+
+@Component
+class FiksVarsel(
     private val vedtaksperiodeBehandlingRepository: VedtaksperiodeBehandlingRepository,
     private val meldingOgBrukervarselDone: MeldingOgBrukervarselDone,
     private val vedtaksperiodeBehandlingSykepengesoknadRepository: VedtaksperiodeBehandlingSykepengesoknadRepository,
@@ -19,7 +30,7 @@ class FiksVarselEngangsJob(
 ) {
     private val log = logger()
 
-    @Scheduled(initialDelay = 5, fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
+    @Transactional
     fun run() {
         val behandling =
             vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
