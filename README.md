@@ -7,7 +7,7 @@ Sykepengesøknadene brukes til å lage et map mellom orgnummer og orgnavn for å
 
 ## Cronjobber
 
-### `VarselutsendingCronJob`
+### VarselutsendingCronJob
 
 Kjøretid: hverdager 09–15, hvert 15. minutt.
 
@@ -29,7 +29,7 @@ Sender fire typer varsler:
   Sendes når Spleis-status er `VENTER_PÅ_SAKSBEHANDLER` og første varsel (eller forrige revarsel) ble sendt
   for mer enn 28 dager siden. Gjentas hver 28. dag så lenge statusen ikke endres.
 
-### `SendForelagteOpplysningerCronjob`
+### SendForelagteOpplysningerCronjob
 
 Kjøretid: hverdager 09–15, hvert 15. minutt.
 
