@@ -142,6 +142,11 @@ interface VedtaksperiodeBehandlingStatusRepository : CrudRepository<Vedtaksperio
     fun deleteByVedtaksperiodeBehandlingIdIn(ider: List<String>)
 }
 
+/**
+ * v2 tabellen inneholder nå kun VarselutsendingCronJob sine varsler.
+ * Før inkluderte den også enorme mengder statusendringer fra tbd.sis.
+ * Burde lage ny og bedre struktur når jobben skrives om til noe mer robust.
+ */
 @Table("vedtaksperiode_behandling_status_v2")
 data class VedtaksperiodeBehandlingStatusDbRecord(
     @Id
