@@ -3,7 +3,6 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
-import no.nav.helse.flex.config.unleash.UnleashToggles
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.TotaltAntallForelagteOpplysningerSjekk
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -28,7 +27,6 @@ class SendForelagteOpplysningerCronJobTest {
                 forelagteOpplysningerRepository = forelagteOpplysningerRepository,
                 sendForelagteOpplysningerOppgave = mock<SendForelagteOpplysningerOppgave>(),
                 totaltAntallForelagteOpplysningerSjekk = totaltAntallForelagteOpplysningerSjekk,
-                unleashToggles = mock<UnleashToggles>(),
             )
 
         sendForelagteOpplysningerCronjob.runMedParameter(ANY_INSTANT)
