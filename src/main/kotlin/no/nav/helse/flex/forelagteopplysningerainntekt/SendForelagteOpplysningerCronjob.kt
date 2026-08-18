@@ -1,6 +1,5 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
-import no.nav.helse.flex.config.unleash.UnleashToggles
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.TotaltAntallForelagteOpplysningerSjekk
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.util.tilOsloZone
@@ -19,7 +18,6 @@ class SendForelagteOpplysningerCronjob(
     private val forelagteOpplysningerRepository: ForelagteOpplysningerRepository,
     private val sendForelagteOpplysningerOppgave: SendForelagteOpplysningerOppgave,
     private val totaltAntallForelagteOpplysningerSjekk: TotaltAntallForelagteOpplysningerSjekk,
-    private val unleashToggles: UnleashToggles,
 ) {
     private val log = logger()
 
@@ -30,10 +28,6 @@ class SendForelagteOpplysningerCronjob(
     )
     fun run(): SendForelagteOpplysningerCronjobResultat {
         log.info("Sjekker om ${this::class.simpleName} skal kjøre")
-        if (!unleashToggles.forelagteOpplysninger()) {
-            log.info("Feature toggle er skudd av for forelagte opplysninger")
-            return SendForelagteOpplysningerCronjobResultat()
-        }
         val osloDatetimeNow = OffsetDateTime.now().tilOsloZone()
         if (osloDatetimeNow.dayOfWeek in setOf(DayOfWeek.SUNDAY, DayOfWeek.SATURDAY)) {
             log.info("Det er helg, jobben kjøres ikke")
