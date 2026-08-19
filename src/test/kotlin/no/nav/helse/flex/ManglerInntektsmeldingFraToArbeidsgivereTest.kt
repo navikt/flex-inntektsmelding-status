@@ -14,7 +14,7 @@ import no.nav.helse.flex.varselutsending.CronJobStatus.SENDT_FØRSTE_VARSEL_MANG
 import no.nav.helse.flex.varselutsending.CronJobStatus.UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import no.nav.tms.varsel.action.Sensitivitet
 import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
@@ -103,9 +103,9 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
                 status = Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER,
             ),
         )
-        awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
+        awaitOppdatertStatus(SpleisStatus.VENTER_PÅ_ARBEIDSGIVER)
         awaitOppdatertStatus(
-            VENTER_PÅ_ARBEIDSGIVER,
+            SpleisStatus.VENTER_PÅ_ARBEIDSGIVER,
             vedtaksperiodeId = annenVedtaksperiodeId,
             behandlingId = annenBehandlingsid,
         )

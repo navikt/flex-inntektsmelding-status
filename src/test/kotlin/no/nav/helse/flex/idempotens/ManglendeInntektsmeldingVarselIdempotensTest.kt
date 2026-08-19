@@ -11,8 +11,9 @@ import no.nav.helse.flex.tilOpprettVarselInstance
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.*
 import no.nav.helse.flex.ventPåRecords
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBeEqualTo
@@ -52,7 +53,7 @@ class ManglendeInntektsmeldingVarselIdempotensTest : FellesTestOppsett() {
 
         sendBehandlingsstatusMelding(behandlingstatusmelding)
         sendBehandlingsstatusMelding(behandlingstatusmelding.copy(status = Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER))
-        awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
+        awaitOppdatertStatus(SpleisStatus.VENTER_PÅ_ARBEIDSGIVER)
     }
 
     @Test
@@ -62,7 +63,7 @@ class ManglendeInntektsmeldingVarselIdempotensTest : FellesTestOppsett() {
         cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
 
         awaitOppdatertStatus(
-            forventetSisteSpleisstatus = VENTER_PÅ_ARBEIDSGIVER,
+            forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_ARBEIDSGIVER,
             forventetSisteVarselstatus = VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
         )
 
@@ -79,7 +80,7 @@ class ManglendeInntektsmeldingVarselIdempotensTest : FellesTestOppsett() {
         cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
 
         awaitOppdatertStatus(
-            forventetSisteSpleisstatus = VENTER_PÅ_ARBEIDSGIVER,
+            forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_ARBEIDSGIVER,
             forventetSisteVarselstatus = VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
         )
 
@@ -94,7 +95,7 @@ class ManglendeInntektsmeldingVarselIdempotensTest : FellesTestOppsett() {
         cronjobResultat[SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
 
         awaitOppdatertStatus(
-            forventetSisteSpleisstatus = VENTER_PÅ_ARBEIDSGIVER,
+            forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_ARBEIDSGIVER,
             forventetSisteVarselstatus = VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
         )
 
@@ -114,7 +115,7 @@ class ManglendeInntektsmeldingVarselIdempotensTest : FellesTestOppsett() {
         cronjobResultat[SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
 
         awaitOppdatertStatus(
-            forventetSisteSpleisstatus = VENTER_PÅ_ARBEIDSGIVER,
+            forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_ARBEIDSGIVER,
             forventetSisteVarselstatus = VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
         )
 
@@ -152,7 +153,7 @@ class ManglendeInntektsmeldingVarselIdempotensTest : FellesTestOppsett() {
             .last()
             .key()
 
-    private fun tilbakestillVarslingstilstand(vararg statuserSomSkalSlettes: StatusVerdi) {
+    private fun tilbakestillVarslingstilstand(vararg statuserSomSkalSlettes: VarslingStatus) {
         val behandling =
             vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
                 Testdata.vedtaksperiodeId,

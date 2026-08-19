@@ -16,7 +16,8 @@ import no.nav.helse.flex.varselutsending.CronJobStatus.SENDT_FØRSTE_VARSEL_MANG
 import no.nav.helse.flex.varselutsending.CronJobStatus.UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.*
 import no.nav.tms.varsel.action.Sensitivitet
 import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
@@ -72,7 +73,7 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
             ),
         )
 
-        awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
+        awaitOppdatertStatus(SpleisStatus.VENTER_PÅ_ARBEIDSGIVER)
 
         val perioderSomVenterPaaArbeidsgiver =
             vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.plusMinutes(1).toInstant())
@@ -141,7 +142,7 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
 
         sendBehandlingsstatusMelding(behandlingstatusmelding)
 
-        val vedtaksperiode = awaitOppdatertStatus(VENTER_PÅ_SAKSBEHANDLER)
+        val vedtaksperiode = awaitOppdatertStatus(SpleisStatus.VENTER_PÅ_SAKSBEHANDLER)
 
         val statusManglerIm =
             vedtaksperiodeBehandlingStatusRepository
@@ -177,7 +178,7 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
             )
         sendBehandlingsstatusMelding(behandlingstatusmelding)
 
-        awaitOppdatertStatus(FERDIG)
+        awaitOppdatertStatus(SpleisStatus.FERDIG)
     }
 
     @Test
@@ -198,7 +199,7 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
                 "VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE",
             )
 
-        response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo FERDIG
+        response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo SpleisStatus.FERDIG
         response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE
 
         verifiserAuditlogging()
@@ -235,7 +236,7 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
 
         sendBehandlingsstatusMelding(behandlingstatusmelding)
 
-        awaitOppdatertStatus(VENTER_PÅ_SAKSBEHANDLER)
+        awaitOppdatertStatus(SpleisStatus.VENTER_PÅ_SAKSBEHANDLER)
     }
 
     @Test
@@ -257,7 +258,7 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
                 "VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE",
             )
 
-        response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo VENTER_PÅ_SAKSBEHANDLER
+        response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo SpleisStatus.VENTER_PÅ_SAKSBEHANDLER
         response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE
 
         verifiserAuditlogging()

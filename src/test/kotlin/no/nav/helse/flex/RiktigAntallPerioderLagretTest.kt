@@ -9,7 +9,7 @@ import no.nav.helse.flex.Testdata.vedtaksperiodeId
 import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
@@ -56,7 +56,7 @@ class RiktigAntallPerioderLagretTest : FellesTestOppsett() {
             )
         sendBehandlingsstatusMelding(behandlingstatusmelding)
 
-        awaitOppdatertStatus(OPPRETTET)
+        awaitOppdatertStatus(SpleisStatus.OPPRETTET)
 
         val newBehandlingstatusmelding =
             Behandlingstatusmelding(
@@ -69,7 +69,7 @@ class RiktigAntallPerioderLagretTest : FellesTestOppsett() {
 
         sendBehandlingsstatusMelding(newBehandlingstatusmelding)
 
-        awaitOppdatertStatus(OPPRETTET, newBehandlingstatusmelding.vedtaksperiodeId, newBehandlingstatusmelding.behandlingId)
+        awaitOppdatertStatus(SpleisStatus.OPPRETTET, newBehandlingstatusmelding.vedtaksperiodeId, newBehandlingstatusmelding.behandlingId)
 
         val perioder = hentAltForPerson.hentAltForPerson(fnr)
         perioder.shouldHaveSize(2)

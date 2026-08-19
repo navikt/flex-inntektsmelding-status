@@ -7,7 +7,7 @@ import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
@@ -126,7 +126,7 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
             )
 
             awaitOppdatertStatus(
-                VENTER_PÅ_SAKSBEHANDLER,
+                SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
                 behandlingId = behandlingId,
                 vedtaksperiodeId = vedtaksperiodeId,
             )
@@ -235,7 +235,7 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
             ),
         )
         awaitOppdatertStatus(
-            FERDIG,
+            forventetSisteSpleisstatus = SpleisStatus.FERDIG,
             vedtaksperiodeId = Arbeidsgiver1.vedtaksperiodeId1,
             behandlingId = Arbeidsgiver1.behandlingId1,
         )

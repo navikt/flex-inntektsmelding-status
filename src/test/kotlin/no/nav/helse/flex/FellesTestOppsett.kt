@@ -203,7 +203,7 @@ abstract class FellesTestOppsett {
     }
 
     fun awaitOppdatertStatus(
-        forventetSisteSpleisstatus: StatusVerdi,
+        forventetSisteSpleisstatus: SpleisStatus,
         vedtaksperiodeId: String = Testdata.vedtaksperiodeId,
         behandlingId: String = Testdata.behandlingId,
     ): VedtaksperiodeBehandlingDbRecord {
@@ -226,8 +226,8 @@ abstract class FellesTestOppsett {
     }
 
     fun awaitOppdatertStatus(
-        forventetSisteSpleisstatus: StatusVerdi,
-        forventetSisteVarselstatus: StatusVerdi,
+        forventetSisteSpleisstatus: SpleisStatus,
+        forventetSisteVarselstatus: VarslingStatus,
         vedtaksperiodeId: String = Testdata.vedtaksperiodeId,
         behandlingId: String = Testdata.behandlingId,
     ): VedtaksperiodeBehandlingDbRecord {

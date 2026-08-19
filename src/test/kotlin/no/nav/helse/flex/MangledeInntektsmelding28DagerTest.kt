@@ -8,7 +8,8 @@ import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.*
 import no.nav.tms.varsel.action.Sensitivitet
 import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
@@ -58,7 +59,7 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
             ),
         )
 
-        awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
+        awaitOppdatertStatus(SpleisStatus.VENTER_PÅ_ARBEIDSGIVER)
     }
 
     @Test
@@ -98,7 +99,7 @@ class MangledeInntektsmelding28DagerTest : FellesTestOppsett() {
         cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
         cronjobResultat[HAR_FATT_NYLIG_VARSEL].shouldBeNull()
 
-        val status = awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
+        val status = awaitOppdatertStatus(SpleisStatus.VENTER_PÅ_ARBEIDSGIVER)
         val denNyeVarselstatusen =
             vedtaksperiodeBehandlingStatusRepository
                 .findByVedtaksperiodeBehandlingIdIn(listOf(status.id!!))

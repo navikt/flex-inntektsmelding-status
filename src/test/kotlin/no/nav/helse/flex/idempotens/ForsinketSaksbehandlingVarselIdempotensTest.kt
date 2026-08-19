@@ -13,8 +13,9 @@ import no.nav.helse.flex.tilOpprettVarselInstance
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.*
 import no.nav.helse.flex.ventPåRecords
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBeEqualTo
@@ -62,7 +63,7 @@ class ForsinketSaksbehandlingVarselIdempotensTest : FellesTestOppsett() {
         sendBehandlingsstatusMelding(behandlingstatusmelding.copy(status = Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER))
         sendBehandlingsstatusMelding(behandlingstatusmelding.copy(status = Behandlingstatustype.VENTER_PÅ_SAKSBEHANDLER))
 
-        awaitOppdatertStatus(VENTER_PÅ_SAKSBEHANDLER)
+        awaitOppdatertStatus(SpleisStatus.VENTER_PÅ_SAKSBEHANDLER)
 
         sendInntektsmelding(
             skapInntektsmelding(
@@ -85,7 +86,7 @@ class ForsinketSaksbehandlingVarselIdempotensTest : FellesTestOppsett() {
         cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
 
         awaitOppdatertStatus(
-            forventetSisteSpleisstatus = VENTER_PÅ_SAKSBEHANDLER,
+            forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
             forventetSisteVarselstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
         )
 
@@ -102,7 +103,7 @@ class ForsinketSaksbehandlingVarselIdempotensTest : FellesTestOppsett() {
         cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
 
         awaitOppdatertStatus(
-            forventetSisteSpleisstatus = VENTER_PÅ_SAKSBEHANDLER,
+            forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
             forventetSisteVarselstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
         )
 
@@ -120,7 +121,7 @@ class ForsinketSaksbehandlingVarselIdempotensTest : FellesTestOppsett() {
         cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
 
         awaitOppdatertStatus(
-            forventetSisteSpleisstatus = VENTER_PÅ_SAKSBEHANDLER,
+            forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
             forventetSisteVarselstatus = REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
         )
 
@@ -140,7 +141,7 @@ class ForsinketSaksbehandlingVarselIdempotensTest : FellesTestOppsett() {
         cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
 
         awaitOppdatertStatus(
-            forventetSisteSpleisstatus = VENTER_PÅ_SAKSBEHANDLER,
+            forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
             forventetSisteVarselstatus = REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
         )
 
@@ -158,7 +159,7 @@ class ForsinketSaksbehandlingVarselIdempotensTest : FellesTestOppsett() {
         cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
 
         awaitOppdatertStatus(
-            forventetSisteSpleisstatus = VENTER_PÅ_SAKSBEHANDLER,
+            forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
             forventetSisteVarselstatus = REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
         )
 
@@ -201,7 +202,7 @@ class ForsinketSaksbehandlingVarselIdempotensTest : FellesTestOppsett() {
             .last()
             .key()
 
-    private fun tilbakestillVarslingstilstand(vararg statuserSomSkalSlettes: StatusVerdi) {
+    private fun tilbakestillVarslingstilstand(vararg statuserSomSkalSlettes: VarslingStatus) {
         val behandling =
             vedtaksperiodeBehandlingRepository.findByVedtaksperiodeIdAndBehandlingId(
                 Testdata.vedtaksperiodeId,

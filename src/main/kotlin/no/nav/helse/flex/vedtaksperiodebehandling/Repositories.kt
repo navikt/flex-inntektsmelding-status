@@ -110,9 +110,9 @@ data class VedtaksperiodeBehandlingDbRecord(
     val id: String? = null,
     val opprettetDatabase: Instant,
     val oppdatertDatabase: Instant,
-    val sisteSpleisstatus: StatusVerdi,
+    val sisteSpleisstatus: SpleisStatus,
     val sisteSpleisstatusTidspunkt: Instant,
-    val sisteVarslingstatus: StatusVerdi?,
+    val sisteVarslingstatus: VarslingStatus?,
     val sisteVarslingstatusTidspunkt: Instant?,
     val vedtaksperiodeId: String,
     val behandlingId: String,
@@ -154,35 +154,29 @@ data class VedtaksperiodeBehandlingStatusDbRecord(
     val vedtaksperiodeBehandlingId: String,
     val opprettetDatabase: Instant,
     val tidspunkt: Instant,
-    val status: StatusVerdi,
+    val status: VarslingStatus,
     val brukervarselId: String?,
     val dittSykefravaerMeldingId: String?,
 )
 
-enum class StatusVerdi {
-    VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
-    VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE,
-    VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
-    VARSLET_MANGLER_INNTEKTSMELDING_ANDRE_DONE,
-    VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
-    VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE_DONE,
+enum class SpleisStatus {
     OPPRETTET,
     VENTER_PÅ_ARBEIDSGIVER,
     VENTER_PÅ_SAKSBEHANDLER,
     VENTER_PÅ_ANNEN_PERIODE,
     FERDIG,
     BEHANDLES_UTENFOR_SPEIL,
+}
+
+enum class VarslingStatus {
+    VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
+    VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE,
+    VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
+    VARSLET_MANGLER_INNTEKTSMELDING_ANDRE_DONE,
+    VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
+    VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE_DONE,
     REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
     REVARSLET_VENTER_PÅ_SAKSBEHANDLER_DONE,
     VARSLER_IKKE_GRUNNET_FULL_REFUSJON,
     VARSLET_FORSINKET_PA_ANNEN_ORGNUMMER,
-    VARSLET_MANGLER_INNTEKTSMELDING, // finnes i dev
-    VARSLET_MANGLER_INNTEKTSMELDING_DONE, // finnes i dev
-    VARSLET_VENTER_PÅ_SAKSBEHANDLER, // finnes i dev
-    VARSLET_MANGLER_INNTEKTSMELDING_15, // finnes i dev
-    VARSLET_MANGLER_INNTEKTSMELDING_15_DONE, // finnes i dev
-    VARSLET_MANGLER_INNTEKTSMELDING_28, // finnes i dev
-    VARSLET_MANGLER_INNTEKTSMELDING_28_DONE, // finnes i dev
-    VARSLET_VENTER_PÅ_SAKSBEHANDLER_28, // finnes i dev
-    VARSLET_VENTER_PÅ_SAKSBEHANDLER_28_DONE, // finnes i dev
 }

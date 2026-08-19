@@ -10,7 +10,8 @@ import no.nav.helse.flex.varseltekst.SAKSBEHANDLINGSTID_URL
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.*
 import no.nav.tms.varsel.action.Sensitivitet
 import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
@@ -66,7 +67,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
             ),
         )
 
-        awaitOppdatertStatus(VENTER_PÅ_SAKSBEHANDLER)
+        awaitOppdatertStatus(SpleisStatus.VENTER_PÅ_SAKSBEHANDLER)
     }
 
     @Test
@@ -117,7 +118,7 @@ class VenterPaSaksbehandler28InntektsmeldingKomTidligTest : FellesTestOppsett() 
 
         val status =
             awaitOppdatertStatus(
-                forventetSisteSpleisstatus = VENTER_PÅ_SAKSBEHANDLER,
+                forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
                 forventetSisteVarselstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
             )
         val varselStatusen =

@@ -3,7 +3,8 @@ package no.nav.helse.flex.testdata
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingDbRecord
 import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingDbRecord
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusDbRecord
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingSykepengesoknadDbRecord
@@ -100,7 +101,7 @@ class TestdataResetListenerTest : FellesTestOppsett() {
                 VedtaksperiodeBehandlingDbRecord(
                     opprettetDatabase = Instant.now(),
                     oppdatertDatabase = Instant.now(),
-                    sisteSpleisstatus = StatusVerdi.VENTER_PÅ_SAKSBEHANDLER,
+                    sisteSpleisstatus = SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
                     sisteSpleisstatusTidspunkt = Instant.now(),
                     sisteVarslingstatus = null,
                     sisteVarslingstatusTidspunkt = null,
@@ -113,17 +114,7 @@ class TestdataResetListenerTest : FellesTestOppsett() {
                 vedtaksperiodeBehandlingId = lagretBehandling.id!!,
                 opprettetDatabase = Instant.now().minusSeconds(10),
                 tidspunkt = Instant.now().minusSeconds(10),
-                status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
-                brukervarselId = null,
-                dittSykefravaerMeldingId = null,
-            ),
-        )
-        vedtaksperiodeBehandlingStatusRepository.save(
-            VedtaksperiodeBehandlingStatusDbRecord(
-                vedtaksperiodeBehandlingId = lagretBehandling.id,
-                opprettetDatabase = Instant.now(),
-                tidspunkt = Instant.now(),
-                status = StatusVerdi.VENTER_PÅ_SAKSBEHANDLER,
+                status = VarslingStatus.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
                 brukervarselId = null,
                 dittSykefravaerMeldingId = null,
             ),

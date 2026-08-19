@@ -1,12 +1,12 @@
 package no.nav.helse.flex.util
 
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus
 import java.util.*
 import kotlin.random.Random
 
 class SeededUuid(
     uuid: String,
-    varselstatus: StatusVerdi,
+    varselstatus: VarslingStatus,
     antall: Int = 0,
 ) {
     val randomGenerator: Random

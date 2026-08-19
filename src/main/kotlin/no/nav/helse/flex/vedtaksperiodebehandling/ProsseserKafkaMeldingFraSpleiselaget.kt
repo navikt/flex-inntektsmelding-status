@@ -49,7 +49,7 @@ class ProsseserKafkaMeldingFraSpleiselaget(
         }
 
         val sisteSpleisstatusTidspunkt = kafkaDto.tidspunkt.toInstant()
-        val sisteSpleisstatus = kafkaDto.status.tilStatusVerdi()
+        val sisteSpleisstatus = kafkaDto.status.tilSpleisStatus()
         val now = Instant.now()
 
         if (vedtaksperiodeBehandling == null) {

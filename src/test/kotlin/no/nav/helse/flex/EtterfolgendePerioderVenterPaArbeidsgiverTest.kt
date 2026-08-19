@@ -12,7 +12,7 @@ import no.nav.helse.flex.varselutsending.CronJobStatus.SENDT_FØRSTE_VARSEL_MANG
 import no.nav.helse.flex.varselutsending.CronJobStatus.UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import no.nav.tms.varsel.action.Sensitivitet
 import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
@@ -121,7 +121,7 @@ class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
                 )
             sendBehandlingsstatusMelding(behandlingstatusmelding)
             awaitOppdatertStatus(
-                OPPRETTET,
+                SpleisStatus.OPPRETTET,
                 behandlingId = behandlingId,
                 vedtaksperiodeId = vedtaksperiodeId,
             )
@@ -132,7 +132,7 @@ class EtterfolgendePerioderVenterPaArbeidsgiverTest : FellesTestOppsett() {
             )
 
             awaitOppdatertStatus(
-                VENTER_PÅ_ARBEIDSGIVER,
+                SpleisStatus.VENTER_PÅ_ARBEIDSGIVER,
                 behandlingId = behandlingId,
                 vedtaksperiodeId = vedtaksperiodeId,
             )

@@ -4,7 +4,7 @@ import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagtStatus
 import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
 import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingDbRecord
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingSykepengesoknadDbRecord
 import org.amshove.kluent.shouldHaveSize
@@ -109,7 +109,7 @@ class HentAlleForelagteOpplysningerForPersonIntegrasjonTest : FellesTestOppsett(
                 VedtaksperiodeBehandlingDbRecord(
                     opprettetDatabase = Instant.parse("2024-01-16T00:00:00.00Z"),
                     oppdatertDatabase = Instant.parse("2024-01-16T00:00:00.00Z"),
-                    sisteSpleisstatus = StatusVerdi.VENTER_PÅ_ARBEIDSGIVER,
+                    sisteSpleisstatus = SpleisStatus.VENTER_PÅ_ARBEIDSGIVER,
                     sisteSpleisstatusTidspunkt = Instant.parse("2024-01-16T00:00:00.00Z"),
                     sisteVarslingstatus = null,
                     sisteVarslingstatusTidspunkt = null,

@@ -27,14 +27,14 @@ class MeldingOgBrukervarselDone(
     ) {
         doneVarselMedStatus(
             vedtaksperiodeBehandling = vedtaksperiodeBehandling,
-            statusVerdiSok = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
-            statusVerdiDone = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE,
+            varslingStatusSok = VarslingStatus.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
+            varslingStatusDone = VarslingStatus.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE,
             fnr = fnr,
         )
         doneVarselMedStatus(
             vedtaksperiodeBehandling = vedtaksperiodeBehandling,
-            statusVerdiSok = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
-            statusVerdiDone = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE_DONE,
+            varslingStatusSok = VarslingStatus.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
+            varslingStatusDone = VarslingStatus.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE_DONE,
             fnr = fnr,
         )
     }
@@ -46,25 +46,25 @@ class MeldingOgBrukervarselDone(
     ) {
         doneVarselMedStatus(
             vedtaksperiodeBehandling = vedtaksperiodeBehandling,
-            statusVerdiSok = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
-            statusVerdiDone = StatusVerdi.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE_DONE,
+            varslingStatusSok = VarslingStatus.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
+            varslingStatusDone = VarslingStatus.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE_DONE,
             fnr = fnr,
         )
         doneVarselMedStatus(
             vedtaksperiodeBehandling = vedtaksperiodeBehandling,
-            statusVerdiSok = StatusVerdi.REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
-            statusVerdiDone = StatusVerdi.REVARSLET_VENTER_PÅ_SAKSBEHANDLER_DONE,
+            varslingStatusSok = VarslingStatus.REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
+            varslingStatusDone = VarslingStatus.REVARSLET_VENTER_PÅ_SAKSBEHANDLER_DONE,
             fnr = fnr,
         )
     }
 
     fun doneVarselMedStatus(
         vedtaksperiodeBehandling: VedtaksperiodeBehandlingDbRecord,
-        statusVerdiSok: StatusVerdi,
-        statusVerdiDone: StatusVerdi,
+        varslingStatusSok: VarslingStatus,
+        varslingStatusDone: VarslingStatus,
         fnr: String?,
     ) {
-        if (vedtaksperiodeBehandling.sisteVarslingstatus != statusVerdiSok) {
+        if (vedtaksperiodeBehandling.sisteVarslingstatus != varslingStatusSok) {
             return
         }
         if (fnr == null) {
@@ -75,14 +75,14 @@ class MeldingOgBrukervarselDone(
                 vedtaksperiodeBehandlingId = vedtaksperiodeBehandling.id!!,
                 opprettetDatabase = Instant.now(),
                 tidspunkt = Instant.now(),
-                status = statusVerdiDone,
+                status = varslingStatusDone,
                 dittSykefravaerMeldingId = null,
                 brukervarselId = null,
             ),
         )
         vedtaksperiodeBehandlingRepository.save(
             vedtaksperiodeBehandling.copy(
-                sisteVarslingstatus = statusVerdiDone,
+                sisteVarslingstatus = varslingStatusDone,
                 sisteVarslingstatusTidspunkt = Instant.now(),
                 oppdatertDatabase = Instant.now(),
             ),
@@ -90,7 +90,7 @@ class MeldingOgBrukervarselDone(
         val varsletManglerImStatus =
             vedtaksperiodeBehandlingStatusRepository
                 .findByVedtaksperiodeBehandlingIdIn(listOf(vedtaksperiodeBehandling.id))
-                .firstOrNull { it.status == statusVerdiSok }
+                .firstOrNull { it.status == varslingStatusSok }
                 ?: throw RuntimeException("Fant ikke varslet mangler im status, den skal være her")
 
         brukervarsel.sendDonemelding(

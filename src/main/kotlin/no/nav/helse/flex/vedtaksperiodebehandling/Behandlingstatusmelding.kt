@@ -24,12 +24,12 @@ enum class Behandlingstatustype {
     BEHANDLES_UTENFOR_SPEIL,
 }
 
-fun Behandlingstatustype.tilStatusVerdi(): StatusVerdi =
+fun Behandlingstatustype.tilSpleisStatus(): SpleisStatus =
     when (this) {
-        Behandlingstatustype.OPPRETTET -> StatusVerdi.OPPRETTET
-        Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER -> StatusVerdi.VENTER_PÅ_ARBEIDSGIVER
-        Behandlingstatustype.VENTER_PÅ_SAKSBEHANDLER -> StatusVerdi.VENTER_PÅ_SAKSBEHANDLER
-        Behandlingstatustype.FERDIG -> StatusVerdi.FERDIG
-        Behandlingstatustype.BEHANDLES_UTENFOR_SPEIL -> StatusVerdi.BEHANDLES_UTENFOR_SPEIL
-        Behandlingstatustype.VENTER_PÅ_ANNEN_PERIODE -> StatusVerdi.VENTER_PÅ_ANNEN_PERIODE
+        Behandlingstatustype.OPPRETTET -> SpleisStatus.OPPRETTET
+        Behandlingstatustype.VENTER_PÅ_ARBEIDSGIVER -> SpleisStatus.VENTER_PÅ_ARBEIDSGIVER
+        Behandlingstatustype.VENTER_PÅ_SAKSBEHANDLER -> SpleisStatus.VENTER_PÅ_SAKSBEHANDLER
+        Behandlingstatustype.FERDIG -> SpleisStatus.FERDIG
+        Behandlingstatustype.BEHANDLES_UTENFOR_SPEIL -> SpleisStatus.BEHANDLES_UTENFOR_SPEIL
+        Behandlingstatustype.VENTER_PÅ_ANNEN_PERIODE -> SpleisStatus.VENTER_PÅ_ANNEN_PERIODE
     }

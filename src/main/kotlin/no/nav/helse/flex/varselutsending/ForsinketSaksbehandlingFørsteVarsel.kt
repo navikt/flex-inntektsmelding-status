@@ -15,7 +15,8 @@ import no.nav.helse.flex.util.ventPaAlle
 import no.nav.helse.flex.varseltekst.SAKSBEHANDLINGSTID_URL
 import no.nav.helse.flex.varseltekst.skapForsinketSaksbehandling56Tekst
 import no.nav.helse.flex.vedtaksperiodebehandling.HentAltForPerson
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.*
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusDbRecord
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusRepository
@@ -127,7 +128,7 @@ class ForsinketSaksbehandlingVarslingFørsteVarsel(
 
         val forstePerArbeidsgiver =
             allePerioder
-                .filter { it.vedtaksperiode.sisteSpleisstatus == VENTER_PÅ_SAKSBEHANDLER }
+                .filter { it.vedtaksperiode.sisteSpleisstatus == SpleisStatus.VENTER_PÅ_SAKSBEHANDLER }
                 .filter { periode -> periode.soknader.all { it.sendt.isBefore(sendtFoer) } }
                 .groupBy {
                     it.soknader

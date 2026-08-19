@@ -15,7 +15,8 @@ import no.nav.helse.flex.varseltekst.SAKSBEHANDLINGSTID_URL
 import no.nav.helse.flex.varseltekst.skapRevarselForsinketSaksbehandlingTekst
 import no.nav.helse.flex.varselutsending.CronJobStatus.SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING
 import no.nav.helse.flex.vedtaksperiodebehandling.HentAltForPerson
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.*
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingRepository
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusDbRecord
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusRepository
@@ -132,7 +133,7 @@ class ForsinketSaksbehandlingVarslingRevarsel(
 
         val revarslingsperioder =
             allePerioder
-                .filter { it.vedtaksperiode.sisteSpleisstatus == VENTER_PÅ_SAKSBEHANDLER }
+                .filter { it.vedtaksperiode.sisteSpleisstatus == SpleisStatus.VENTER_PÅ_SAKSBEHANDLER }
                 .filter {
                     listOf(
                         REVARSLET_VENTER_PÅ_SAKSBEHANDLER,
