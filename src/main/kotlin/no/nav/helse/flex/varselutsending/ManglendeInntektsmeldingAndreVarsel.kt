@@ -113,8 +113,8 @@ class ManglendeInntektsmeldingAndreVarsel(
 
         val venterPaaArbeidsgiver =
             allePerioder
-                .filter { it.vedtaksperiode.sisteSpleisstatus == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }
-                .filter { it.vedtaksperiode.sisteVarslingstatus == StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE }
+                .filter { it.vedtaksperiode.sisteSpleisstatus == SpleisStatus.VENTER_PÅ_ARBEIDSGIVER }
+                .filter { it.vedtaksperiode.sisteVarslingstatus == VarslingStatus.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE }
                 .filter { periode -> periode.soknader.all { it.sendt.isBefore(sendtFoer) } }
 
         if (venterPaaArbeidsgiver.isEmpty()) {
@@ -140,7 +140,7 @@ class ManglendeInntektsmeldingAndreVarsel(
                 meldingOgBrukervarselDone.doneSendteManglerImVarsler(perioden.vedtaksperiode, fnr)
 
                 val randomGenerator =
-                    SeededUuid(perioden.vedtaksperiode.id!!, StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE)
+                    SeededUuid(perioden.vedtaksperiode.id!!, VarslingStatus.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE)
 
                 val brukervarselId = randomGenerator.nextUUID()
 
@@ -188,7 +188,7 @@ class ManglendeInntektsmeldingAndreVarsel(
                         vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id,
                         opprettetDatabase = now,
                         tidspunkt = now,
-                        status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
+                        status = VarslingStatus.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
                         brukervarselId = brukervarselId,
                         dittSykefravaerMeldingId = meldingBestillingId,
                     ),
@@ -196,7 +196,7 @@ class ManglendeInntektsmeldingAndreVarsel(
 
                 vedtaksperiodeBehandlingRepository.save(
                     perioden.vedtaksperiode.copy(
-                        sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
+                        sisteVarslingstatus = VarslingStatus.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
                         sisteVarslingstatusTidspunkt = now,
                         oppdatertDatabase = now,
                     ),

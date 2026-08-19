@@ -9,8 +9,7 @@ import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
 import no.nav.helse.flex.util.tilOsloLocalDateTime
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.VENTER_PÅ_ARBEIDSGIVER
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.VENTER_PÅ_SAKSBEHANDLER
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import org.amshove.kluent.shouldBeEmpty
 import org.amshove.kluent.shouldHaveSize
 import org.junit.jupiter.api.MethodOrderer
@@ -73,7 +72,7 @@ class KorrigertSoknadVarslingTest : FellesTestOppsett() {
             ),
         )
 
-        awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
+        awaitOppdatertStatus(SpleisStatus.VENTER_PÅ_ARBEIDSGIVER)
 
         vedtaksperiodeBehandlingRepository
             .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.plusMinutes(1).toInstant())
@@ -99,7 +98,7 @@ class KorrigertSoknadVarslingTest : FellesTestOppsett() {
 
         sendBehandlingsstatusMelding(behandlingstatusmelding)
 
-        awaitOppdatertStatus(VENTER_PÅ_SAKSBEHANDLER)
+        awaitOppdatertStatus(SpleisStatus.VENTER_PÅ_SAKSBEHANDLER)
 
         vedtaksperiodeBehandlingRepository
             .finnPersonerMedForsinketSaksbehandlingGrunnetVenterPaSaksbehandler(sendtTidspunkt.plusDays(29).toInstant())

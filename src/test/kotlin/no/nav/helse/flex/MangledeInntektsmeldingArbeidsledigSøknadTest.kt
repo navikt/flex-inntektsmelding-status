@@ -5,7 +5,7 @@ import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
 import no.nav.helse.flex.sykepengesoknad.kafka.SoknadstypeDTO
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
@@ -55,7 +55,7 @@ class MangledeInntektsmeldingArbeidsledigSøknadTest : FellesTestOppsett() {
             ),
         )
 
-        awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
+        awaitOppdatertStatus(SpleisStatus.VENTER_PÅ_ARBEIDSGIVER)
     }
 
     @Test
@@ -79,7 +79,7 @@ class MangledeInntektsmeldingArbeidsledigSøknadTest : FellesTestOppsett() {
     fun `Andre mangler inntektsmelding varsel`() {
         varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(32))
 
-        awaitOppdatertStatus(VENTER_PÅ_ARBEIDSGIVER)
+        awaitOppdatertStatus(SpleisStatus.VENTER_PÅ_ARBEIDSGIVER)
 
         val varslingRecords = varslingConsumer.ventPåRecords(2)
         meldingKafkaConsumer.ventPåRecords(2)

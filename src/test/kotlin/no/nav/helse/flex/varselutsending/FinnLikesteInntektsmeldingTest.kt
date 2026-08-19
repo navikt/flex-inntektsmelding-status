@@ -4,7 +4,7 @@ import no.nav.helse.flex.Testdata
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingDbRecord
 import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
 import no.nav.helse.flex.vedtaksperiodebehandling.FullVedtaksperiodeBehandling
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingDbRecord
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeNull
@@ -22,7 +22,7 @@ class FinnLikesteInntektsmeldingTest {
                 VedtaksperiodeBehandlingDbRecord(
                     opprettetDatabase = Instant.now(),
                     oppdatertDatabase = Instant.now(),
-                    sisteSpleisstatus = StatusVerdi.VENTER_PÅ_ARBEIDSGIVER,
+                    sisteSpleisstatus = SpleisStatus.VENTER_PÅ_ARBEIDSGIVER,
                     sisteSpleisstatusTidspunkt = Instant.now(),
                     sisteVarslingstatus = null,
                     sisteVarslingstatusTidspunkt = null,

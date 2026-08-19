@@ -9,7 +9,8 @@ import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.*
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.*
 import no.nav.tms.varsel.action.Sensitivitet
 import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
@@ -69,7 +70,7 @@ class LikesteInntektsmeldingMatchTest : FellesTestOppsett() {
             ),
         )
 
-        awaitOppdatertStatus(VENTER_PÅ_SAKSBEHANDLER)
+        awaitOppdatertStatus(SpleisStatus.VENTER_PÅ_SAKSBEHANDLER)
     }
 
     @Test
@@ -121,7 +122,7 @@ class LikesteInntektsmeldingMatchTest : FellesTestOppsett() {
 
         val status =
             awaitOppdatertStatus(
-                forventetSisteSpleisstatus = VENTER_PÅ_SAKSBEHANDLER,
+                forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
                 forventetSisteVarselstatus = VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE,
             )
         val varselStatusen =

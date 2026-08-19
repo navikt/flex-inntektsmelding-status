@@ -114,7 +114,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
 
         val venterPaaArbeidsgiver =
             allePerioder
-                .filter { it.vedtaksperiode.sisteSpleisstatus == StatusVerdi.VENTER_PÅ_ARBEIDSGIVER }
+                .filter { it.vedtaksperiode.sisteSpleisstatus == SpleisStatus.VENTER_PÅ_ARBEIDSGIVER }
                 .filter { periode -> periode.soknader.all { it.sendt.isBefore(sendtFoer) } }
                 .groupBy {
                     it.soknader
@@ -143,7 +143,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
                 val soknaden = perioden.soknader.sortedBy { it.sendt }.last()
 
                 val randomGenerator =
-                    SeededUuid(perioden.vedtaksperiode.id!!, StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE)
+                    SeededUuid(perioden.vedtaksperiode.id!!, VarslingStatus.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE)
 
                 val brukervarselId = randomGenerator.nextUUID()
 
@@ -193,7 +193,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
                         vedtaksperiodeBehandlingId = perioden.vedtaksperiode.id,
                         opprettetDatabase = now,
                         tidspunkt = now,
-                        status = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
+                        status = VarslingStatus.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
                         brukervarselId = brukervarselId,
                         dittSykefravaerMeldingId = meldingBestillingId,
                     ),
@@ -201,7 +201,7 @@ class ManglendeInntektsmeldingFørsteVarsel(
 
                 vedtaksperiodeBehandlingRepository.save(
                     perioden.vedtaksperiode.copy(
-                        sisteVarslingstatus = StatusVerdi.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
+                        sisteVarslingstatus = VarslingStatus.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
                         sisteVarslingstatusTidspunkt = now,
                         oppdatertDatabase = now,
                     ),

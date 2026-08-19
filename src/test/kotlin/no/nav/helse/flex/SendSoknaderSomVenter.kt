@@ -8,8 +8,8 @@ import no.nav.helse.flex.sykepengesoknad.kafka.*
 import no.nav.helse.flex.util.tilOsloLocalDateTime
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi
-import no.nav.helse.flex.vedtaksperiodebehandling.StatusVerdi.VENTER_PÅ_ARBEIDSGIVER
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
+import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus.VENTER_PÅ_ARBEIDSGIVER
 import org.awaitility.Awaitility.await
 import java.math.BigDecimal
 import java.time.OffsetDateTime
@@ -124,7 +124,7 @@ fun FellesTestOppsett.sendSoknaderSomVenterPaSaksbehandler(index: Int) {
     )
 
     awaitOppdatertStatus(
-        StatusVerdi.VENTER_PÅ_SAKSBEHANDLER,
+        SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
         behandlingId = behandlingstatusmelding.behandlingId,
         vedtaksperiodeId = behandlingstatusmelding.vedtaksperiodeId,
     )
