@@ -1,6 +1,5 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.objectMapper
@@ -21,6 +20,7 @@ import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
 import org.postgresql.util.PGobject
+import tools.jackson.module.kotlin.readValue
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime

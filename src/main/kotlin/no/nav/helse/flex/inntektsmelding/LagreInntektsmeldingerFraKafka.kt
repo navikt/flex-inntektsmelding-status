@@ -1,10 +1,10 @@
 package no.nav.helse.flex.inntektsmelding
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
 import no.nav.inntektsmeldingkontrakt.Inntektsmelding
 import org.springframework.stereotype.Component
+import tools.jackson.module.kotlin.readValue
 import java.time.Instant
 import java.time.ZoneId
 

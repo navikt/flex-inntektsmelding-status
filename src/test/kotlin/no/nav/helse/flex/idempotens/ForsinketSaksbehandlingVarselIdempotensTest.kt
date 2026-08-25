@@ -1,6 +1,5 @@
 package no.nav.helse.flex.idempotens
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.Testdata
 import no.nav.helse.flex.Testdata.fnr
@@ -8,14 +7,16 @@ import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.skapInntektsmelding
-import no.nav.helse.flex.sykepengesoknad.kafka.*
+import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
 import no.nav.helse.flex.tilOpprettVarselInstance
-import no.nav.helse.flex.varselutsending.CronJobStatus.*
+import no.nav.helse.flex.varselutsending.CronJobStatus.SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING
+import no.nav.helse.flex.varselutsending.CronJobStatus.SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus
-import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.*
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.REVARSLET_VENTER_PÅ_SAKSBEHANDLER
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE
 import no.nav.helse.flex.ventPåRecords
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBeEqualTo
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
+import tools.jackson.module.kotlin.readValue
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.concurrent.TimeUnit
