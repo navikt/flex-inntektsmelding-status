@@ -1,6 +1,5 @@
 package no.nav.helse.flex.idempotens
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.Testdata
 import no.nav.helse.flex.Testdata.sendtTidspunkt
@@ -23,6 +22,7 @@ import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
+import tools.jackson.module.kotlin.readValue
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 

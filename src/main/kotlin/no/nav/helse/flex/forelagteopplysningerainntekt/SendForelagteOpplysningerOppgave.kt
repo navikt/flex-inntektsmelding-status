@@ -1,7 +1,5 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.ForsinkelseFraOpprinnelseTilVarselSjekk
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
@@ -10,6 +8,8 @@ import org.postgresql.util.PGobject
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.databind.JsonNode
+import tools.jackson.module.kotlin.readValue
 import java.time.Instant
 import kotlin.jvm.optionals.getOrNull
 
