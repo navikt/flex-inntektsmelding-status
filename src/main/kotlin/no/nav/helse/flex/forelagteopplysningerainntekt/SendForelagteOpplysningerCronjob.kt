@@ -3,10 +3,10 @@ package no.nav.helse.flex.forelagteopplysningerainntekt
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.TotaltAntallForelagteOpplysningerSjekk
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.util.tilOsloZone
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.time.*
-import java.util.concurrent.TimeUnit
+import java.time.DayOfWeek
+import java.time.Instant
+import java.time.OffsetDateTime
 
 class SendForelagteOpplysningerCronjobResultat(
     val antallForelagteOpplysningerSendt: Int = 0,
@@ -21,11 +21,6 @@ class SendForelagteOpplysningerCronjob(
 ) {
     private val log = logger()
 
-    @Scheduled(
-        initialDelay = 1,
-        fixedDelayString = "\${SEND_FORELAGTE_OPPLYSNINGER_FIXED_DELAY_MINUTES:15}",
-        timeUnit = TimeUnit.MINUTES,
-    )
     fun run(): SendForelagteOpplysningerCronjobResultat {
         log.info("Sjekker om ${this::class.simpleName} skal kjøre")
         val osloDatetimeNow = OffsetDateTime.now().tilOsloZone()
