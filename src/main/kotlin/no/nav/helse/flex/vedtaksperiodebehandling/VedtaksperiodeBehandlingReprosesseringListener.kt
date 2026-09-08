@@ -23,7 +23,7 @@ class VedtaksperiodeBehandlingReprosesseringListener(
 
     @KafkaListener(
         topics = [SIS_TOPIC],
-        containerFactory = "aivenKafkaListenerContainerFactory",
+        containerFactory = "seekAwareKafkaListenerContainerFactory",
         id = "flex-inntektsmelding-status-vedtaksperiode-behandling-v2-1",
         idIsGroup = true,
     )
