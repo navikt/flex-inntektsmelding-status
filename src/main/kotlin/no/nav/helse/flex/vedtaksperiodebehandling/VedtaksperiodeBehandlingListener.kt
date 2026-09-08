@@ -1,11 +1,9 @@
 package no.nav.helse.flex.vedtaksperiodebehandling
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.helse.flex.kafka.SIS_TOPIC
 import no.nav.helse.flex.logger
 import no.nav.helse.flex.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 
@@ -15,19 +13,13 @@ class VedtaksperiodeBehandlingListener(
 ) {
     val log = logger()
 
-    @KafkaListener(
-        topics = [SIS_TOPIC],
-        containerFactory = "aivenKafkaListenerContainerFactory",
-        id = "flex-inntektsmelding-status-vedtaksperiode-behandling",
-        idIsGroup = false,
-    )
     fun listen(
         cr: ConsumerRecord<String, String>,
         acknowledgment: Acknowledgment,
     ) {
-        val versjonsmelding: MeldingMedVersjon = objectMapper.readValue(cr.value())
+        val meldingMetadata: MeldingMetadata = objectMapper.readValue(cr.value())
 
-        if (versjonsmelding.versjon?.startsWith("2.0.") == true) {
+        if (meldingMetadata.eventName == "behandlingstatus") {
             val kafkaDto: Behandlingstatusmelding = objectMapper.readValue(cr.value())
             prosseserKafkaMeldingFraSpleiselaget.prosesserKafkaMelding(kafkaDto)
         }
