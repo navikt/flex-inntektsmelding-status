@@ -37,20 +37,4 @@ class AivenConsumer(
         factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL_IMMEDIATE
         return factory
     }
-
-    @Bean
-    fun seekAwareKafkaListenerContainerFactory(
-        aivenKafkaErrorHandler: AivenKafkaErrorHandler,
-    ): ConcurrentKafkaListenerContainerFactory<String, String> {
-        val consumerFactory =
-            DefaultKafkaConsumerFactory<String, String>(
-                simpleConsumerConfig() + (ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "latest"),
-            )
-
-        val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
-        factory.consumerFactory = consumerFactory
-        factory.setCommonErrorHandler(aivenKafkaErrorHandler)
-        factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL_IMMEDIATE
-        return factory
-    }
 }
