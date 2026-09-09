@@ -29,10 +29,8 @@ class AivenConsumer(
     fun aivenKafkaListenerContainerFactory(
         aivenKafkaErrorHandler: AivenKafkaErrorHandler,
     ): ConcurrentKafkaListenerContainerFactory<String, String> {
-        val consumerFactory = DefaultKafkaConsumerFactory<String, String>(simpleConsumerConfig())
-
         val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
-        factory.consumerFactory = consumerFactory
+        factory.setConsumerFactory(DefaultKafkaConsumerFactory(simpleConsumerConfig()))
         factory.setCommonErrorHandler(aivenKafkaErrorHandler)
         factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL_IMMEDIATE
         return factory

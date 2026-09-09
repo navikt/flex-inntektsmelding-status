@@ -1,12 +1,12 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.util.tilOsloInstant
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.postgresql.util.PGobject
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
+import tools.jackson.module.kotlin.readValue
 import java.time.Instant
 
 @Table("forelagte_opplysninger_ainntekt")

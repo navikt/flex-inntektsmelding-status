@@ -1,22 +1,30 @@
 package no.nav.helse.flex
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.Variant
 import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
-import no.nav.helse.flex.varselutsending.CronJobStatus.*
+import no.nav.helse.flex.varselutsending.CronJobStatus.HAR_FATT_NYLIG_VARSEL
+import no.nav.helse.flex.varselutsending.CronJobStatus.SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING
+import no.nav.helse.flex.varselutsending.CronJobStatus.UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING
+import no.nav.helse.flex.varselutsending.CronJobStatus.UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
-import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.*
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.VARSLET_MANGLER_INNTEKTSMELDING_ANDRE
+import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE
 import no.nav.tms.varsel.action.Sensitivitet
-import org.amshove.kluent.*
+import org.amshove.kluent.shouldBeEmpty
+import org.amshove.kluent.shouldBeEqualTo
+import org.amshove.kluent.shouldBeNull
+import org.amshove.kluent.shouldNotBeEqualTo
+import org.amshove.kluent.shouldNotBeNull
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
+import tools.jackson.module.kotlin.readValue
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 

@@ -1,6 +1,5 @@
 package no.nav.helse.flex
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.Testdata.fnr
 import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.melding.MeldingKafkaDto
@@ -18,6 +17,7 @@ import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
+import tools.jackson.module.kotlin.readValue
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
