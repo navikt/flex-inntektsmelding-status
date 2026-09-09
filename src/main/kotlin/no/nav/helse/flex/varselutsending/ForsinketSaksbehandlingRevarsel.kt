@@ -37,8 +37,8 @@ class ForsinketSaksbehandlingRevarselFinnPersoner(
     environmentToggles: EnvironmentToggles,
 ) {
     private val log = logger()
-    private val maxAntallUtsendelsePerKjoring = if (environmentToggles.isNais()) 1200 else 4
-    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isNais()) 20000 else 7
+    private val maxAntallUtsendelsePerKjoring = if (environmentToggles.isNais()) 120 else 4
+    private val funksjonellGrenseForAntallVarsler = if (environmentToggles.isNais()) 2000 else 7
 
     fun hentOgProsseser(now: Instant): Map<CronJobStatus, Int> {
         val varsletFør = now.minus(28, DAYS)
