@@ -1,7 +1,7 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.objectMapper
+import tools.jackson.module.kotlin.readValue
 import java.time.Instant
 
 data class ForelagteOpplysningerResponse(

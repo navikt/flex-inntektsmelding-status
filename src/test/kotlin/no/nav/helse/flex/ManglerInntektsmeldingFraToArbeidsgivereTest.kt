@@ -1,6 +1,5 @@
 package no.nav.helse.flex
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.Testdata.behandlingId
 import no.nav.helse.flex.Testdata.fnr
 import no.nav.helse.flex.Testdata.sendtTidspunkt
@@ -22,6 +21,7 @@ import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
+import tools.jackson.module.kotlin.readValue
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.*
