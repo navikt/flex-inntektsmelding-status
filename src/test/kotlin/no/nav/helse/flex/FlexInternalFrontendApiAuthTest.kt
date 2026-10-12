@@ -1,6 +1,5 @@
 package no.nav.helse.flex
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.flex.Testdata.fnr
 import no.nav.helse.flex.api.FlexInternalFrontendController
 import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagtStatus
@@ -20,6 +19,7 @@ import org.postgresql.util.PGobject
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import tools.jackson.module.kotlin.readValue
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
