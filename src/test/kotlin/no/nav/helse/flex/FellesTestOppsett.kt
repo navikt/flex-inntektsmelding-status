@@ -1,6 +1,8 @@
 package no.nav.helse.flex
 
 import io.getunleash.FakeUnleash
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.Testdata.fnr
 import no.nav.helse.flex.Testdata.fnrFlexer
 import no.nav.helse.flex.api.FlexInternalFrontendController.HentVedtaksperioderPostRequest
@@ -24,9 +26,6 @@ import no.nav.inntektsmeldingkontrakt.Inntektsmelding
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.tms.varsel.builder.VarselActionBuilder
-import org.amshove.kluent.`should be`
-import org.amshove.kluent.`should be equal to`
-import org.amshove.kluent.shouldBeEmpty
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -299,14 +298,14 @@ abstract class FellesTestOppsett {
         auditlogKafkaConsumer.ventPåRecords(1).first().let {
             val auditEntry: AuditEntry = objectMapper.readValue(it.value())
             with(auditEntry) {
-                appNavn `should be equal to` "flex-internal"
-                utførtAv `should be equal to` fnrFlexer
-                oppslagPå `should be equal to` fnr
-                eventType `should be equal to` EventType.READ
-                forespørselTillatt `should be` true
-                beskrivelse `should be equal to` "Henter inntektsmeldinger"
-                requestUrl `should be equal to` URI.create("http://localhost/api/v1/vedtak-og-inntektsmeldinger")
-                requestMethod `should be equal to` "POST"
+                appNavn shouldBe "flex-internal"
+                utførtAv shouldBe fnrFlexer
+                oppslagPå shouldBe fnr
+                eventType shouldBe EventType.READ
+                forespørselTillatt shouldBe true
+                beskrivelse shouldBe "Henter inntektsmeldinger"
+                requestUrl shouldBe URI.create("http://localhost/api/v1/vedtak-og-inntektsmeldinger")
+                requestMethod shouldBe "POST"
             }
         }
     }

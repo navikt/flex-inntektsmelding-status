@@ -1,5 +1,8 @@
 package no.nav.helse.flex.idempotens
 
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.Testdata
 import no.nav.helse.flex.Testdata.sendtTidspunkt
@@ -14,9 +17,6 @@ import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus
 import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.*
 import no.nav.helse.flex.ventPåRecords
-import org.amshove.kluent.shouldBeEqualTo
-import org.amshove.kluent.shouldNotBeEqualTo
-import org.amshove.kluent.shouldNotBeNull
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
@@ -60,7 +60,7 @@ class ManglendeInntektsmeldingVarselIdempotensTest : FellesTestOppsett() {
     @Order(1)
     fun `Etter 16 dager sender vi forste mangler inntektsmelding varsel`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(16))
-        cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBe 1
 
         awaitOppdatertStatus(
             forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_ARBEIDSGIVER,
@@ -77,22 +77,22 @@ class ManglendeInntektsmeldingVarselIdempotensTest : FellesTestOppsett() {
         tilbakestillVarslingstilstand(VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE)
 
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(16))
-        cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBe 1
 
         awaitOppdatertStatus(
             forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_ARBEIDSGIVER,
             forventetSisteVarselstatus = VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE,
         )
 
-        fangBrukervarselId() shouldBeEqualTo forsteVarselBrukervarselId
-        fangMeldingId() shouldBeEqualTo forsteVarselMeldingId
+        fangBrukervarselId() shouldBe forsteVarselBrukervarselId
+        fangMeldingId() shouldBe forsteVarselMeldingId
     }
 
     @Test
     @Order(3)
     fun `Etter 29 dager sender vi andre mangler inntektsmelding varsel`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(29))
-        cronjobResultat[SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBe 1
 
         awaitOppdatertStatus(
             forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_ARBEIDSGIVER,
@@ -102,8 +102,8 @@ class ManglendeInntektsmeldingVarselIdempotensTest : FellesTestOppsett() {
         andreVarselBrukervarselId = fangNyttBrukervarselIdBlantToRecords()
         andreVarselMeldingId = fangNyMeldingIdBlantToRecords()
 
-        andreVarselBrukervarselId shouldNotBeEqualTo forsteVarselBrukervarselId
-        andreVarselMeldingId shouldNotBeEqualTo forsteVarselMeldingId
+        andreVarselBrukervarselId shouldNotBe forsteVarselBrukervarselId
+        andreVarselMeldingId shouldNotBe forsteVarselMeldingId
     }
 
     @Test
@@ -112,15 +112,15 @@ class ManglendeInntektsmeldingVarselIdempotensTest : FellesTestOppsett() {
         tilbakestillAndreVarsel()
 
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(29))
-        cronjobResultat[SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBe 1
 
         awaitOppdatertStatus(
             forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_ARBEIDSGIVER,
             forventetSisteVarselstatus = VARSLET_MANGLER_INNTEKTSMELDING_ANDRE,
         )
 
-        fangNyttBrukervarselIdBlantToRecords() shouldBeEqualTo andreVarselBrukervarselId
-        fangNyMeldingIdBlantToRecords() shouldBeEqualTo andreVarselMeldingId
+        fangNyttBrukervarselIdBlantToRecords() shouldBe andreVarselBrukervarselId
+        fangNyMeldingIdBlantToRecords() shouldBe andreVarselMeldingId
     }
 
     private fun fangBrukervarselId(): String =

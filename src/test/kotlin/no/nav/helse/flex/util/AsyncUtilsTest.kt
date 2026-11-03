@@ -1,6 +1,6 @@
 package no.nav.helse.flex.util
 
-import org.amshove.kluent.shouldBeEqualTo
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -25,7 +25,7 @@ class AsyncUtilsTest {
                 CompletableFuture.completedFuture("b"),
                 CompletableFuture.completedFuture("c"),
             )
-        ventPaAlle(futures) shouldBeEqualTo listOf("a", "b", "c")
+        ventPaAlle(futures) shouldBe listOf("a", "b", "c")
     }
 
     @Test
@@ -50,7 +50,7 @@ class AsyncUtilsTest {
         val elapsed = System.currentTimeMillis() - start
 
         assert(elapsed >= 280) { "ventPaAlle returnerte etter ${elapsed}ms – ventet ikke på langsom jobb" }
-        langJobbFerdig.get() shouldBeEqualTo true
+        langJobbFerdig.get() shouldBe true
     }
 
     @Test
@@ -65,6 +65,6 @@ class AsyncUtilsTest {
                 ventPaAlle(listOf(CompletableFuture.completedFuture("ok"), feiler))
             }
 
-        exception.cause!!.message shouldBeEqualTo "noe gikk galt"
+        exception.cause!!.message shouldBe "noe gikk galt"
     }
 }

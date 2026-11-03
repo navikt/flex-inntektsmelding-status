@@ -1,7 +1,7 @@
 package no.nav.helse.flex
 
-import org.amshove.kluent.shouldBeEqualTo
-import org.amshove.kluent.shouldHaveSize
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.*
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -25,7 +25,7 @@ class FunksjonellGrenseAvbrytingTest : FellesTestOppsett() {
             assertThrows<RuntimeException> {
                 varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(40))
             }
-        exception.message shouldBeEqualTo
+        exception.message shouldBe
             "Funksjonell grense for antall SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING varsler nådd, " +
             "antall varsler: 8. Grensen er satt til 7"
     }
@@ -53,7 +53,7 @@ class FunksjonellGrenseAvbrytingTest : FellesTestOppsett() {
             assertThrows<RuntimeException> {
                 varselutsendingCronJob.runMedParameter(OffsetDateTime.now().plusDays(40))
             }
-        exception.message shouldBeEqualTo
+        exception.message shouldBe
             "Funksjonell grense for antall SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING varsler nådd, " +
             "antall varsler: 8. Grensen er satt til 7"
     }

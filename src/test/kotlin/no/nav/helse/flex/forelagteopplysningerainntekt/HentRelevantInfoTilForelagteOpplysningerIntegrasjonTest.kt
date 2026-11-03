@@ -1,14 +1,14 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.organisasjon.Organisasjon
 import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
 import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingDbRecord
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingSykepengesoknadDbRecord
-import org.amshove.kluent.`should be equal to`
-import org.amshove.kluent.`should be null`
-import org.amshove.kluent.`should not be null`
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,7 +36,7 @@ class HentRelevantInfoTilForelagteOpplysningerIntegrasjonTest : FellesTestOppset
             .hentRelevantInfoFor(
                 vedtaksperiodeId = "v-id",
                 behandlingId = "b-id",
-            ).`should not be null`()
+            ).shouldNotBeNull()
     }
 
     @Test
@@ -50,7 +50,7 @@ class HentRelevantInfoTilForelagteOpplysningerIntegrasjonTest : FellesTestOppset
             .hentRelevantInfoFor(
                 vedtaksperiodeId = "annen-v-id",
                 behandlingId = "b-id",
-            ).`should be null`()
+            ).shouldBeNull()
     }
 
     @Test
@@ -64,7 +64,7 @@ class HentRelevantInfoTilForelagteOpplysningerIntegrasjonTest : FellesTestOppset
             .hentRelevantInfoFor(
                 vedtaksperiodeId = "v-id",
                 behandlingId = "annen-b-id",
-            ).`should be null`()
+            ).shouldBeNull()
     }
 
     @Test
@@ -81,7 +81,7 @@ class HentRelevantInfoTilForelagteOpplysningerIntegrasjonTest : FellesTestOppset
         hentRelevantInfoTilForelagtOpplysning.hentRelevantInfoFor(
             vedtaksperiodeId = "v-id",
             behandlingId = "b-id",
-        ) `should be equal to`
+        ) shouldBe
             RelevantInfoTilForelagtOpplysning(
                 fnr = "fnr",
                 orgnummer = "orgnummer",

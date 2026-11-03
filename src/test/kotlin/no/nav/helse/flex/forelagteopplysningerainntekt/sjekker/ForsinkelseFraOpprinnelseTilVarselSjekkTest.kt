@@ -1,8 +1,8 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt.sjekker
 
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.booleans.shouldBeTrue
 import no.nav.helse.flex.forelagteopplysningerainntekt.lagTestForelagteOpplysninger
-import org.amshove.kluent.`should be false`
-import org.amshove.kluent.`should be true`
 import org.junit.jupiter.api.Test
 import java.time.Instant
 
@@ -19,7 +19,7 @@ class ForsinkelseFraOpprinnelseTilVarselSjekkTest {
                 forelagteOpplysninger,
                 Instant.parse("2024-01-07T00:00:00.00Z"),
             )
-        langForsinkelseSjekk.`should be false`()
+        langForsinkelseSjekk.shouldBeFalse()
     }
 
     @Test
@@ -34,6 +34,6 @@ class ForsinkelseFraOpprinnelseTilVarselSjekkTest {
                 forelagteOpplysninger,
                 Instant.parse("2024-01-06T00:00:00.00Z"),
             )
-        langForsinkelseSjekk.`should be true`()
+        langForsinkelseSjekk.shouldBeTrue()
     }
 }

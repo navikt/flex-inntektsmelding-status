@@ -1,9 +1,9 @@
 package no.nav.helse.flex.database
 
+import io.kotest.matchers.comparables.shouldBeLessThan
+import io.kotest.matchers.longs.shouldBeInRange
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.FellesTestOppsett
-import org.amshove.kluent.`should be`
-import org.amshove.kluent.`should be in range`
-import org.amshove.kluent.`should be less than`
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -72,11 +72,11 @@ class LockRepositoryIntegrationTest : FellesTestOppsett() {
         }
 
         val completed = countDownLatch.await(1L, TimeUnit.SECONDS)
-        completed `should be` true
+        completed shouldBe true
 
         Duration
             .between(forsteTimestamp, andreTimestamp)
-            .toMillis() `should be in range` FORSINKELSE..FORSINKELSE + 200L
+            .toMillis() shouldBeInRange FORSINKELSE..FORSINKELSE + 200L
     }
 
     @Test
@@ -115,11 +115,11 @@ class LockRepositoryIntegrationTest : FellesTestOppsett() {
         }
 
         val completed = countDownLatch.await(1L, TimeUnit.SECONDS)
-        completed `should be` true
+        completed shouldBe true
 
         Duration
             .between(forsteTimestamp, andreTimestamp)
-            .toMillis() `should be less than` FORSINKELSE
+            .toMillis() shouldBeLessThan FORSINKELSE
     }
 
     private fun doInTransaction(function: () -> Unit) {

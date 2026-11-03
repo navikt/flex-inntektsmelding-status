@@ -1,5 +1,8 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt
 
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.objectMapper
@@ -10,9 +13,6 @@ import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingDbRecord
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingSykepengesoknadDbRecord
 import no.nav.helse.flex.ventPåRecords
-import org.amshove.kluent.`should be equal to`
-import org.amshove.kluent.`should not be`
-import org.amshove.kluent.shouldBeFalse
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterEach
@@ -84,11 +84,11 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
                 it.vedtaksperiodeId == forelagteOpplysningerMelding.vedtaksperiodeId
             }
 
-        record.behandlingId `should be equal to` forelagteOpplysningerMelding.behandlingId
+        record.behandlingId shouldBe forelagteOpplysningerMelding.behandlingId
         val meldingFraDb: ForelagteOpplysningerMelding =
             objectMapper.readValue(record.forelagteOpplysningerMelding.value!!)
 
-        meldingFraDb `should be equal to` forelagteOpplysningerMelding
+        meldingFraDb shouldBe forelagteOpplysningerMelding
     }
 
     @Test
@@ -123,13 +123,13 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
 
         val resultat = sendForelagteOpplysningerCronjob.runMedParameter(Instant.parse("2024-01-01T12:00:00.00Z"))
 
-        resultat.antallForelagteOpplysningerSendt `should be equal to` 1
-        resultat.antallForelagteOpplysningerHoppetOver `should be equal to` 0
+        resultat.antallForelagteOpplysningerSendt shouldBe 1
+        resultat.antallForelagteOpplysningerHoppetOver shouldBe 0
 
         meldingKafkaConsumer.ventPåRecords(antall = 1).first().value().let {
             val melding: MeldingKafkaDto = objectMapper.readValue(it)
             val aaregInntekt: AaregInntekt = objectMapper.convertValue(melding.opprettMelding?.metadata, AaregInntekt::class.java)
-            aaregInntekt `should be equal to`
+            aaregInntekt shouldBe
                 AaregInntekt(
                     tidsstempel = LocalDateTime.parse("2024-01-01T00:00:00.00"),
                     inntekter = emptyList(),
@@ -140,8 +140,8 @@ class ForelagteOpplysningerIntegrasjonTest : FellesTestOppsett() {
         varslingConsumer.ventPåRecords(antall = 1)
 
         forelagteOpplysningerRepository.findById(forelagteOpplysningerMelding.id!!).get().let {
-            it.statusEndret `should not be` null
-            it.status `should be equal to` ForelagtStatus.SENDT
+            it.statusEndret shouldNotBe null
+            it.status shouldBe ForelagtStatus.SENDT
         }
     }
 

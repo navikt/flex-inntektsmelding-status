@@ -1,5 +1,9 @@
 package no.nav.helse.flex
 
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.Testdata.fnr
 import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.melding.MeldingKafkaDto
@@ -12,7 +16,6 @@ import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.*
 import no.nav.tms.varsel.action.Sensitivitet
-import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
@@ -75,8 +78,8 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
     fun `Ingenting skjer etter 15 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(16))
         cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING].shouldBeNull()
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBe 0
 
         varslingConsumer.ventPåRecords(0)
         meldingKafkaConsumer.ventPåRecords(0)
@@ -103,18 +106,18 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
     @Order(3)
     fun `Ingenting skjer etter 20 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(20))
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBe 0
     }
 
     @Test
     @Order(4)
     fun `Etter 56 dager sender vi varsel om forsinket saksbehandling`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(56).plusMinutes(1))
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
-        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBe 1
+        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING] shouldBe 1
 
         val status =
             awaitOppdatertStatus(
@@ -127,28 +130,28 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
                 .first { it.status == VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE }
         val beskjedCR = varslingConsumer.ventPåRecords(1).first()
         val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
-        beskjedInput.ident shouldBeEqualTo fnr
-        beskjedInput.varselId shouldBeEqualTo varselStatusen.brukervarselId
+        beskjedInput.ident shouldBe fnr
+        beskjedInput.varselId shouldBe varselStatusen.brukervarselId
         beskjedInput.eksternVarsling.shouldNotBeNull()
         beskjedInput.link.shouldBeNull()
-        beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
+        beskjedInput.sensitivitet shouldBe Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
-        beskjedInput.tekster.first().tekst shouldBeEqualTo
+        beskjedInput.tekster.first().tekst shouldBe
             "Status i saken din om sykepenger: Vi beklager at saksbehandlingen tar lenger tid enn forventet. Vi behandler søknaden din så raskt vi kan. Trenger du mer informasjon om saken din, kan du skrive til oss eller ringe 55 55 33 33."
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
-        melding.fnr shouldBeEqualTo fnr
+        melding.fnr shouldBe fnr
         melding.lukkMelding.shouldBeNull()
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
-        opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL"
+        opprettMelding.meldingType shouldBe "FORSINKET_SAKSBEHANDLING_FORSTE_VARSEL"
         @Suppress("ktlint:standard:max-line-length")
-        opprettMelding.tekst shouldBeEqualTo
+        opprettMelding.tekst shouldBe
             "Status i saken din om sykepenger: Vi beklager at saksbehandlingen tar lenger tid enn forventet. Vi behandler søknaden din så raskt vi kan. Trenger du mer informasjon om saken din, kan du skrive til oss eller ringe 55 55 33 33."
-        opprettMelding.lenke shouldBeEqualTo SAKSBEHANDLINGSTID_URL
-        opprettMelding.lukkbar shouldBeEqualTo false
-        opprettMelding.variant shouldBeEqualTo Variant.INFO
+        opprettMelding.lenke shouldBe SAKSBEHANDLINGSTID_URL
+        opprettMelding.lukkbar shouldBe false
+        opprettMelding.variant shouldBe Variant.INFO
         opprettMelding.synligFremTil.shouldNotBeNull()
     }
 
@@ -156,11 +159,11 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
     @Order(5)
     fun `Etter 88 dager sender vi revarsel om forsinket saksbehandling`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(88))
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBe 1
         cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING].shouldBeNull()
-        cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBe 1
 
         val status =
             awaitOppdatertStatus(
@@ -178,30 +181,30 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
 
         val beskjedCR = varslingRecords.last()
         val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
-        beskjedInput.ident shouldBeEqualTo fnr
-        beskjedInput.varselId shouldBeEqualTo varselStatusen.brukervarselId
+        beskjedInput.ident shouldBe fnr
+        beskjedInput.varselId shouldBe varselStatusen.brukervarselId
         beskjedInput.eksternVarsling.shouldNotBeNull()
         beskjedInput.link.shouldBeNull()
-        beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
+        beskjedInput.sensitivitet shouldBe Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
-        beskjedInput.tekster.first().tekst shouldBeEqualTo
+        beskjedInput.tekster.first().tekst shouldBe
             "Status i saken din om sykepenger: Vi beklager at saksbehandlingen tar lenger tid enn forventet. Vi behandler søknaden din så raskt vi kan. Trenger du mer informasjon om saken din, kan du skrive til oss eller ringe 55 55 33 33."
 
         val meldingRecords = meldingKafkaConsumer.ventPåRecords(2)
 
         val meldingCR = meldingRecords.last()
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
-        melding.fnr shouldBeEqualTo fnr
+        melding.fnr shouldBe fnr
         melding.lukkMelding.shouldBeNull()
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
-        opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_REVARSEL"
+        opprettMelding.meldingType shouldBe "FORSINKET_SAKSBEHANDLING_REVARSEL"
         @Suppress("ktlint:standard:max-line-length")
-        opprettMelding.tekst shouldBeEqualTo
+        opprettMelding.tekst shouldBe
             "Status i saken din om sykepenger: Vi beklager at saksbehandlingen tar lenger tid enn forventet. Vi behandler søknaden din så raskt vi kan. Trenger du mer informasjon om saken din, kan du skrive til oss eller ringe 55 55 33 33."
-        opprettMelding.lenke shouldBeEqualTo SAKSBEHANDLINGSTID_URL
-        opprettMelding.lukkbar shouldBeEqualTo false
-        opprettMelding.variant shouldBeEqualTo Variant.INFO
+        opprettMelding.lenke shouldBe SAKSBEHANDLINGSTID_URL
+        opprettMelding.lukkbar shouldBe false
+        opprettMelding.variant shouldBe Variant.INFO
         opprettMelding.synligFremTil.shouldNotBeNull()
     }
 
@@ -209,10 +212,10 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
     @Order(6)
     fun `Etter 98 dager skjer ingenting`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(98))
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBe 0
         cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING].shouldBeNull()
         cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING].shouldBeNull()
     }
@@ -221,12 +224,12 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
     @Order(7)
     fun `Etter 123 dager sender vi igjen revarsel om forsinket saksbehandling`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(123).plusMinutes(2))
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBe 1
         cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING].shouldBeNull()
-        cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBe 1
 
         val status =
             awaitOppdatertStatus(
@@ -244,30 +247,30 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
 
         val beskjedCR = varslingRecords.last()
         val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
-        beskjedInput.ident shouldBeEqualTo fnr
-        beskjedInput.varselId shouldBeEqualTo varselStatusen.brukervarselId
+        beskjedInput.ident shouldBe fnr
+        beskjedInput.varselId shouldBe varselStatusen.brukervarselId
         beskjedInput.eksternVarsling.shouldNotBeNull()
         beskjedInput.link.shouldBeNull()
-        beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
+        beskjedInput.sensitivitet shouldBe Sensitivitet.High
         @Suppress("ktlint:standard:max-line-length")
-        beskjedInput.tekster.first().tekst shouldBeEqualTo
+        beskjedInput.tekster.first().tekst shouldBe
             "Status i saken din om sykepenger: Vi beklager at saksbehandlingen tar lenger tid enn forventet. Vi behandler søknaden din så raskt vi kan. Trenger du mer informasjon om saken din, kan du skrive til oss eller ringe 55 55 33 33."
 
         val meldingRecords = meldingKafkaConsumer.ventPåRecords(2)
 
         val meldingCR = meldingRecords.last()
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
-        melding.fnr shouldBeEqualTo fnr
+        melding.fnr shouldBe fnr
         melding.lukkMelding.shouldBeNull()
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
-        opprettMelding.meldingType shouldBeEqualTo "FORSINKET_SAKSBEHANDLING_REVARSEL"
+        opprettMelding.meldingType shouldBe "FORSINKET_SAKSBEHANDLING_REVARSEL"
         @Suppress("ktlint:standard:max-line-length")
-        opprettMelding.tekst shouldBeEqualTo
+        opprettMelding.tekst shouldBe
             "Status i saken din om sykepenger: Vi beklager at saksbehandlingen tar lenger tid enn forventet. Vi behandler søknaden din så raskt vi kan. Trenger du mer informasjon om saken din, kan du skrive til oss eller ringe 55 55 33 33."
-        opprettMelding.lenke shouldBeEqualTo SAKSBEHANDLINGSTID_URL
-        opprettMelding.lukkbar shouldBeEqualTo false
-        opprettMelding.variant shouldBeEqualTo Variant.INFO
+        opprettMelding.lenke shouldBe SAKSBEHANDLINGSTID_URL
+        opprettMelding.lukkbar shouldBe false
+        opprettMelding.variant shouldBe Variant.INFO
         opprettMelding.synligFremTil.shouldNotBeNull()
     }
 
@@ -287,7 +290,7 @@ class VenterPaSaksbehandlerMedRevarslingTest : FellesTestOppsett() {
                 .mapNotNull { it.brukervarselId }
 
         // Alle brukervarselIDer skal være unike
-        brukerVarselIder.size shouldBeEqualTo brukerVarselIder.toSet().size
+        brukerVarselIder.size shouldBe brukerVarselIder.toSet().size
     }
 
     @Test

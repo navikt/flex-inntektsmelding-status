@@ -1,5 +1,7 @@
 package no.nav.helse.flex
 
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.Testdata.fnr
 import no.nav.helse.flex.api.FlexInternalFrontendController
 import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagtStatus
@@ -10,7 +12,6 @@ import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
 import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingDbRecord
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingSykepengesoknadDbRecord
-import org.amshove.kluent.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Test
@@ -79,9 +80,9 @@ class FlexInternalFrontendApiAuthTest : FellesTestOppsett() {
 
         val forelagteOpplysninger = response.forelagteOpplysninger.single()
         val melding = forelagteOpplysninger.forelagteOpplysningerMelding
-        melding!!.omregnetÅrsinntekt `should be equal to` 123456.0
+        melding!!.omregnetÅrsinntekt shouldBe 123456.0
         melding.skatteinntekter.shouldHaveSize(2)
-        melding.skatteinntekter.first().måned `should be equal to` YearMonth.of(2024, 1)
+        melding.skatteinntekter.first().måned shouldBe YearMonth.of(2024, 1)
 
         verifiserAuditlogging()
     }

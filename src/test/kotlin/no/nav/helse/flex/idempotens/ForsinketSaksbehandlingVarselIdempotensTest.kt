@@ -1,5 +1,8 @@
 package no.nav.helse.flex.idempotens
 
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.Testdata
 import no.nav.helse.flex.Testdata.fnr
@@ -18,9 +21,6 @@ import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus
 import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.REVARSLET_VENTER_PÅ_SAKSBEHANDLER
 import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE
 import no.nav.helse.flex.ventPåRecords
-import org.amshove.kluent.shouldBeEqualTo
-import org.amshove.kluent.shouldNotBeEqualTo
-import org.amshove.kluent.shouldNotBeNull
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
@@ -85,7 +85,7 @@ class ForsinketSaksbehandlingVarselIdempotensTest : FellesTestOppsett() {
     @Order(2)
     fun `Etter 56 dager sender vi første varsel om forsinket saksbehandling`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(56).plusMinutes(1))
-        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING] shouldBe 1
 
         awaitOppdatertStatus(
             forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
@@ -102,7 +102,7 @@ class ForsinketSaksbehandlingVarselIdempotensTest : FellesTestOppsett() {
         tilbakestillVarslingstilstand(VARSLET_VENTER_PÅ_SAKSBEHANDLER_FØRSTE)
 
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(56).plusMinutes(1))
-        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING] shouldBe 1
 
         awaitOppdatertStatus(
             forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
@@ -112,15 +112,15 @@ class ForsinketSaksbehandlingVarselIdempotensTest : FellesTestOppsett() {
         val resendtBrukervarselId = fangBrukervarselId()
         val resendtMeldingId = fangMeldingId()
 
-        resendtBrukervarselId shouldBeEqualTo førsteVarselBrukervarselId
-        resendtMeldingId shouldBeEqualTo førsteVarselMeldingId
+        resendtBrukervarselId shouldBe førsteVarselBrukervarselId
+        resendtMeldingId shouldBe førsteVarselMeldingId
     }
 
     @Test
     @Order(4)
     fun `Etter 88 dager sender vi revarsel om forsinket saksbehandling - runde 1`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(88))
-        cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBe 1
 
         awaitOppdatertStatus(
             forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
@@ -130,8 +130,8 @@ class ForsinketSaksbehandlingVarselIdempotensTest : FellesTestOppsett() {
         revarselRunde1BrukervarselId = fangNyttBrukervarselIdBlantToRecords()
         revarselRunde1MeldingId = fangNyMeldingIdBlantToRecords()
 
-        revarselRunde1BrukervarselId shouldNotBeEqualTo førsteVarselBrukervarselId
-        revarselRunde1MeldingId shouldNotBeEqualTo førsteVarselMeldingId
+        revarselRunde1BrukervarselId shouldNotBe førsteVarselBrukervarselId
+        revarselRunde1MeldingId shouldNotBe førsteVarselMeldingId
     }
 
     @Test
@@ -140,7 +140,7 @@ class ForsinketSaksbehandlingVarselIdempotensTest : FellesTestOppsett() {
         tilbakestillRevarsel()
 
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(88))
-        cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBe 1
 
         awaitOppdatertStatus(
             forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
@@ -150,15 +150,15 @@ class ForsinketSaksbehandlingVarselIdempotensTest : FellesTestOppsett() {
         val resendtBrukervarselId = fangNyttBrukervarselIdBlantToRecords()
         val resendtMeldingId = fangNyMeldingIdBlantToRecords()
 
-        resendtBrukervarselId shouldBeEqualTo revarselRunde1BrukervarselId
-        resendtMeldingId shouldBeEqualTo revarselRunde1MeldingId
+        resendtBrukervarselId shouldBe revarselRunde1BrukervarselId
+        resendtMeldingId shouldBe revarselRunde1MeldingId
     }
 
     @Test
     @Order(6)
     fun `Etter 120 dager sender vi revarsel runde 2 og den får en ny UUID`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(120))
-        cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_REVARSEL_FORSINKET_SAKSBEHANDLING] shouldBe 1
 
         awaitOppdatertStatus(
             forventetSisteSpleisstatus = SpleisStatus.VENTER_PÅ_SAKSBEHANDLER,
@@ -168,10 +168,10 @@ class ForsinketSaksbehandlingVarselIdempotensTest : FellesTestOppsett() {
         val revarselRunde2BrukervarselId = fangNyttBrukervarselIdBlantToRecords()
         val revarselRunde2MeldingId = fangNyMeldingIdBlantToRecords()
 
-        revarselRunde2BrukervarselId shouldNotBeEqualTo revarselRunde1BrukervarselId
-        revarselRunde2BrukervarselId shouldNotBeEqualTo førsteVarselBrukervarselId
-        revarselRunde2MeldingId shouldNotBeEqualTo revarselRunde1MeldingId
-        revarselRunde2MeldingId shouldNotBeEqualTo førsteVarselMeldingId
+        revarselRunde2BrukervarselId shouldNotBe revarselRunde1BrukervarselId
+        revarselRunde2BrukervarselId shouldNotBe førsteVarselBrukervarselId
+        revarselRunde2MeldingId shouldNotBe revarselRunde1MeldingId
+        revarselRunde2MeldingId shouldNotBe førsteVarselMeldingId
     }
 
     private fun fangBrukervarselId(): String =

@@ -1,5 +1,6 @@
 package no.nav.helse.flex.forelagteopplysningerainntekt.sjekker
 
+import io.kotest.matchers.collections.shouldHaveSize
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagtStatus
 import no.nav.helse.flex.forelagteopplysningerainntekt.ForelagteOpplysningerDbRecord
@@ -7,7 +8,6 @@ import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
 import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingDbRecord
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingSykepengesoknadDbRecord
-import org.amshove.kluent.shouldHaveSize
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.postgresql.util.PGobject

@@ -1,5 +1,6 @@
 package no.nav.helse.flex.testdata
 
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingDbRecord
 import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
@@ -9,8 +10,6 @@ import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingDbReco
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingStatusDbRecord
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingSykepengesoknadDbRecord
 import no.nav.helse.flex.ventPåRecords
-import org.amshove.kluent.`should be`
-import org.amshove.kluent.`should be equal to`
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.MethodOrderer
@@ -61,8 +60,8 @@ class TestdataResetListenerTest : FellesTestOppsett() {
 
         sendtSlettTestdataResetMelding("11111111111")
 
-        inntektsmeldingRepository.findByFnr("11111111111").size `should be equal to` 0
-        inntektsmeldingRepository.findByFnr("22222222222").size `should be equal to` 1
+        inntektsmeldingRepository.findByFnr("11111111111").size shouldBe 0
+        inntektsmeldingRepository.findByFnr("22222222222").size shouldBe 1
     }
 
     @Test
@@ -72,8 +71,8 @@ class TestdataResetListenerTest : FellesTestOppsett() {
 
         sendtSlettTestdataResetMelding("11111111111")
 
-        vedtaksperioderFinnesForBruker(testdataService.finnVedtaksperioderSomSkalSlettes("11111111111")) `should be` false
-        vedtaksperioderFinnesForBruker(testdataService.finnVedtaksperioderSomSkalSlettes("22222222222")) `should be` true
+        vedtaksperioderFinnesForBruker(testdataService.finnVedtaksperioderSomSkalSlettes("11111111111")) shouldBe false
+        vedtaksperioderFinnesForBruker(testdataService.finnVedtaksperioderSomSkalSlettes("22222222222")) shouldBe true
     }
 
     private fun lagreVedtaksperioderForBruker(fnr: String) {
@@ -132,8 +131,8 @@ class TestdataResetListenerTest : FellesTestOppsett() {
         kafkaProducer.send(ProducerRecord(TESTDATA_RESET_TOPIC, key, fnr)).get()
 
         testdataResetConsumer.ventPåRecords(1).single().also {
-            it.key() `should be equal to` key
-            it.value() `should be equal to` "11111111111"
+            it.key() shouldBe key
+            it.value() shouldBe "11111111111"
         }
     }
 

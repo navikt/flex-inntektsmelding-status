@@ -1,10 +1,10 @@
 package no.nav.helse.flex.inntektsmelding
 
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.serialisertTilString
 import no.nav.helse.flex.skapInntektsmelding
-import org.amshove.kluent.`should be equal to`
-import org.amshove.kluent.shouldHaveSize
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
@@ -47,9 +47,9 @@ class InntektsmeldingLagringTest : FellesTestOppsett() {
         inntektsmeldingRepository.findByFnrIn(listOf(fnr)).shouldHaveSize(1)
 
         val melding = inntektsmeldingRepository.findByFnrIn(listOf(fnr)).first()
-        melding.arbeidsgivertype `should be equal to` "VIRKSOMHET"
-        melding.fullRefusjon `should be equal to` true
-        melding.vedtaksperiodeId `should be equal to` "ffcf0c28-dd35-4b5d-b518-3d3cbda9329a"
+        melding.arbeidsgivertype shouldBe "VIRKSOMHET"
+        melding.fullRefusjon shouldBe true
+        melding.vedtaksperiodeId shouldBe "ffcf0c28-dd35-4b5d-b518-3d3cbda9329a"
     }
 
     @Test
@@ -73,8 +73,8 @@ class InntektsmeldingLagringTest : FellesTestOppsett() {
         inntektsmeldingRepository.findByFnrIn(listOf(fnr)).shouldHaveSize(1)
 
         val melding = inntektsmeldingRepository.findByFnrIn(listOf(fnr)).first()
-        melding.arbeidsgivertype `should be equal to` "VIRKSOMHET"
-        melding.fullRefusjon `should be equal to` false
+        melding.arbeidsgivertype shouldBe "VIRKSOMHET"
+        melding.fullRefusjon shouldBe false
     }
 
     @Test
@@ -98,8 +98,8 @@ class InntektsmeldingLagringTest : FellesTestOppsett() {
         inntektsmeldingRepository.findByFnrIn(listOf(fnr)).shouldHaveSize(1)
 
         val melding = inntektsmeldingRepository.findByFnrIn(listOf(fnr)).first()
-        melding.arbeidsgivertype `should be equal to` "VIRKSOMHET"
-        melding.fullRefusjon `should be equal to` false
+        melding.arbeidsgivertype shouldBe "VIRKSOMHET"
+        melding.fullRefusjon shouldBe false
     }
 
     fun produserMelding(

@@ -1,5 +1,11 @@
 package no.nav.helse.flex
 
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.Testdata.behandlingId
 import no.nav.helse.flex.Testdata.fnr
 import no.nav.helse.flex.Testdata.orgNr
@@ -18,7 +24,6 @@ import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import no.nav.helse.flex.vedtaksperiodebehandling.VarslingStatus.*
 import no.nav.tms.varsel.action.Sensitivitet
-import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
@@ -78,7 +83,7 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
         val perioderSomVenterPaaArbeidsgiver =
             vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.plusMinutes(1).toInstant())
         perioderSomVenterPaaArbeidsgiver.shouldHaveSize(1)
-        perioderSomVenterPaaArbeidsgiver.first() shouldBeEqualTo fnr
+        perioderSomVenterPaaArbeidsgiver.first() shouldBe fnr
 
         vedtaksperiodeBehandlingRepository
             .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
@@ -90,40 +95,40 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
     @Order(3)
     fun `Vi sender ikke ut mangler inntektsmelding varsel etter 14 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(14))
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).shouldBeFalse()
     }
 
     @Test
     @Order(4)
     fun `Vi sender ut mangler inntektsmelding varsel etter 15 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(16))
-        cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBe 1
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 1
 
         val beskjedCR = varslingConsumer.ventPåRecords(1).first()
         val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
-        beskjedInput.ident shouldBeEqualTo fnr
+        beskjedInput.ident shouldBe fnr
         beskjedInput.eksternVarsling.shouldNotBeNull()
-        beskjedInput.link shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
-        beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
-        beskjedInput.tekster.first().tekst shouldBeEqualTo
+        beskjedInput.link shouldBe "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
+        beskjedInput.sensitivitet shouldBe Sensitivitet.High
+        beskjedInput.tekster.first().tekst shouldBe
             "Status i saken din om sykepenger: " +
             "Vi venter på inntektsmelding fra Flex AS."
 
         val meldingCR = meldingKafkaConsumer.ventPåRecords(1).first()
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
-        melding.fnr shouldBeEqualTo fnr
+        melding.fnr shouldBe fnr
         melding.lukkMelding.shouldBeNull()
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
-        opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING"
-        opprettMelding.tekst shouldBeEqualTo
+        opprettMelding.meldingType shouldBe "MANGLENDE_INNTEKTSMELDING"
+        opprettMelding.tekst shouldBe
             "Status i saken din om sykepenger: " +
             "Vi venter på inntektsmelding fra Flex AS."
-        opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
-        opprettMelding.lukkbar shouldBeEqualTo false
-        opprettMelding.variant shouldBeEqualTo Variant.INFO
+        opprettMelding.lenke shouldBe "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
+        opprettMelding.lukkbar shouldBe false
+        opprettMelding.variant shouldBe Variant.INFO
         opprettMelding.synligFremTil.shouldNotBeNull()
     }
 
@@ -154,13 +159,13 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
             varslingConsumer
                 .ventPåRecords(1)
                 .first()
-        doneBrukervarsel.key() shouldBeEqualTo statusManglerIm.brukervarselId!!
-        doneBrukervarsel.value().tilInaktiverVarselInstance().varselId shouldBeEqualTo statusManglerIm.brukervarselId
+        doneBrukervarsel.key() shouldBe statusManglerIm.brukervarselId!!
+        doneBrukervarsel.value().tilInaktiverVarselInstance().varselId shouldBe statusManglerIm.brukervarselId
 
         val cr = meldingKafkaConsumer.ventPåRecords(1).first()
         val doneDittSykefravaer: MeldingKafkaDto = cr.value().let { objectMapper.readValue(it) }
 
-        cr.key() shouldBeEqualTo statusManglerIm.dittSykefravaerMeldingId!!
+        cr.key() shouldBe statusManglerIm.dittSykefravaerMeldingId!!
         doneDittSykefravaer.lukkMelding.shouldNotBeNull()
     }
 
@@ -190,17 +195,17 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
             .first()
             .soknader
             .first()
-            .orgnummer shouldBeEqualTo orgNr
+            .orgnummer shouldBe orgNr
         response.first().statuser shouldHaveSize 2
 
-        response.first().statuser.map { it.status.name } shouldBeEqualTo
+        response.first().statuser.map { it.status.name } shouldBe
             listOf(
                 "VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE",
                 "VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE",
             )
 
-        response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo SpleisStatus.FERDIG
-        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE
+        response.first().vedtaksperiode.sisteSpleisstatus shouldBe SpleisStatus.FERDIG
+        response.first().vedtaksperiode.sisteVarslingstatus shouldBe VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE
 
         verifiserAuditlogging()
     }
@@ -249,17 +254,17 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
             .first()
             .soknader
             .first()
-            .orgnummer shouldBeEqualTo orgNr
+            .orgnummer shouldBe orgNr
         response.first().statuser shouldHaveSize 2
 
-        response.first().statuser.map { it.status.name } shouldBeEqualTo
+        response.first().statuser.map { it.status.name } shouldBe
             listOf(
                 "VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE",
                 "VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE",
             )
 
-        response.first().vedtaksperiode.sisteSpleisstatus shouldBeEqualTo SpleisStatus.VENTER_PÅ_SAKSBEHANDLER
-        response.first().vedtaksperiode.sisteVarslingstatus shouldBeEqualTo VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE
+        response.first().vedtaksperiode.sisteSpleisstatus shouldBe SpleisStatus.VENTER_PÅ_SAKSBEHANDLER
+        response.first().vedtaksperiode.sisteVarslingstatus shouldBe VARSLET_MANGLER_INNTEKTSMELDING_FØRSTE_DONE
 
         verifiserAuditlogging()
     }
@@ -268,8 +273,8 @@ class MangledeInntektsmelding15DagerTest : FellesTestOppsett() {
     @Order(10)
     fun `Cronjob resultat til slutt`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(14))
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[CronJobStatus.UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[CronJobStatus.UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[CronJobStatus.UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[CronJobStatus.UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBe 0
     }
 }
