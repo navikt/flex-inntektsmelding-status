@@ -1,13 +1,13 @@
 package no.nav.helse.flex.varselutsending
 
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.Testdata
 import no.nav.helse.flex.inntektsmelding.InntektsmeldingDbRecord
 import no.nav.helse.flex.sykepengesoknad.Sykepengesoknad
 import no.nav.helse.flex.vedtaksperiodebehandling.FullVedtaksperiodeBehandling
 import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import no.nav.helse.flex.vedtaksperiodebehandling.VedtaksperiodeBehandlingDbRecord
-import org.amshove.kluent.shouldBeEqualTo
-import org.amshove.kluent.shouldBeNull
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -78,7 +78,7 @@ class FinnLikesteInntektsmeldingTest {
             ).shuffled()
 
         val inntektsmelding = finnLikesteInntektsmelding(inntektsmeldinger, vedtaksperiodeBehandling, soknad)
-        inntektsmelding shouldBeEqualTo riktigInntektsmelding
+        inntektsmelding shouldBe riktigInntektsmelding
     }
 
     @Test
@@ -114,7 +114,7 @@ class FinnLikesteInntektsmeldingTest {
             ).shuffled()
 
         val inntektsmelding = finnLikesteInntektsmelding(inntektsmeldinger, vedtaksperiodeBehandling, soknad)
-        inntektsmelding shouldBeEqualTo riktigInntektsmelding
+        inntektsmelding shouldBe riktigInntektsmelding
     }
 
     @Test
@@ -152,7 +152,7 @@ class FinnLikesteInntektsmeldingTest {
             ).shuffled()
 
         val inntektsmelding = finnLikesteInntektsmelding(inntektsmeldinger, vedtaksperiodeBehandling, soknad)
-        inntektsmelding shouldBeEqualTo riktigInntektsmelding
+        inntektsmelding shouldBe riktigInntektsmelding
     }
 
     @Test
@@ -192,7 +192,7 @@ class FinnLikesteInntektsmeldingTest {
             ).shuffled()
 
         val inntektsmelding = finnLikesteInntektsmelding(inntektsmeldinger, vedtaksperiodeBehandling, soknad)
-        inntektsmelding shouldBeEqualTo riktigInntektsmelding
+        inntektsmelding shouldBe riktigInntektsmelding
     }
 
     @Test

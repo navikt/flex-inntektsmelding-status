@@ -4,9 +4,9 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.booleans.shouldBeTrue
 import no.nav.helse.flex.forelagteopplysningerainntekt.sjekker.ForsinkelseFraOpprinnelseTilVarselSjekk
-import org.amshove.kluent.`should be false`
-import org.amshove.kluent.`should be true`
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -71,7 +71,7 @@ class SendForelagteOpplysningerOppgaveTest {
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
-        bleSendt.`should be true`()
+        bleSendt.shouldBeTrue()
     }
 
     @Test
@@ -93,7 +93,7 @@ class SendForelagteOpplysningerOppgaveTest {
             )
 
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
-        bleSendt.`should be false`()
+        bleSendt.shouldBeFalse()
     }
 
     @Test
@@ -114,7 +114,7 @@ class SendForelagteOpplysningerOppgaveTest {
                 forsinkelseFraOpprinnelseTilVarselSjekk = forsinkelseFraOpprinnelseTilVarselSjekkMock(),
             )
         val bleSendt = oppgave.sendForelagteOpplysninger("_", Instant.parse("2024-01-01T00:00:00.00Z"))
-        bleSendt.`should be false`()
+        bleSendt.shouldBeFalse()
         verify(
             forelagteOpplysningerRepository,
         ).save(

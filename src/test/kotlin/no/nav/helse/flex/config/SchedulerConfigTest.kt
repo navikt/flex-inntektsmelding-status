@@ -1,9 +1,9 @@
 package no.nav.helse.flex.config
 
+import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.helse.flex.testconfig.ScheduledTasks
-import org.amshove.kluent.`should be instance of`
-import org.amshove.kluent.`should be true`
-import org.amshove.kluent.shouldBeEqualTo
 import org.awaitility.Awaitility.await
 import org.awaitility.Durations
 import org.junit.jupiter.api.Test
@@ -27,7 +27,7 @@ class SchedulerConfigTest {
 
     @Test
     fun `planlegger bean finnes og er ThreadPoolTaskScheduler`() {
-        oppgavePlanlegger `should be instance of` ThreadPoolTaskScheduler::class
+        oppgavePlanlegger.shouldBeInstanceOf<ThreadPoolTaskScheduler>()
     }
 
     @Test
@@ -44,7 +44,7 @@ class SchedulerConfigTest {
             .atMost(Durations.TWO_HUNDRED_MILLISECONDS)
             .until { oppgaveUtfort.get() }
 
-        oppgaveUtfort.get().`should be true`()
+        oppgaveUtfort.get().shouldBeTrue()
     }
 
     @Test
@@ -53,7 +53,7 @@ class SchedulerConfigTest {
             .atMost(Durations.TWO_HUNDRED_MILLISECONDS)
             .until { planlagteOppgaver.oppgaveUtfort.get() }
 
-        planlagteOppgaver.oppgaveUtfort.get().`should be true`()
+        planlagteOppgaver.oppgaveUtfort.get().shouldBeTrue()
     }
 
     @Test
@@ -83,7 +83,7 @@ class SchedulerConfigTest {
 
             // Kort jobb skal fullføres på den andre tråden mens lang jobb fortsatt kjører
             await().atMost(Durations.ONE_SECOND).until { kortJobbUtfort.get() }
-            kortJobbUtfort.get().`should be true`()
+            kortJobbUtfort.get().shouldBeTrue()
         } finally {
             slippLangJobbLos.countDown()
         }
@@ -121,8 +121,8 @@ class SchedulerConfigTest {
         slippLøs.countDown()
         shutdownThread.join(10_000)
 
-        infligtFerdig.get() shouldBeEqualTo 5
-        queuedKjorte.get() shouldBeEqualTo false
+        infligtFerdig.get() shouldBe 5
+        queuedKjorte.get() shouldBe false
     }
 
     @Test
@@ -178,10 +178,10 @@ class SchedulerConfigTest {
         cronJobbFerdig.await(15, TimeUnit.SECONDS)
         shutdownThread.join(15_000)
 
-        infligtFerdig.get() shouldBeEqualTo 5
-        queuedKjorte.get() shouldBeEqualTo false
-        postShutdownKjorte.get() shouldBeEqualTo false
-        postShutdownGikkBra.get() shouldBeEqualTo true
+        infligtFerdig.get() shouldBe 5
+        queuedKjorte.get() shouldBe false
+        postShutdownKjorte.get() shouldBe false
+        postShutdownGikkBra.get() shouldBe true
 
         scheduler.destroy()
     }

@@ -1,11 +1,11 @@
 package no.nav.helse.flex.sykepengesoknad
 
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.FellesTestOppsett
 import no.nav.helse.flex.`should be equal to ignoring nano and zone`
 import no.nav.helse.flex.sykepengesoknad.kafka.*
-import org.amshove.kluent.`should be equal to`
-import org.amshove.kluent.shouldBeNull
-import org.amshove.kluent.shouldNotBeNull
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -43,10 +43,10 @@ class SykepengesoknadMottakTest : FellesTestOppsett() {
 
         val soknadLagret = sykepengesoknadRepository.findBySykepengesoknadUuid(soknad.id)
         soknadLagret.shouldNotBeNull()
-        soknadLagret.orgnummer `should be equal to` soknad.arbeidsgiver!!.orgnummer!!
-        soknadLagret.fom `should be equal to` soknad.fom!!
-        soknadLagret.tom `should be equal to` soknad.tom!!
-        soknadLagret.fnr `should be equal to` soknad.fnr
+        soknadLagret.orgnummer shouldBe soknad.arbeidsgiver!!.orgnummer!!
+        soknadLagret.fom shouldBe soknad.fom!!
+        soknadLagret.tom shouldBe soknad.tom!!
+        soknadLagret.fnr shouldBe soknad.fnr
         soknadLagret.sendt `should be equal to ignoring nano and zone` soknad.sendtArbeidsgiver!!.tilOsloZone()
         soknadLagret.opprettetDatabase.shouldNotBeNull()
     }

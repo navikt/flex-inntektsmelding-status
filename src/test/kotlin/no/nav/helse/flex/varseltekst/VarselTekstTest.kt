@@ -1,6 +1,6 @@
 package no.nav.helse.flex.varseltekst
 
-import org.amshove.kluent.`should be equal to`
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.time.LocalDate
@@ -17,6 +17,6 @@ class VarselTekstTest {
     @ParameterizedTest
     @EnumSource(FormaterParams::class)
     fun `dato formateres riktig`(param: FormaterParams) {
-        param.tid.formater() `should be equal to` param.formatert
+        param.tid.formater() shouldBe param.formatert
     }
 }

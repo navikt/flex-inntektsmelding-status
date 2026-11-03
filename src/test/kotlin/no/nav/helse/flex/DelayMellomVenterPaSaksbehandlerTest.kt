@@ -1,5 +1,10 @@
 package no.nav.helse.flex
 
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.Testdata.fnr
 import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.Testdata.soknad
@@ -8,7 +13,6 @@ import no.nav.helse.flex.varselutsending.CronJobStatus.*
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
-import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
@@ -150,7 +154,7 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
                 Instant.now(),
             )
         perioderSomVenterPaaArbeidsgiver.shouldHaveSize(1)
-        perioderSomVenterPaaArbeidsgiver.first() shouldBeEqualTo fnr
+        perioderSomVenterPaaArbeidsgiver.first() shouldBe fnr
 
         vedtaksperiodeBehandlingRepository
             .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
@@ -188,18 +192,18 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
     @Order(3)
     fun `Vi sender ikke ut mangler inntektsmelding varsel etter 16 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(16))
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).shouldBeFalse()
     }
 
     @Test
     @Order(4)
     fun `Vi sender ut forsinket saksbehandling varsel etter 58 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(58))
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
-        cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
-        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBe 1
+        cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).shouldBeFalse()
+        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING] shouldBe 1
 
         varslingConsumer.ventPåRecords(1)
         meldingKafkaConsumer.ventPåRecords(1)
@@ -209,10 +213,10 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
     @Order(5)
     fun `Vi sender ikke ut forsinket saksbehandling varsel på annen orgnummer fordi den andre har aktiv varsling`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(70))
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
-        cronjobResultat[VARSLER_ALLEREDE_OM_VENTER_PA_SAKSBEHANDLER] shouldBeEqualTo 1
-        cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBe 1
+        cronjobResultat[VARSLER_ALLEREDE_OM_VENTER_PA_SAKSBEHANDLER] shouldBe 1
+        cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).shouldBeFalse()
         cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING].shouldBeNull()
         cronjobResultat[INGEN_PERIODE_FUNNET_FOR_FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL].shouldBeNull()
 
@@ -247,11 +251,11 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
     @Order(7)
     fun `Vi sender ikke ut forsinket saksbehandling varsel uten at det har gått nok tid`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(68))
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
-        cronjobResultat[HAR_FATT_NYLIG_VARSEL] shouldBeEqualTo 1
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBe 1
+        cronjobResultat[HAR_FATT_NYLIG_VARSEL] shouldBe 1
         cronjobResultat[VARSLER_ALLEREDE_OM_VENTER_PA_SAKSBEHANDLER].shouldBeNull()
-        cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
+        cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).shouldBeFalse()
         cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING].shouldBeNull()
         cronjobResultat[INGEN_PERIODE_FUNNET_FOR_FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL].shouldBeNull()
 
@@ -264,10 +268,10 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
     fun `Vi sender ut forsinket saksbehandling varsel etter 73 dager når det har gått nok tid`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(73))
         cronjobResultat[INGEN_PERIODE_FUNNET_FOR_FØRSTE_FORSINKET_SAKSBEHANDLING_VARSEL].shouldBeNull()
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
-        cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).`should be false`()
-        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBe 1
+        cronjobResultat.containsKey(SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING).shouldBeFalse()
+        cronjobResultat[SENDT_FØRSTE_VARSEL_FORSINKET_SAKSBEHANDLING] shouldBe 1
         cronjobResultat[HAR_FATT_NYLIG_VARSEL].shouldBeNull()
 
         varslingConsumer.ventPåRecords(1)
@@ -278,8 +282,8 @@ class DelayMellomVenterPaSaksbehandlerTest : FellesTestOppsett() {
     @Order(10)
     fun `Cronjob resultat til slutt`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(78))
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBeEqualTo 1
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_FORSINKET_SAKSBEHANDLING] shouldBe 1
     }
 }

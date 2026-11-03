@@ -5,14 +5,14 @@ import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.brukervarsel.Brukervarsel
 import no.nav.helse.flex.melding.MeldingKafkaDto
 import no.nav.helse.flex.melding.MeldingKafkaProducer
 import no.nav.helse.flex.objectMapper
 import no.nav.helse.flex.serialisertTilString
 import no.nav.helse.flex.varseltekst.skapForelagteOpplysningerTekst
-import org.amshove.kluent.`should be equal to`
-import org.amshove.kluent.shouldNotBeNull
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.postgresql.util.PGobject
@@ -41,7 +41,7 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
             }
         val jsonNode = forelagtOpplysningTilMetadata(pGobject, "Snekkeri AS")
         val aaregInntekt: AaregInntekt = objectMapper.convertValue(jsonNode, AaregInntekt::class.java)
-        aaregInntekt `should be equal to`
+        aaregInntekt shouldBe
             AaregInntekt(
                 tidsstempel = LocalDateTime.parse("2022-06-16T00:00:00"),
                 inntekter = listOf(AaregInntekt.Inntekt("2024-01", 40_000.0)),
@@ -161,7 +161,7 @@ class OpprettBrukervarselForForelagteOpplysningerTest {
 
         argCaptor.firstValue.opprettMelding
             .shouldNotBeNull()
-            .tekst `should be equal to` "Status i saken din om sykepenger: " +
+            .tekst shouldBe "Status i saken din om sykepenger: " +
             "Vi har hentet opplysninger om inntekten din fra a-ordningen for sykefraværet." +
             "Vi trenger at du sjekker om de stemmer."
     }

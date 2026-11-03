@@ -1,5 +1,10 @@
 package no.nav.helse.flex
 
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.Testdata.behandlingId
 import no.nav.helse.flex.Testdata.fnr
 import no.nav.helse.flex.Testdata.sendtTidspunkt
@@ -15,7 +20,6 @@ import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
 import no.nav.tms.varsel.action.Sensitivitet
-import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
@@ -113,7 +117,7 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
         val perioderSomVenterPaaArbeidsgiver =
             vedtaksperiodeBehandlingRepository.finnPersonerMedPerioderSomVenterPaaArbeidsgiver(sendtTidspunkt.plusSeconds(1).toInstant())
         perioderSomVenterPaaArbeidsgiver.shouldHaveSize(1)
-        perioderSomVenterPaaArbeidsgiver.first() shouldBeEqualTo fnr
+        perioderSomVenterPaaArbeidsgiver.first() shouldBe fnr
 
         vedtaksperiodeBehandlingRepository
             .finnPersonerMedPerioderSomVenterPaaArbeidsgiver(
@@ -125,44 +129,44 @@ class ManglerInntektsmeldingFraToArbeidsgivereTest : FellesTestOppsett() {
     @Order(2)
     fun `Vi sender ut mangler inntektsmelding varsel etter 15 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(16))
-        cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 1
+        cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBe 1
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 1
 
         val brukerVarslinger = varslingConsumer.ventPåRecords(2)
         val beskjedCR = brukerVarslinger.first()
         val beskjedInput = beskjedCR.value().tilOpprettVarselInstance()
-        beskjedInput.ident shouldBeEqualTo fnr
+        beskjedInput.ident shouldBe fnr
         beskjedInput.eksternVarsling.shouldNotBeNull()
-        beskjedInput.link shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
-        beskjedInput.sensitivitet shouldBeEqualTo Sensitivitet.High
-        beskjedInput.tekster.first().tekst shouldBeEqualTo
+        beskjedInput.link shouldBe "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
+        beskjedInput.sensitivitet shouldBe Sensitivitet.High
+        beskjedInput.tekster.first().tekst shouldBe
             "Status i saken din om sykepenger: " +
             "Vi venter på inntektsmelding fra Flex AS."
 
         val beskjedCR2 = brukerVarslinger.last().value().tilOpprettVarselInstance()
         beskjedCR2.eksternVarsling.shouldBeNull()
-        beskjedCR2.tekster.first().tekst shouldBeEqualTo
+        beskjedCR2.tekster.first().tekst shouldBe
             "Status i saken din om sykepenger: " +
             "Vi venter på inntektsmelding fra Kebabfabrikken."
 
         val meldinger = meldingKafkaConsumer.ventPåRecords(2)
         val meldingCR = meldinger.first()
         val melding = objectMapper.readValue<MeldingKafkaDto>(meldingCR.value())
-        melding.fnr shouldBeEqualTo fnr
+        melding.fnr shouldBe fnr
         melding.lukkMelding.shouldBeNull()
 
         val opprettMelding = melding.opprettMelding.shouldNotBeNull()
-        opprettMelding.meldingType shouldBeEqualTo "MANGLENDE_INNTEKTSMELDING"
-        opprettMelding.tekst shouldBeEqualTo
+        opprettMelding.meldingType shouldBe "MANGLENDE_INNTEKTSMELDING"
+        opprettMelding.tekst shouldBe
             "Status i saken din om sykepenger: " +
             "Vi venter på inntektsmelding fra Flex AS."
-        opprettMelding.lenke shouldBeEqualTo "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
-        opprettMelding.lukkbar shouldBeEqualTo false
-        opprettMelding.variant shouldBeEqualTo Variant.INFO
+        opprettMelding.lenke shouldBe "https://www-gcp.dev.nav.no/syk/sykefravaer/inntektsmelding"
+        opprettMelding.lukkbar shouldBe false
+        opprettMelding.variant shouldBe Variant.INFO
         opprettMelding.synligFremTil.shouldNotBeNull()
 
         val opprettMeldingTo = objectMapper.readValue<MeldingKafkaDto>(meldinger.last().value())
-        opprettMeldingTo.opprettMelding!!.tekst shouldBeEqualTo
+        opprettMeldingTo.opprettMelding!!.tekst shouldBe
             "Status i saken din om sykepenger: " +
             "Vi venter på inntektsmelding fra Kebabfabrikken."
     }

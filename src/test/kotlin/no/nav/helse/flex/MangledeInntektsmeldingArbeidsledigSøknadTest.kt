@@ -1,12 +1,13 @@
 package no.nav.helse.flex
 
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.sykepengesoknad.kafka.SoknadsstatusDTO
 import no.nav.helse.flex.sykepengesoknad.kafka.SoknadstypeDTO
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatusmelding
 import no.nav.helse.flex.vedtaksperiodebehandling.Behandlingstatustype
 import no.nav.helse.flex.vedtaksperiodebehandling.SpleisStatus
-import org.amshove.kluent.*
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
@@ -69,7 +70,7 @@ class MangledeInntektsmeldingArbeidsledigSøknadTest : FellesTestOppsett() {
         val beskjedOpprettVarsel = varslingRecords.last()
         val beskjedInput = beskjedOpprettVarsel.value().tilOpprettVarselInstance()
         @Suppress("ktlint:standard:max-line-length")
-        beskjedInput.tekster.first().tekst shouldBeEqualTo
+        beskjedInput.tekster.first().tekst shouldBe
             "Status i saken din om sykepenger: " +
             "Vi venter på inntektsmelding fra arbeidsgiver."
     }
@@ -88,7 +89,7 @@ class MangledeInntektsmeldingArbeidsledigSøknadTest : FellesTestOppsett() {
         val beskjedInput = beskjedOpprettVarsel.value().tilOpprettVarselInstance()
 
         @Suppress("ktlint:standard:max-line-length")
-        beskjedInput.tekster.first().tekst shouldBeEqualTo
+        beskjedInput.tekster.first().tekst shouldBe
             "Status i saken din om sykepenger: " +
             "Vi mangler fortsatt inntektsmelding fra arbeidsgiver og har sendt en påminnelse til arbeidsgiveren din om dette." +
             "Når vi får den kan vi begynne å behandle søknaden din."

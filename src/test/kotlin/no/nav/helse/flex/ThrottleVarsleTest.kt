@@ -1,10 +1,10 @@
 package no.nav.helse.flex
 
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import no.nav.helse.flex.Testdata.sendtTidspunkt
 import no.nav.helse.flex.varselutsending.CronJobStatus.*
-import org.amshove.kluent.shouldBeEqualTo
-import org.amshove.kluent.shouldBeNull
-import org.amshove.kluent.shouldHaveSize
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
@@ -27,10 +27,10 @@ class ThrottleVarsleTest : FellesTestOppsett() {
     @Order(2)
     fun `Vi sender ut mangler inntektsmelding varsel etter 15 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(16))
-        cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 4
-        cronjobResultat[FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBeEqualTo 6
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 6
-        cronjobResultat[THROTTLET_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL] shouldBeEqualTo 2
+        cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBe 4
+        cronjobResultat[FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBe 6
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 6
+        cronjobResultat[THROTTLET_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL] shouldBe 2
         varslingConsumer.ventPåRecords(4, duration = Duration.ofMinutes(1))
         meldingKafkaConsumer.ventPåRecords(4, duration = Duration.ofMinutes(1))
     }
@@ -39,9 +39,9 @@ class ThrottleVarsleTest : FellesTestOppsett() {
     @Order(3)
     fun `Vi sender ut de to siste inntektsmelding varsel etter 15 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(16))
-        cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 2
-        cronjobResultat[FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBeEqualTo 2
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 2
+        cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBe 2
+        cronjobResultat[FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBe 2
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 2
         cronjobResultat[THROTTLET_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL].shouldBeNull()
         varslingConsumer.ventPåRecords(2, duration = Duration.ofMinutes(1))
         meldingKafkaConsumer.ventPåRecords(2, duration = Duration.ofMinutes(1))
@@ -52,13 +52,13 @@ class ThrottleVarsleTest : FellesTestOppsett() {
     fun `Vi sender ut de andre inntektsmelding varsel etter 29 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(29))
         cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING].shouldBeNull()
-        cronjobResultat[FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
+        cronjobResultat[FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
         cronjobResultat[THROTTLET_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL].shouldBeNull()
-        cronjobResultat[SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 4
-        cronjobResultat[ANDRE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBeEqualTo 6
-        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 6
-        cronjobResultat[THROTTLET_ANDRE_MANGLER_INNTEKTSMELDING_VARSEL] shouldBeEqualTo 2
+        cronjobResultat[SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBe 4
+        cronjobResultat[ANDRE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBe 6
+        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBe 6
+        cronjobResultat[THROTTLET_ANDRE_MANGLER_INNTEKTSMELDING_VARSEL] shouldBe 2
         // Donner
         varslingConsumer.ventPåRecords(4, duration = Duration.ofMinutes(1))
         meldingKafkaConsumer.ventPåRecords(4, duration = Duration.ofMinutes(1))
@@ -72,12 +72,12 @@ class ThrottleVarsleTest : FellesTestOppsett() {
     fun `Vi sender ut de to siste andre inntektsmelding varsel etter 29 dager`() {
         val cronjobResultat = varselutsendingCronJob.runMedParameter(sendtTidspunkt.plusDays(29))
         cronjobResultat[SENDT_FØRSTE_VARSEL_MANGLER_INNTEKTSMELDING].shouldBeNull()
-        cronjobResultat[FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBeEqualTo 0
-        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 0
+        cronjobResultat[FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBe 0
+        cronjobResultat[UNIKE_FNR_KANDIDATER_FØRSTE_MANGLER_INNTEKTSMELDING] shouldBe 0
         cronjobResultat[THROTTLET_FØRSTE_MANGLER_INNTEKTSMELDING_VARSEL].shouldBeNull()
-        cronjobResultat[SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 2
-        cronjobResultat[ANDRE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBeEqualTo 2
-        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBeEqualTo 2
+        cronjobResultat[SENDT_ANDRE_VARSEL_MANGLER_INNTEKTSMELDING] shouldBe 2
+        cronjobResultat[ANDRE_MANGLER_INNTEKTSMELDING_VARSEL_DRY_RUN] shouldBe 2
+        cronjobResultat[UNIKE_FNR_KANDIDATER_ANDRE_MANGLER_INNTEKTSMELDING] shouldBe 2
         cronjobResultat[THROTTLET_ANDRE_MANGLER_INNTEKTSMELDING_VARSEL].shouldBeNull()
         // Donner
         varslingConsumer.ventPåRecords(2, duration = Duration.ofMinutes(1))
