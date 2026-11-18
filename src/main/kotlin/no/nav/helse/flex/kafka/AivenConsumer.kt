@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.listener.ContainerProperties
+import java.time.Duration
 
 @Configuration
 class AivenConsumer(
@@ -33,6 +34,7 @@ class AivenConsumer(
         factory.setConsumerFactory(DefaultKafkaConsumerFactory(simpleConsumerConfig()))
         factory.setCommonErrorHandler(aivenKafkaErrorHandler)
         factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL_IMMEDIATE
+        factory.containerProperties.setAuthExceptionRetryInterval(Duration.ofSeconds(10))
         return factory
     }
 }
